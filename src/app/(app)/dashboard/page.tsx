@@ -16,7 +16,9 @@ import {
   disqualificationReasons,
 } from "@/lib/mock-data";
 
-const stagger = {
+import type { Variants } from "framer-motion";
+
+const stagger: Variants = {
   hidden: {},
   show: {
     transition: {
@@ -25,7 +27,7 @@ const stagger = {
   },
 };
 
-const fadeUp = {
+const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
   show: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
 };
