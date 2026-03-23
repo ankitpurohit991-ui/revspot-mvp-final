@@ -67,6 +67,9 @@ export default function CreateAgentPage() {
   const [callingEnd, setCallingEnd] = useState("7:00 PM");
   const [activeDays, setActiveDays] = useState(["Mon", "Tue", "Wed", "Thu", "Fri"]);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [customerFollowUp, setCustomerFollowUp] = useState(false);
+  const [maxFollowUps, setMaxFollowUps] = useState("3");
+  const [followUpInterval, setFollowUpInterval] = useState("2 days");
 
   const canContinue1 = name.trim() && channel && template;
 
@@ -454,12 +457,43 @@ export default function CreateAgentPage() {
                   Advanced settings
                 </button>
                 {showAdvanced && (
-                  <div className="bg-white border border-border rounded-card p-6 space-y-3">
+                  <div className="bg-white border border-border rounded-card p-6 space-y-4">
                     <div>
                       <label className="block text-[12px] text-text-secondary mb-1">Max concurrent calls</label>
                       <input type="number" defaultValue={10} className="w-24 h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent tabular-nums" />
                     </div>
-                    <Toggle enabled={false} onToggle={() => {}} label="Customer follow-up" helper="Allow the agent to initiate follow-up calls with previously contacted leads" />
+                    <div>
+                      <Toggle enabled={customerFollowUp} onToggle={() => setCustomerFollowUp(!customerFollowUp)} label="Customer follow-up" helper="Allow the agent to initiate follow-up calls with previously contacted leads" />
+                      {customerFollowUp && (
+                        <div className="ml-0 mt-3 pl-4 border-l-2 border-border-subtle space-y-3">
+                          <div className="flex items-center gap-4">
+                            <div>
+                              <label className="block text-[11px] text-text-tertiary mb-1">Max follow-ups</label>
+                              <select value={maxFollowUps} onChange={(e) => setMaxFollowUps(e.target.value)}
+                                className="h-8 px-2.5 pr-7 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
+                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9B9B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}>
+                                {["1", "2", "3", "5"].map((n) => (
+                                  <option key={n} value={n}>{n} {n === "1" ? "time" : "times"}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <label className="block text-[11px] text-text-tertiary mb-1">Interval between follow-ups</label>
+                              <select value={followUpInterval} onChange={(e) => setFollowUpInterval(e.target.value)}
+                                className="h-8 px-2.5 pr-7 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
+                                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9B9B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}>
+                                {["4 hours", "8 hours", "1 day", "2 days", "3 days", "1 week"].map((v) => (
+                                  <option key={v} value={v}>{v}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-text-tertiary leading-relaxed">
+                            Agent will follow up up to {maxFollowUps} {maxFollowUps === "1" ? "time" : "times"}, spaced {followUpInterval} apart. Stops automatically when the lead is qualified, asks not to be called, or is marked lost.
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
