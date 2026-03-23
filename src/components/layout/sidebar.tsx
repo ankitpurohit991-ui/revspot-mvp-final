@@ -8,34 +8,23 @@ import {
   Monitor,
   Activity,
   Image,
-  Phone,
-  MessageCircle,
-  Clock,
+  Bot,
   FileText,
   Users,
   Globe,
-  Layers,
-  Settings,
   Plug,
+  Settings,
 } from "lucide-react";
+
+const dashboardItem = { name: "Dashboard", href: "/dashboard", icon: LayoutGrid };
 
 const navSections = [
   {
     label: "Lead Generation",
     items: [
-      { name: "Dashboard", href: "/dashboard", icon: LayoutGrid },
       { name: "Projects", href: "/projects", icon: FolderKanban },
       { name: "Campaigns", href: "/campaigns", icon: Monitor },
       { name: "Outreach", href: "/outreach", icon: Activity },
-      { name: "Creatives", href: "/creatives", icon: Image },
-    ],
-  },
-  {
-    label: "Agents",
-    items: [
-      { name: "Voice agents", href: "/agents/voice", icon: Phone },
-      { name: "WhatsApp agents", href: "/agents/whatsapp", icon: MessageCircle, badge: "soon" },
-      { name: "Sequences", href: "/sequences", icon: Clock },
     ],
   },
   {
@@ -43,8 +32,15 @@ const navSections = [
     items: [
       { name: "Leads", href: "/enquiries", icon: FileText },
       { name: "Contacts", href: "/contacts", icon: Users },
+    ],
+  },
+  {
+    label: "Tools",
+    items: [
+      { name: "Creatives", href: "/creatives", icon: Image },
+      { name: "Agents", href: "/agents", icon: Bot },
       { name: "Audiences", href: "/audiences", icon: Globe },
-      { name: "Enrichment", href: "/enrichment", icon: Layers },
+      { name: "Integrations", href: "/integrations", icon: Plug },
     ],
   },
 ];
@@ -76,6 +72,13 @@ export function Sidebar() {
     return pathname.startsWith(href);
   };
 
+  const navLinkClass = (href: string) =>
+    `relative flex items-center gap-2.5 px-2 h-9 rounded-[6px] transition-colors duration-150 ${
+      isActive(href)
+        ? "bg-surface-secondary text-text-primary font-medium"
+        : "text-text-secondary hover:bg-surface-secondary/60"
+    }`;
+
   return (
     <aside className="fixed left-0 top-0 h-screen w-sidebar bg-white border-r border-border flex flex-col z-50">
       {/* Logo */}
@@ -86,58 +89,33 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-1">
+        {/* Dashboard — standalone at top */}
+        <div className="mb-4">
+          <Link href={dashboardItem.href} className={navLinkClass(dashboardItem.href)} style={{ fontSize: "13.5px" }}>
+            <dashboardItem.icon size={16} strokeWidth={1.5} />
+            <span>{dashboardItem.name}</span>
+          </Link>
+        </div>
+
+        {/* Sections */}
         {navSections.map((section) => (
           <div key={section.label} className="mb-5">
             <div className="label-section px-2 mb-1.5">{section.label}</div>
             <div className="space-y-0.5">
-              {section.items.map((item) => {
-                const active = isActive(item.href);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`
-                      relative flex items-center gap-2.5 px-2 h-9 rounded-[6px] transition-colors duration-150
-                      ${
-                        active
-                          ? "bg-surface-secondary text-text-primary font-medium"
-                          : "text-text-secondary hover:bg-surface-secondary/60"
-                      }
-                    `}
-                    style={{ fontSize: "13.5px" }}
-                  >
-                    <item.icon size={16} strokeWidth={1.5} />
-                    <span>{item.name}</span>
-                    {item.badge && (
-                      <span className="ml-auto text-[10px] font-medium text-text-tertiary bg-surface-secondary px-1.5 py-0.5 rounded">
-                        {item.badge}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
+              {section.items.map((item) => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={navLinkClass(item.href)}
+                  style={{ fontSize: "13.5px" }}
+                >
+                  <item.icon size={16} strokeWidth={1.5} />
+                  <span>{item.name}</span>
+                </Link>
+              ))}
             </div>
           </div>
         ))}
-
-        {/* Integrations — standalone */}
-        <div className="mt-1 pt-3 border-t border-border">
-          <Link
-            href="/integrations"
-            className={`
-              relative flex items-center gap-2.5 px-2 h-9 rounded-[6px] transition-colors duration-150
-              ${
-                isActive("/integrations")
-                  ? "bg-surface-secondary text-text-primary font-medium"
-                  : "text-text-secondary hover:bg-surface-secondary/60"
-              }
-            `}
-            style={{ fontSize: "13.5px" }}
-          >
-            <Plug size={16} strokeWidth={1.5} />
-            <span>Integrations</span>
-          </Link>
-        </div>
       </nav>
 
       {/* User section */}

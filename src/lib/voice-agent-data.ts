@@ -1,148 +1,134 @@
-// Voice agent mock data
+// Agent mock data — unified (voice + whatsapp)
 
-export type AgentStatus = "active" | "inactive" | "training";
+export type AgentStatus = "active" | "draft" | "paused";
+export type AgentChannel = "voice" | "whatsapp";
+export type AgentTemplate = "qualifying" | "blank";
 
-export interface VoiceAgentItem {
+export interface AgentItem {
   id: string;
   name: string;
-  industry: string;
+  channel: AgentChannel;
+  template: AgentTemplate;
   languages: string[];
   status: AgentStatus;
   callsMade: number;
   qualificationRate: number;
   avgDuration: number;
   lastUsed: string;
-  template: string;
+  postCallSummary: string;
 }
 
-export const voiceAgentsList: VoiceAgentItem[] = [
+export const agentsList: AgentItem[] = [
   {
     id: "va-1",
     name: "Priya — Qualification Agent",
-    industry: "Real Estate",
-    languages: ["English", "Hindi"],
+    channel: "voice",
+    template: "qualifying",
+    languages: ["English", "Hindi", "Kannada"],
     status: "active",
     callsMade: 1284,
     qualificationRate: 34.2,
     avgDuration: 3.1,
     lastUsed: "2 hours ago",
-    template: "Qualifying Agent",
+    postCallSummary: "Auto-push to CRM · 2 retries · Slack notifications",
   },
   {
     id: "va-2",
     name: "Arjun — Follow-up Agent",
-    industry: "Real Estate",
-    languages: ["English", "Kannada"],
+    channel: "voice",
+    template: "qualifying",
+    languages: ["English", "Hindi"],
     status: "active",
     callsMade: 856,
     qualificationRate: 28.7,
     avgDuration: 2.4,
     lastUsed: "1 day ago",
-    template: "Qualifying Agent",
+    postCallSummary: "Auto-push to CRM · 3 retries · Email notifications",
   },
   {
     id: "va-3",
     name: "Neha — Survey Agent",
-    industry: "Real Estate",
+    channel: "voice",
+    template: "blank",
     languages: ["English"],
-    status: "inactive",
-    callsMade: 312,
+    status: "draft",
+    callsMade: 0,
     qualificationRate: 0,
-    avgDuration: 4.2,
-    lastUsed: "2 weeks ago",
-    template: "Blank Agent",
+    avgDuration: 0,
+    lastUsed: "Never",
+    postCallSummary: "No post-call actions configured",
   },
 ];
 
-// Industries for Step 3
-export const industries = [
-  { id: "real-estate", name: "Real Estate", icon: "Building2" },
-  { id: "healthcare", name: "Healthcare", icon: "Heart" },
-  { id: "finance", name: "Finance", icon: "Landmark" },
-  { id: "education", name: "Education", icon: "GraduationCap" },
-  { id: "hospitality", name: "Hospitality", icon: "Hotel" },
-  { id: "automotive", name: "Automotive", icon: "Car" },
-  { id: "technology", name: "Technology", icon: "Cpu" },
-  { id: "professional", name: "Professional Services", icon: "Briefcase" },
-  { id: "food", name: "Food & Beverage", icon: "UtensilsCrossed" },
-  { id: "manufacturing", name: "Manufacturing", icon: "Factory" },
-  { id: "fitness", name: "Fitness", icon: "Dumbbell" },
-  { id: "legal", name: "Legal", icon: "Scale" },
-  { id: "nonprofit", name: "Non-Profit", icon: "HandHeart" },
-  { id: "media", name: "Media", icon: "Tv" },
-  { id: "retail", name: "Retail", icon: "ShoppingBag" },
-  { id: "government", name: "Government", icon: "Building" },
-  { id: "other", name: "Other", icon: "MoreHorizontal" },
-];
-
-// Voices for Step 4
+// Voices for Step 3
 export const voiceOptions = [
-  { id: "v-1", name: "Priya", gender: "Female", accent: "Indian English" },
-  { id: "v-2", name: "Arjun", gender: "Male", accent: "Indian English" },
-  { id: "v-3", name: "Neha", gender: "Female", accent: "Hindi" },
-  { id: "v-4", name: "Raj", gender: "Male", accent: "Hindi" },
-  { id: "v-5", name: "Ananya", gender: "Female", accent: "Neutral English" },
-  { id: "v-6", name: "Vikram", gender: "Male", accent: "Neutral English" },
+  { id: "v-1", name: "Priya", gender: "Female", languages: ["EN", "HI", "KN"] },
+  { id: "v-2", name: "Arjun", gender: "Male", languages: ["EN", "HI"] },
+  { id: "v-3", name: "Meera", gender: "Female", languages: ["EN", "HI", "TA"] },
+  { id: "v-4", name: "Raj", gender: "Male", languages: ["EN", "HI", "KN"] },
+  { id: "v-5", name: "Ananya", gender: "Female", languages: ["EN", "HI", "MR"] },
+  { id: "v-6", name: "Kiran", gender: "Male", languages: ["EN", "HI", "TE"] },
 ];
 
 export const languageOptions = [
-  "English", "Hindi", "Kannada", "Tamil", "Telugu", "Marathi", "Bengali", "Gujarati",
+  "English", "Hindi", "Kannada", "Tamil", "Telugu", "Marathi", "Bengali",
 ];
 
-// Default qualification metrics for Real Estate
 export interface QualificationMetric {
   id: string;
   name: string;
   type: "yes_no" | "scale" | "text" | "number";
   condition: string;
-  weight: number;
+  weight: "critical" | "high" | "medium" | "low";
 }
 
 export const defaultMetrics: QualificationMetric[] = [
-  { id: "qm-1", name: "Budget in range", type: "yes_no", condition: "Yes", weight: 30 },
-  { id: "qm-2", name: "Purchase timeline", type: "scale", condition: "≤ 6 months", weight: 25 },
-  { id: "qm-3", name: "Decision maker", type: "yes_no", condition: "Yes", weight: 25 },
-  { id: "qm-4", name: "Location preference match", type: "yes_no", condition: "Yes", weight: 20 },
+  { id: "qm-1", name: "Budget fit", type: "yes_no", condition: "Budget ≥ ₹5 Cr", weight: "critical" },
+  { id: "qm-2", name: "Timeline", type: "scale", condition: "Planning within 6 months (score 4+)", weight: "high" },
+  { id: "qm-3", name: "Site visit intent", type: "yes_no", condition: "Willing to visit = Yes", weight: "high" },
+  { id: "qm-4", name: "Decision maker", type: "yes_no", condition: "Is primary decision maker", weight: "medium" },
 ];
 
-// Conversation flow steps
-export const conversationFlow = [
-  { step: 1, name: "Greeting", description: "Introduce yourself and confirm identity" },
-  { step: 2, name: "Qualification", description: "Ask qualifying questions about budget, timeline, preferences" },
-  { step: 3, name: "Scoring", description: "Evaluate responses against qualification metrics" },
-  { step: 4, name: "Next Steps", description: "Propose site visit or follow-up based on score" },
-  { step: 5, name: "Closing", description: "Confirm next steps, thank and disconnect" },
+export const conversationSteps = [
+  { id: "cs-1", step: 1, name: "Greeting", script: "Hello, this is [Agent Name] from Star Realtor. Am I speaking with [Lead Name]?" },
+  { id: "cs-2", step: 2, name: "Interest confirmation", script: "I see you expressed interest in [Project]. Is this a good time for a quick chat?" },
+  { id: "cs-3", step: 3, name: "Qualification questions", script: "Ask about: Budget range, Purchase timeline, Property type preference, Family size" },
+  { id: "cs-4", step: 4, name: "Scoring", script: "Rate the lead based on qualification metrics" },
+  { id: "cs-5", step: 5, name: "Next steps", script: "If qualified: offer site visit. If not qualified: thank them, note reason." },
+  { id: "cs-6", step: 6, name: "Closing", script: "Summarize what was discussed, confirm next steps, thank them." },
 ];
 
-// Default system prompt
-export const defaultSystemPrompt = `You are Priya, an AI real estate assistant for Star Realtor. Your goal is to qualify leads for luxury properties in Bangalore.
+export const defaultSystemPrompt = `You are a professional real estate qualification agent for Star Realtor. You call leads who have expressed interest in luxury properties in Bangalore. Be warm, professional, and consultative. Your goal is to understand the caller's budget, timeline, and property preferences. Never be pushy. If the lead is qualified, offer to schedule a site visit. If not, thank them politely and note the reason.`;
 
-GUIDELINES:
-- Be warm, professional, and conversational
-- Confirm the lead's identity before proceeding
-- Ask about budget, timeline, configuration preference, and location
-- Determine if they are the decision maker
-- If qualified, propose a site visit and confirm a time slot
-- If not qualified, thank them politely and end the call
-- Never be pushy or aggressive
-- Keep the conversation under 4 minutes
-
-QUALIFICATION CRITERIA:
-- Budget: ₹1Cr or above
-- Timeline: Within 12 months
-- Must be decision maker or spouse of decision maker
-- Location: Bangalore or willing to relocate`;
+export const defaultFAQs = [
+  { question: "What is the price range?", answer: "4 & 5 BHK villas starting from ₹6.5 Crore" },
+  { question: "Is it RERA registered?", answer: "Yes, fully RERA registered with clear title" },
+  { question: "Where is the project located?", answer: "IVC Road, near Kempegowda International Airport, North Bangalore" },
+];
 
 // Agent detail data
 export const agentDetail = {
-  ...voiceAgentsList[0],
+  ...agentsList[0],
   goal: "Qualify inbound leads for luxury real estate properties in Whitefield, Bangalore. Determine budget, timeline, configuration preference, and schedule site visits for qualified leads.",
   systemPrompt: defaultSystemPrompt,
   knowledgeBases: ["Prestige_Lakeside_Brochure.pdf", "Assetz_Mizumi_Pricing.pdf"],
   metrics: defaultMetrics,
   voice: voiceOptions[0],
-  selectedLanguages: ["English", "Hindi"],
-  flow: conversationFlow,
+  selectedLanguages: ["English", "Hindi", "Kannada"],
+  tone: "conversational" as const,
+  flow: conversationSteps,
+  postCall: {
+    pushToCRM: true,
+    retryUnanswered: true,
+    maxRetries: 2,
+    retryAfter: "4 hours",
+    sendFollowUpVoicemail: true,
+    notifyOnQualified: true,
+    notifyChannels: ["slack"],
+    callingHoursStart: "10:00 AM",
+    callingHoursEnd: "7:00 PM",
+    activeDays: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+  },
   stats: {
     totalCalls: 1284,
     connected: 1012,
@@ -154,11 +140,11 @@ export const agentDetail = {
     connectionRate: 78.8,
   },
   recentCalls: [
-    { id: "rc-1", name: "V***** R*****", phone: "98XXX XX342", outcome: "qualified", duration: 4.2, date: "2026-03-22T14:32:00" },
-    { id: "rc-2", name: "S***** M*****", phone: "90XXX XX891", outcome: "not_qualified", duration: 2.1, date: "2026-03-22T14:18:00" },
-    { id: "rc-3", name: "A***** K*****", phone: "87XXX XX156", outcome: "qualified", duration: 3.5, date: "2026-03-22T13:55:00" },
-    { id: "rc-4", name: "P***** J*****", phone: "99XXX XX723", outcome: "callback", duration: 0.8, date: "2026-03-22T13:40:00" },
-    { id: "rc-5", name: "R***** B*****", phone: "80XXX XX445", outcome: "no_answer", duration: 0, date: "2026-03-22T13:22:00" },
-    { id: "rc-6", name: "N***** D*****", phone: "91XXX XX867", outcome: "qualified", duration: 5.1, date: "2026-03-22T12:50:00" },
+    { id: "rc-1", name: "V***** R*****", phone: "98XXX XX342", outcome: "qualified" as const, duration: 4.2, date: "2026-03-22T14:32:00", qualification: "Intent Qualified" },
+    { id: "rc-2", name: "S***** M*****", phone: "90XXX XX891", outcome: "not_qualified" as const, duration: 2.1, date: "2026-03-22T14:18:00", qualification: "Not Qualified" },
+    { id: "rc-3", name: "A***** K*****", phone: "87XXX XX156", outcome: "qualified" as const, duration: 3.5, date: "2026-03-22T13:55:00", qualification: "Intent Qualified" },
+    { id: "rc-4", name: "P***** J*****", phone: "99XXX XX723", outcome: "callback" as const, duration: 0.8, date: "2026-03-22T13:40:00", qualification: "Pending" },
+    { id: "rc-5", name: "R***** B*****", phone: "80XXX XX445", outcome: "no_answer" as const, duration: 0, date: "2026-03-22T13:22:00", qualification: "—" },
+    { id: "rc-6", name: "N***** D*****", phone: "91XXX XX867", outcome: "voicemail" as const, duration: 0.5, date: "2026-03-22T12:50:00", qualification: "—" },
   ],
 };
