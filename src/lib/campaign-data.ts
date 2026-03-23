@@ -200,15 +200,32 @@ export const campaignDetail: CampaignDetail = {
 
 export type LeadTemperature = "hot" | "warm" | "lukewarm" | "cold";
 export type LeadQualification = "qualified" | "not_qualified" | "pending";
-export type LeadStatus =
+export type LeadStatusValue =
+  | "intent_qualified"
+  | "not_qualified"
+  | "interested_not_ready"
+  | "duplicate"
+  | "invalid";
+export type LeadStage =
   | "new"
   | "contacted"
-  | "interested"
-  | "site_visit"
+  | "site_visit_scheduled"
+  | "site_visit_done"
   | "negotiation"
-  | "converted"
+  | "won"
   | "lost";
+// Alias for backward compat with enquiries-data
+export type LeadStatus = LeadStatusValue;
 export type EnrichmentStatus = "enriched" | "not_enriched" | "failed";
+export type CRMSyncStatus = "pushed" | "pending" | "failed" | "not_synced" | "na";
+
+export interface CRMSyncInfo {
+  status: CRMSyncStatus;
+  pushedAt?: string;
+  crmRecordId?: string;
+  failReason?: string;
+  syncHistory?: { date: string; action: string }[];
+}
 
 export interface CampaignLead {
   id: string;
@@ -220,10 +237,11 @@ export interface CampaignLead {
   enrichmentStatus: EnrichmentStatus;
   aiQualification: LeadQualification;
   temperature: LeadTemperature;
-  leadStatus: LeadStatus;
+  leadStatus: LeadStatusValue;
+  leadStage: LeadStage;
   verified: boolean;
   sql: boolean;
-  sentToCRM: string | null;
+  crmSync: CRMSyncInfo;
   campaign: string;
   adset: string;
   adName: string;
@@ -232,22 +250,17 @@ export interface CampaignLead {
 
 export const campaignLeads: CampaignLead[] = [
   {
-    id: "lead-101",
-    name: "V***** R*****",
-    phone: "98XXX XX342",
-    email: "v*****@gmail.com",
-    createdAt: "2026-03-20T14:32:00",
-    updatedAt: "2026-03-20T15:10:00",
-    enrichmentStatus: "enriched",
-    aiQualification: "qualified",
-    temperature: "hot",
-    leadStatus: "interested",
-    verified: true,
-    sql: true,
-    sentToCRM: "ankit@starealtor.in",
-    campaign: "Assetz Mizumi PM R3",
-    adset: "Whitefield HNI — 30-45",
-    adName: "Mizumi 3BHK Carousel v2",
+    id: "lead-101", name: "V***** R*****", phone: "98XXX XX342", email: "v*****@gmail.com",
+    createdAt: "2026-03-20T14:32:00", updatedAt: "2026-03-20T15:10:00",
+    enrichmentStatus: "enriched", aiQualification: "qualified",
+    temperature: "warm", leadStatus: "intent_qualified", leadStage: "site_visit_done",
+    verified: true, sql: true,
+    crmSync: { status: "pushed", pushedAt: "2026-03-20T15:12:00", crmRecordId: "Contact #4521",
+      syncHistory: [
+        { date: "Mar 20, 3:12 PM", action: "Pushed to CRM (auto-sync)" },
+        { date: "Mar 21, 10:34 AM", action: "Stage updated: Contacted → Site Visit Done (synced from CRM)" },
+      ] },
+    campaign: "Assetz Mizumi PM R3", adset: "Whitefield HNI — 30-45", adName: "Mizumi 3BHK Carousel v2",
     formResponses: [
       { question: "Budget range?", answer: "₹1.5Cr - ₹2Cr" },
       { question: "Configuration preference?", answer: "3 BHK" },
@@ -256,22 +269,13 @@ export const campaignLeads: CampaignLead[] = [
     ],
   },
   {
-    id: "lead-102",
-    name: "S***** M*****",
-    phone: "90XXX XX891",
-    email: "s*****@yahoo.com",
-    createdAt: "2026-03-20T11:15:00",
-    updatedAt: "2026-03-20T14:45:00",
-    enrichmentStatus: "enriched",
-    aiQualification: "pending",
-    temperature: "warm",
-    leadStatus: "contacted",
-    verified: false,
-    sql: false,
-    sentToCRM: null,
-    campaign: "Assetz Mizumi PM R3",
-    adset: "Sarjapur IT Corridor",
-    adName: "Mizumi Lifestyle Video",
+    id: "lead-102", name: "S***** M*****", phone: "90XXX XX891", email: "s*****@yahoo.com",
+    createdAt: "2026-03-20T11:15:00", updatedAt: "2026-03-20T14:45:00",
+    enrichmentStatus: "enriched", aiQualification: "pending",
+    temperature: "lukewarm", leadStatus: "interested_not_ready", leadStage: "contacted",
+    verified: false, sql: false,
+    crmSync: { status: "pending" },
+    campaign: "Assetz Mizumi PM R3", adset: "Sarjapur IT Corridor", adName: "Mizumi Lifestyle Video",
     formResponses: [
       { question: "Budget range?", answer: "₹1Cr - ₹1.5Cr" },
       { question: "Configuration preference?", answer: "2 BHK" },
@@ -279,22 +283,17 @@ export const campaignLeads: CampaignLead[] = [
     ],
   },
   {
-    id: "lead-103",
-    name: "A***** K*****",
-    phone: "87XXX XX156",
-    email: "a*****@outlook.com",
-    createdAt: "2026-03-19T18:22:00",
-    updatedAt: "2026-03-20T09:30:00",
-    enrichmentStatus: "enriched",
-    aiQualification: "qualified",
-    temperature: "hot",
-    leadStatus: "site_visit",
-    verified: true,
-    sql: true,
-    sentToCRM: "priya@starealtor.in",
-    campaign: "Assetz Mizumi PM R3",
-    adset: "Whitefield HNI — 30-45",
-    adName: "Mizumi Floor Plan Static",
+    id: "lead-103", name: "A***** K*****", phone: "87XXX XX156", email: "a*****@outlook.com",
+    createdAt: "2026-03-19T18:22:00", updatedAt: "2026-03-20T09:30:00",
+    enrichmentStatus: "enriched", aiQualification: "qualified",
+    temperature: "warm", leadStatus: "intent_qualified", leadStage: "site_visit_scheduled",
+    verified: true, sql: true,
+    crmSync: { status: "pushed", pushedAt: "2026-03-19T18:30:00", crmRecordId: "Contact #4518",
+      syncHistory: [
+        { date: "Mar 19, 6:30 PM", action: "Pushed to CRM (auto-sync)" },
+        { date: "Mar 20, 9:30 AM", action: "Stage updated: New → Site Visit Scheduled (synced from CRM)" },
+      ] },
+    campaign: "Assetz Mizumi PM R3", adset: "Whitefield HNI — 30-45", adName: "Mizumi Floor Plan Static",
     formResponses: [
       { question: "Budget range?", answer: "₹2Cr - ₹2.5Cr" },
       { question: "Configuration preference?", answer: "3 BHK Premium" },
@@ -303,22 +302,13 @@ export const campaignLeads: CampaignLead[] = [
     ],
   },
   {
-    id: "lead-104",
-    name: "P***** J*****",
-    phone: "99XXX XX723",
-    email: "p*****@gmail.com",
-    createdAt: "2026-03-19T16:05:00",
-    updatedAt: "2026-03-19T16:05:00",
-    enrichmentStatus: "not_enriched",
-    aiQualification: "not_qualified",
-    temperature: "cold",
-    leadStatus: "new",
-    verified: false,
-    sql: false,
-    sentToCRM: null,
-    campaign: "Assetz Mizumi PM R3",
-    adset: "Broad Bangalore — 25-55",
-    adName: "Mizumi 3BHK Carousel v2",
+    id: "lead-104", name: "P***** J*****", phone: "99XXX XX723", email: "p*****@gmail.com",
+    createdAt: "2026-03-19T16:05:00", updatedAt: "2026-03-19T16:05:00",
+    enrichmentStatus: "not_enriched", aiQualification: "not_qualified",
+    temperature: "cold", leadStatus: "not_qualified", leadStage: "new",
+    verified: false, sql: false,
+    crmSync: { status: "not_synced" },
+    campaign: "Assetz Mizumi PM R3", adset: "Broad Bangalore — 25-55", adName: "Mizumi 3BHK Carousel v2",
     formResponses: [
       { question: "Budget range?", answer: "Below ₹80L" },
       { question: "Configuration preference?", answer: "2 BHK" },
@@ -326,22 +316,14 @@ export const campaignLeads: CampaignLead[] = [
     ],
   },
   {
-    id: "lead-105",
-    name: "R***** B*****",
-    phone: "80XXX XX445",
-    email: "r*****@gmail.com",
-    createdAt: "2026-03-19T10:48:00",
-    updatedAt: "2026-03-20T11:20:00",
-    enrichmentStatus: "enriched",
-    aiQualification: "qualified",
-    temperature: "warm",
-    leadStatus: "interested",
-    verified: true,
-    sql: false,
-    sentToCRM: null,
-    campaign: "Assetz Mizumi PM R3",
-    adset: "Sarjapur IT Corridor",
-    adName: "Mizumi Lifestyle Video",
+    id: "lead-105", name: "R***** B*****", phone: "80XXX XX445", email: "r*****@gmail.com",
+    createdAt: "2026-03-19T10:48:00", updatedAt: "2026-03-20T11:20:00",
+    enrichmentStatus: "enriched", aiQualification: "qualified",
+    temperature: "warm", leadStatus: "intent_qualified", leadStage: "contacted",
+    verified: true, sql: false,
+    crmSync: { status: "pushed", pushedAt: "2026-03-19T11:00:00", crmRecordId: "Contact #4515",
+      syncHistory: [{ date: "Mar 19, 11:00 AM", action: "Pushed to CRM (auto-sync)" }] },
+    campaign: "Assetz Mizumi PM R3", adset: "Sarjapur IT Corridor", adName: "Mizumi Lifestyle Video",
     formResponses: [
       { question: "Budget range?", answer: "₹1.5Cr - ₹2Cr" },
       { question: "Configuration preference?", answer: "3 BHK" },
@@ -350,22 +332,13 @@ export const campaignLeads: CampaignLead[] = [
     ],
   },
   {
-    id: "lead-106",
-    name: "N***** D*****",
-    phone: "91XXX XX867",
-    email: "n*****@hotmail.com",
-    createdAt: "2026-03-18T21:30:00",
-    updatedAt: "2026-03-19T10:15:00",
-    enrichmentStatus: "enriched",
-    aiQualification: "not_qualified",
-    temperature: "lukewarm",
-    leadStatus: "contacted",
-    verified: false,
-    sql: false,
-    sentToCRM: null,
-    campaign: "Assetz Mizumi PM R3",
-    adset: "Whitefield HNI — 30-45",
-    adName: "Mizumi Amenities Carousel",
+    id: "lead-106", name: "N***** D*****", phone: "91XXX XX867", email: "n*****@hotmail.com",
+    createdAt: "2026-03-18T21:30:00", updatedAt: "2026-03-19T10:15:00",
+    enrichmentStatus: "enriched", aiQualification: "not_qualified",
+    temperature: "lukewarm", leadStatus: "not_qualified", leadStage: "contacted",
+    verified: false, sql: false,
+    crmSync: { status: "not_synced" },
+    campaign: "Assetz Mizumi PM R3", adset: "Whitefield HNI — 30-45", adName: "Mizumi Amenities Carousel",
     formResponses: [
       { question: "Budget range?", answer: "₹1Cr - ₹1.5Cr" },
       { question: "Configuration preference?", answer: "2 BHK" },
@@ -373,22 +346,17 @@ export const campaignLeads: CampaignLead[] = [
     ],
   },
   {
-    id: "lead-107",
-    name: "M***** S*****",
-    phone: "96XXX XX218",
-    email: "m*****@gmail.com",
-    createdAt: "2026-03-18T15:12:00",
-    updatedAt: "2026-03-19T16:40:00",
-    enrichmentStatus: "enriched",
-    aiQualification: "qualified",
-    temperature: "hot",
-    leadStatus: "negotiation",
-    verified: true,
-    sql: true,
-    sentToCRM: "ankit@starealtor.in",
-    campaign: "Assetz Mizumi PM R3",
-    adset: "Whitefield HNI — 30-45",
-    adName: "Mizumi 3BHK Carousel v2",
+    id: "lead-107", name: "M***** S*****", phone: "96XXX XX218", email: "m*****@gmail.com",
+    createdAt: "2026-03-18T15:12:00", updatedAt: "2026-03-19T16:40:00",
+    enrichmentStatus: "enriched", aiQualification: "qualified",
+    temperature: "warm", leadStatus: "intent_qualified", leadStage: "negotiation",
+    verified: true, sql: true,
+    crmSync: { status: "pushed", pushedAt: "2026-03-18T15:20:00", crmRecordId: "Contact #4510",
+      syncHistory: [
+        { date: "Mar 18, 3:20 PM", action: "Pushed to CRM (auto-sync)" },
+        { date: "Mar 19, 4:40 PM", action: "Stage updated: Contacted → Negotiation (synced from CRM)" },
+      ] },
+    campaign: "Assetz Mizumi PM R3", adset: "Whitefield HNI — 30-45", adName: "Mizumi 3BHK Carousel v2",
     formResponses: [
       { question: "Budget range?", answer: "₹2Cr+" },
       { question: "Configuration preference?", answer: "4 BHK" },
@@ -397,44 +365,30 @@ export const campaignLeads: CampaignLead[] = [
     ],
   },
   {
-    id: "lead-108",
-    name: "K***** G*****",
-    phone: "88XXX XX534",
-    email: "k*****@gmail.com",
-    createdAt: "2026-03-18T09:45:00",
-    updatedAt: "2026-03-18T09:45:00",
-    enrichmentStatus: "not_enriched",
-    aiQualification: "pending",
-    temperature: "lukewarm",
-    leadStatus: "new",
-    verified: false,
-    sql: false,
-    sentToCRM: null,
-    campaign: "Assetz Mizumi PM R3",
-    adset: "Broad Bangalore — 25-55",
-    adName: "Mizumi Floor Plan Static",
+    id: "lead-108", name: "K***** G*****", phone: "88XXX XX534", email: "k*****@gmail.com",
+    createdAt: "2026-03-18T09:45:00", updatedAt: "2026-03-18T09:45:00",
+    enrichmentStatus: "not_enriched", aiQualification: "pending",
+    temperature: "lukewarm", leadStatus: "interested_not_ready", leadStage: "new",
+    verified: false, sql: false,
+    crmSync: { status: "pending" },
+    campaign: "Assetz Mizumi PM R3", adset: "Broad Bangalore — 25-55", adName: "Mizumi Floor Plan Static",
     formResponses: [
       { question: "Budget range?", answer: "₹1Cr - ₹1.5Cr" },
       { question: "Configuration preference?", answer: "3 BHK" },
     ],
   },
   {
-    id: "lead-109",
-    name: "D***** T*****",
-    phone: "70XXX XX912",
-    email: "d*****@gmail.com",
-    createdAt: "2026-03-17T20:18:00",
-    updatedAt: "2026-03-18T14:30:00",
-    enrichmentStatus: "enriched",
-    aiQualification: "qualified",
-    temperature: "warm",
-    leadStatus: "interested",
-    verified: true,
-    sql: true,
-    sentToCRM: "priya@starealtor.in",
-    campaign: "Assetz Mizumi PM R3",
-    adset: "Sarjapur IT Corridor",
-    adName: "Mizumi Amenities Carousel",
+    id: "lead-109", name: "D***** T*****", phone: "70XXX XX912", email: "d*****@gmail.com",
+    createdAt: "2026-03-17T20:18:00", updatedAt: "2026-03-18T14:30:00",
+    enrichmentStatus: "enriched", aiQualification: "qualified",
+    temperature: "warm", leadStatus: "intent_qualified", leadStage: "site_visit_done",
+    verified: true, sql: true,
+    crmSync: { status: "pushed", pushedAt: "2026-03-17T20:25:00", crmRecordId: "Contact #4505",
+      syncHistory: [
+        { date: "Mar 17, 8:25 PM", action: "Pushed to CRM (auto-sync)" },
+        { date: "Mar 18, 2:30 PM", action: "Stage updated: Contacted → Site Visit Done (synced from CRM)" },
+      ] },
+    campaign: "Assetz Mizumi PM R3", adset: "Sarjapur IT Corridor", adName: "Mizumi Amenities Carousel",
     formResponses: [
       { question: "Budget range?", answer: "₹1.5Cr - ₹2Cr" },
       { question: "Configuration preference?", answer: "3 BHK" },
@@ -443,44 +397,30 @@ export const campaignLeads: CampaignLead[] = [
     ],
   },
   {
-    id: "lead-110",
-    name: "G***** P*****",
-    phone: "95XXX XX671",
-    email: "g*****@yahoo.com",
-    createdAt: "2026-03-17T14:55:00",
-    updatedAt: "2026-03-17T14:55:00",
-    enrichmentStatus: "failed",
-    aiQualification: "pending",
-    temperature: "cold",
-    leadStatus: "new",
-    verified: false,
-    sql: false,
-    sentToCRM: null,
-    campaign: "Assetz Mizumi PM R3",
-    adset: "Broad Bangalore — 25-55",
-    adName: "Mizumi Lifestyle Video",
+    id: "lead-110", name: "G***** P*****", phone: "95XXX XX671", email: "g*****@yahoo.com",
+    createdAt: "2026-03-17T14:55:00", updatedAt: "2026-03-17T14:55:00",
+    enrichmentStatus: "failed", aiQualification: "pending",
+    temperature: "cold", leadStatus: "duplicate", leadStage: "new",
+    verified: false, sql: false,
+    crmSync: { status: "failed", failReason: "Duplicate phone number found in CRM" },
+    campaign: "Assetz Mizumi PM R3", adset: "Broad Bangalore — 25-55", adName: "Mizumi Lifestyle Video",
     formResponses: [
       { question: "Budget range?", answer: "Not specified" },
       { question: "Configuration preference?", answer: "Any" },
     ],
   },
   {
-    id: "lead-111",
-    name: "T***** A*****",
-    phone: "85XXX XX390",
-    email: "t*****@gmail.com",
-    createdAt: "2026-03-17T11:30:00",
-    updatedAt: "2026-03-18T10:00:00",
-    enrichmentStatus: "enriched",
-    aiQualification: "qualified",
-    temperature: "hot",
-    leadStatus: "site_visit",
-    verified: true,
-    sql: true,
-    sentToCRM: "ankit@starealtor.in",
-    campaign: "Assetz Mizumi PM R3",
-    adset: "Whitefield HNI — 30-45",
-    adName: "Mizumi 3BHK Carousel v2",
+    id: "lead-111", name: "T***** A*****", phone: "85XXX XX390", email: "t*****@gmail.com",
+    createdAt: "2026-03-17T11:30:00", updatedAt: "2026-03-18T10:00:00",
+    enrichmentStatus: "enriched", aiQualification: "qualified",
+    temperature: "warm", leadStatus: "intent_qualified", leadStage: "won",
+    verified: true, sql: true,
+    crmSync: { status: "pushed", pushedAt: "2026-03-17T11:35:00", crmRecordId: "Contact #4500",
+      syncHistory: [
+        { date: "Mar 17, 11:35 AM", action: "Pushed to CRM (auto-sync)" },
+        { date: "Mar 18, 10:00 AM", action: "Stage updated: Negotiation → Won (synced from CRM)" },
+      ] },
+    campaign: "Assetz Mizumi PM R3", adset: "Whitefield HNI — 30-45", adName: "Mizumi 3BHK Carousel v2",
     formResponses: [
       { question: "Budget range?", answer: "₹2Cr - ₹3Cr" },
       { question: "Configuration preference?", answer: "4 BHK Penthouse" },
@@ -489,22 +429,13 @@ export const campaignLeads: CampaignLead[] = [
     ],
   },
   {
-    id: "lead-112",
-    name: "H***** V*****",
-    phone: "93XXX XX148",
-    email: "h*****@gmail.com",
-    createdAt: "2026-03-16T19:42:00",
-    updatedAt: "2026-03-17T09:15:00",
-    enrichmentStatus: "enriched",
-    aiQualification: "not_qualified",
-    temperature: "cold",
-    leadStatus: "lost",
-    verified: false,
-    sql: false,
-    sentToCRM: null,
-    campaign: "Assetz Mizumi PM R3",
-    adset: "Broad Bangalore — 25-55",
-    adName: "Mizumi Floor Plan Static",
+    id: "lead-112", name: "H***** V*****", phone: "93XXX XX148", email: "h*****@gmail.com",
+    createdAt: "2026-03-16T19:42:00", updatedAt: "2026-03-17T09:15:00",
+    enrichmentStatus: "enriched", aiQualification: "not_qualified",
+    temperature: "cold", leadStatus: "invalid", leadStage: "lost",
+    verified: false, sql: false,
+    crmSync: { status: "not_synced" },
+    campaign: "Assetz Mizumi PM R3", adset: "Broad Bangalore — 25-55", adName: "Mizumi Floor Plan Static",
     formResponses: [
       { question: "Budget range?", answer: "Below ₹70L" },
       { question: "Timeline to purchase?", answer: ">12 months" },

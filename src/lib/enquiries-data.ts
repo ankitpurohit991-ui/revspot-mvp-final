@@ -2,9 +2,18 @@
 import type {
   LeadTemperature,
   LeadQualification,
-  LeadStatus,
   EnrichmentStatus,
 } from "@/lib/campaign-data";
+
+// Uses a broader set of lead statuses for the CRM view (sales pipeline stages)
+export type EnquiryLeadStatus =
+  | "new"
+  | "contacted"
+  | "interested"
+  | "site_visit"
+  | "negotiation"
+  | "converted"
+  | "lost";
 
 export interface EnquiryLead {
   id: string;
@@ -18,7 +27,7 @@ export interface EnquiryLead {
   enrichmentStatus: EnrichmentStatus;
   aiQualification: LeadQualification;
   temperature: LeadTemperature;
-  leadStatus: LeadStatus;
+  leadStatus: EnquiryLeadStatus;
   verified: boolean;
   sql: boolean;
   sentToCRM: string | null;
