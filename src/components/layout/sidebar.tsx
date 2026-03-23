@@ -121,7 +121,7 @@ export function Sidebar() {
         ))}
 
         {/* Integrations — standalone */}
-        <div className="mt-1 pt-3 border-t border-border mx-2">
+        <div className="mt-1 pt-3 border-t border-border">
           <Link
             href="/integrations"
             className={`
