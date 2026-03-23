@@ -16,6 +16,7 @@ import {
   Globe,
   Layers,
   Settings,
+  Plug,
 } from "lucide-react";
 
 const navSections = [
@@ -118,6 +119,25 @@ export function Sidebar() {
             </div>
           </div>
         ))}
+
+        {/* Integrations — standalone */}
+        <div className="mt-1 pt-3 border-t border-border mx-2">
+          <Link
+            href="/integrations"
+            className={`
+              relative flex items-center gap-2.5 px-2 h-9 rounded-[6px] transition-colors duration-150
+              ${
+                isActive("/integrations")
+                  ? "bg-surface-secondary text-text-primary font-medium"
+                  : "text-text-secondary hover:bg-surface-secondary/60"
+              }
+            `}
+            style={{ fontSize: "13.5px" }}
+          >
+            <Plug size={16} strokeWidth={1.5} />
+            <span>Integrations</span>
+          </Link>
+        </div>
       </nav>
 
       {/* User section */}
