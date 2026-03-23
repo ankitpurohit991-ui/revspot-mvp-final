@@ -5,13 +5,15 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import {
-  ArrowLeft, Pencil, Phone, Play, ShieldCheck, Volume2, CheckCircle2,
-  AlertTriangle, PhoneOff, Voicemail, PhoneCall,
+  ArrowLeft, Pencil, Phone, Play, Volume2, CheckCircle2,
+  AlertTriangle, PhoneOff, Voicemail, PhoneCall, Calendar, Target,
+  PhoneIncoming, MessageSquare, ShieldCheck, Clock,
 } from "lucide-react";
 import { format } from "date-fns";
-import { agentDetail } from "@/lib/voice-agent-data";
+import { agentDetail, agentPerformance } from "@/lib/voice-agent-data";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
 } from "recharts";
 
 const fadeUp: Variants = {
@@ -20,12 +22,6 @@ const fadeUp: Variants = {
 };
 
 type Tab = "configuration" | "call_history" | "performance";
-
-const callChartData = Array.from({ length: 14 }, (_, i) => ({
-  date: `Mar ${9 + i}`,
-  calls: Math.floor(60 + Math.random() * 80),
-  qualified: Math.floor(15 + Math.random() * 40),
-}));
 
 function OutcomeIcon({ outcome }: { outcome: string }) {
   const cfg: Record<string, { icon: typeof CheckCircle2; cls: string; label: string }> = {
@@ -43,15 +39,58 @@ function OutcomeIcon({ outcome }: { outcome: string }) {
   );
 }
 
+// ── Metric Card for Performance Tab ─────────────────────────
+function PerfMetricCard({ icon: Icon, label, value, subtext }: {
+  icon?: typeof Target;
+  label: string;
+  value: string;
+  subtext: string;
+}) {
+  return (
+    <div className="bg-white border border-border rounded-card px-4 py-3.5 hover:shadow-card-hover hover:-translate-y-px transition-all duration-150">
+      {Icon && <Icon size={15} strokeWidth={1.5} className="text-text-tertiary mb-2" />}
+      <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px]">{label}</div>
+      <div className="text-[24px] font-semibold text-text-primary mt-1 tabular-nums leading-tight">{value}</div>
+      <div className="text-[12px] text-text-secondary mt-0.5">{subtext}</div>
+    </div>
+  );
+}
+
+// ── Donut Chart Custom Label ────────────────────────────────
+const RADIAN = Math.PI / 180;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function renderCustomizedLabel(props: any) {
+  const { cx, cy, midAngle, innerRadius, outerRadius, value } = props;
+  const radius = innerRadius + (outerRadius - innerRadius) * 1.4;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  return (
+    <text x={x} y={y} fill="#0A0A0A" textAnchor={x > cx ? "start" : "end"} dominantBaseline="central" fontSize={11} fontWeight={600}>
+      {value}
+    </text>
+  );
+}
+
 export default function AgentDetailPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("configuration");
+  const [dateRange, setDateRange] = useState("lifetime");
   const d = agentDetail;
+  const perf = agentPerformance;
 
   const tabs: { key: Tab; label: string }[] = [
     { key: "configuration", label: "Configuration" },
     { key: "call_history", label: "Call History" },
     { key: "performance", label: "Performance" },
+  ];
+
+  const dateRangeOptions = [
+    { value: "7d", label: "Last 7 days" },
+    { value: "14d", label: "Last 14 days" },
+    { value: "30d", label: "Last 30 days" },
+    { value: "60d", label: "Last 60 days" },
+    { value: "90d", label: "Last 90 days" },
+    { value: "lifetime", label: "Lifetime" },
   ];
 
   return (
@@ -65,7 +104,7 @@ export default function AgentDetailPage() {
       </div>
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-4">
+      <div className="flex items-start justify-between mb-2">
         <div>
           <div className="flex items-center gap-3 mb-1">
             <h1 className="text-page-title text-text-primary">{d.name}</h1>
@@ -86,19 +125,12 @@ export default function AgentDetailPage() {
         </div>
       </div>
 
-      {/* Stats row */}
-      <div className="flex items-center gap-5 mb-6 py-3 px-4 bg-surface-page rounded-metric">
-        {[
-          { label: "Total calls", value: d.stats.totalCalls.toLocaleString() },
-          { label: "Connected", value: `${d.stats.connected.toLocaleString()} (${d.stats.connectionRate}%)` },
-          { label: "Qualified", value: `${d.stats.qualified} (${d.stats.qualificationRate}%)` },
-          { label: "Avg duration", value: `${d.stats.avgDuration} min` },
-        ].map((s) => (
-          <div key={s.label}>
-            <div className="text-[11px] text-text-tertiary uppercase tracking-[0.4px]">{s.label}</div>
-            <div className="text-[16px] font-semibold text-text-primary mt-0.5 tabular-nums">{s.value}</div>
-          </div>
-        ))}
+      {/* Condensed Stats Row */}
+      <div className="text-[12px] text-text-secondary mb-6">
+        <span className="font-medium text-text-primary">{perf.leadMetrics.totalLeads}</span> leads ·{" "}
+        <span className="font-medium text-text-primary">{perf.leadMetrics.leadsConnected}</span> connected ({perf.leadMetrics.connectRate}%) ·{" "}
+        <span className="font-medium text-text-primary">{perf.leadMetrics.leadsQualified}</span> qualified ({perf.leadMetrics.qualificationRate}%) ·{" "}
+        <span className="font-medium text-text-primary">₹{perf.callMetrics.cpql}</span> CPQL
       </div>
 
       {/* Tabs */}
@@ -112,17 +144,14 @@ export default function AgentDetailPage() {
         ))}
       </div>
 
-      {/* Configuration Tab */}
+      {/* ═══ CONFIGURATION TAB ═══ */}
       {activeTab === "configuration" && (
         <div className="space-y-5">
-          {/* Goal */}
           <div className="bg-white border border-border rounded-card p-5">
             <h3 className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-2">Goal</h3>
             <p className="text-[13px] text-text-secondary leading-relaxed">{d.goal}</p>
           </div>
-
           <div className="grid grid-cols-2 gap-5">
-            {/* Voice */}
             <div className="bg-white border border-border rounded-card p-5">
               <h3 className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">Voice & Delivery</h3>
               <div className="flex items-center gap-3 mb-3">
@@ -134,8 +163,6 @@ export default function AgentDetailPage() {
               </div>
               <div className="text-[12px] text-text-secondary">Tone: <span className="capitalize font-medium text-text-primary">{d.tone}</span></div>
             </div>
-
-            {/* Post-Call */}
             <div className="bg-white border border-border rounded-card p-5">
               <h3 className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">Post-Call Actions</h3>
               <div className="space-y-1.5 text-[12px]">
@@ -154,15 +181,9 @@ export default function AgentDetailPage() {
                   <span className="text-text-secondary">Calling hours</span>
                   <span className="text-text-primary font-medium">{d.postCall.callingHoursStart} – {d.postCall.callingHoursEnd}</span>
                 </div>
-                <div className="flex items-center justify-between py-1">
-                  <span className="text-text-secondary">Active days</span>
-                  <span className="text-text-primary font-medium">{d.postCall.activeDays.join(", ")}</span>
-                </div>
               </div>
             </div>
           </div>
-
-          {/* Metrics */}
           <div className="bg-white border border-border rounded-card p-5">
             <h3 className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">Qualification Metrics</h3>
             <div className="space-y-2">
@@ -177,14 +198,10 @@ export default function AgentDetailPage() {
               ))}
             </div>
           </div>
-
-          {/* System Prompt */}
           <div className="bg-white border border-border rounded-card p-5">
             <h3 className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">System Prompt</h3>
             <pre className="text-[12px] text-text-secondary whitespace-pre-wrap leading-relaxed font-mono bg-surface-page rounded-[6px] p-3">{d.systemPrompt}</pre>
           </div>
-
-          {/* Flow */}
           <div className="bg-white border border-border rounded-card p-5">
             <h3 className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">Conversation Flow</h3>
             <div className="space-y-2">
@@ -202,7 +219,7 @@ export default function AgentDetailPage() {
         </div>
       )}
 
-      {/* Call History Tab */}
+      {/* ═══ CALL HISTORY TAB ═══ */}
       {activeTab === "call_history" && (
         <div className="bg-white border border-border rounded-card overflow-hidden">
           <table className="w-full">
@@ -229,81 +246,188 @@ export default function AgentDetailPage() {
         </div>
       )}
 
-      {/* Performance Tab */}
+      {/* ═══ PERFORMANCE TAB ═══ */}
       {activeTab === "performance" && (
-        <div className="space-y-5">
-          {/* Metric Cards */}
-          <div className="grid grid-cols-4 gap-3">
-            {[
-              { label: "Total Calls", value: d.stats.totalCalls.toLocaleString() },
-              { label: "Connection Rate", value: `${d.stats.connectionRate}%` },
-              { label: "Qualification Rate", value: `${d.stats.qualificationRate}%` },
-              { label: "Avg Duration", value: `${d.stats.avgDuration} min` },
-            ].map((m) => (
-              <div key={m.label} className="bg-white border border-border rounded-card px-4 py-3.5">
-                <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px]">{m.label}</div>
-                <div className="text-stat-md text-text-primary mt-1">{m.value}</div>
+        <div className="space-y-6">
+          {/* Date Range */}
+          <div className="flex items-center justify-between">
+            <div />
+            <div className="flex items-center gap-3">
+              <span className="text-[12px] text-text-tertiary">1 Oct 2025 — 23 Mar 2026</span>
+              <select
+                value={dateRange}
+                onChange={(e) => setDateRange(e.target.value)}
+                className="h-8 px-3 pr-8 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9B9B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+                  backgroundRepeat: "no-repeat",
+                  backgroundPosition: "right 10px center",
+                }}
+              >
+                {dateRangeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* LEAD METRICS */}
+          <div>
+            <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">Lead Metrics</div>
+            <div className="grid grid-cols-5 gap-3">
+              <PerfMetricCard icon={Target} label="Total Leads" value={perf.leadMetrics.totalLeads.toLocaleString()} subtext={`in ${perf.dateRange.days} days`} />
+              <PerfMetricCard icon={PhoneIncoming} label="Leads Dialed" value={perf.leadMetrics.leadsDialed.toLocaleString()} subtext={`${perf.leadMetrics.coverageRate}% Coverage`} />
+              <PerfMetricCard icon={Phone} label="Leads Connected" value={perf.leadMetrics.leadsConnected.toLocaleString()} subtext={`${perf.leadMetrics.connectRate}% Connect Rate`} />
+              <PerfMetricCard icon={MessageSquare} label="Leads Interacted" value={perf.leadMetrics.leadsInteracted.toLocaleString()} subtext={`${perf.leadMetrics.interactionRate}% Interaction Rate`} />
+              <PerfMetricCard icon={ShieldCheck} label="Leads Qualified" value={perf.leadMetrics.leadsQualified.toLocaleString()} subtext={`${perf.leadMetrics.qualificationRate}% Qualification Rate`} />
+            </div>
+          </div>
+
+          {/* CALL METRICS */}
+          <div>
+            <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">Call Metrics</div>
+            <div className="grid grid-cols-4 gap-3">
+              <PerfMetricCard label="Total Calls" value={perf.callMetrics.totalCalls.toLocaleString()} subtext={`${perf.callMetrics.callsPerLead} calls / lead average`} />
+              <PerfMetricCard label="Total Minutes" value={`${perf.callMetrics.totalMinutes}m`} subtext={`${perf.callMetrics.avgMinPerLead} average per lead`} />
+              <PerfMetricCard label="Total Cost" value={`₹${perf.callMetrics.totalCost.toLocaleString("en-IN")}`} subtext={`₹${perf.callMetrics.costPerLead} / lead average`} />
+              <PerfMetricCard label="CPQL" value={`₹${perf.callMetrics.cpql}`} subtext={`₹${perf.callMetrics.spentOnQLs.toLocaleString("en-IN")} spent → ${perf.callMetrics.qualifiedLeads} QLs`} />
+            </div>
+          </div>
+
+          {/* LEAD DISTRIBUTION */}
+          <div>
+            <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">Lead Distribution</div>
+            <div className="grid grid-cols-2 gap-4">
+              {/* Dial Attempts Bar Chart */}
+              <div className="bg-white border border-border rounded-card p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[14px] font-semibold text-text-primary">Lead Distribution by Dial Attempts</h3>
+                  <span className="text-[12px] font-semibold text-accent tabular-nums">Total Leads {perf.leadMetrics.totalLeads}</span>
+                </div>
+                <div className="h-[240px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={perf.dialAttemptsDistribution} margin={{ top: 20, right: 10, bottom: 5, left: -10 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" vertical={false} />
+                      <XAxis dataKey="dials" tick={{ fontSize: 10, fill: "#9B9B9B" }} axisLine={{ stroke: "#E5E5E5" }} tickLine={false} />
+                      <YAxis tick={{ fontSize: 10, fill: "#9B9B9B" }} axisLine={{ stroke: "#E5E5E5" }} tickLine={false} />
+                      <Tooltip contentStyle={{ background: "#fff", border: "1px solid #E5E5E5", borderRadius: "6px", fontSize: "12px" }} />
+                      <Bar dataKey="count" fill="#1A1A1A" radius={[4, 4, 0, 0]} label={{ position: "top", fontSize: 10, fill: "#6B6B6B" }} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               </div>
-            ))}
-          </div>
 
-          {/* Chart */}
-          <div className="bg-white border border-border rounded-card p-5">
-            <h3 className="text-section-header text-text-primary mb-4">Calls Over Time</h3>
-            <div className="h-[260px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={callChartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" />
-                  <XAxis dataKey="date" tick={{ fontSize: 11, fill: "#9B9B9B" }} axisLine={{ stroke: "#E5E5E5" }} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: "#9B9B9B" }} axisLine={{ stroke: "#E5E5E5" }} tickLine={false} />
-                  <Tooltip contentStyle={{ background: "#fff", border: "1px solid #E5E5E5", borderRadius: "6px", fontSize: "12px" }} />
-                  <Line type="monotone" dataKey="calls" stroke="#1A1A1A" strokeWidth={2} dot={{ r: 3, fill: "#1A1A1A", strokeWidth: 0 }} name="Total Calls" />
-                  <Line type="monotone" dataKey="qualified" stroke="#22C55E" strokeWidth={2} dot={{ r: 3, fill: "#22C55E", strokeWidth: 0 }} name="Qualified" />
-                </LineChart>
-              </ResponsiveContainer>
+              {/* Lead Status Donut */}
+              <div className="bg-white border border-border rounded-card p-5">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-[14px] font-semibold text-text-primary">Lead Status Distribution</h3>
+                  <span className="text-[12px] font-semibold text-accent tabular-nums">Total Leads {perf.leadMetrics.totalLeads}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="w-[200px] h-[200px] shrink-0">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={perf.leadStatusDistribution}
+                          cx="50%" cy="50%"
+                          innerRadius={55} outerRadius={85}
+                          paddingAngle={2}
+                          dataKey="value"
+                          label={renderCustomizedLabel}
+                        >
+                          {perf.leadStatusDistribution.map((entry, index) => (
+                            <Cell key={index} fill={entry.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className="space-y-2">
+                    {perf.leadStatusDistribution.map((item) => (
+                      <div key={item.name} className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
+                        <span className="text-[11px] text-text-secondary">{item.name}</span>
+                        <span className="text-[11px] font-medium text-text-primary tabular-nums ml-auto">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Funnel */}
-          <div className="bg-white border border-border rounded-card p-5">
-            <h3 className="text-section-header text-text-primary mb-4">Qualification Funnel</h3>
-            <div className="space-y-3">
-              {[
-                { label: "Total Calls", value: d.stats.totalCalls, pct: 100 },
-                { label: "Connected", value: d.stats.connected, pct: d.stats.connectionRate },
-                { label: "Qualified", value: d.stats.qualified, pct: d.stats.qualificationRate },
-              ].map((item) => (
-                <div key={item.label}>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-[12px] text-text-secondary">{item.label}</span>
-                    <span className="text-[13px] font-medium text-text-primary tabular-nums">{item.value.toLocaleString()} ({item.pct}%)</span>
-                  </div>
-                  <div className="h-2 bg-surface-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-accent rounded-full transition-all duration-300" style={{ width: `${item.pct}%` }} />
-                  </div>
-                </div>
-              ))}
+          {/* FUNNEL & DAILY ACTIVITY */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Qualification Funnel */}
+            <div className="bg-white border border-border rounded-card p-5">
+              <h3 className="text-[14px] font-semibold text-text-primary mb-4">Qualification Funnel</h3>
+              <div className="space-y-3">
+                {perf.funnelData.map((item, i) => {
+                  const opacity = 1 - (i * 0.15);
+                  return (
+                    <div key={item.label}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[12px] text-text-secondary">{item.label}</span>
+                        <span className="text-[13px] font-medium text-text-primary tabular-nums">
+                          {item.value.toLocaleString()} <span className="text-text-tertiary text-[11px]">({item.pct}%)</span>
+                        </span>
+                      </div>
+                      <div className="h-3 bg-surface-secondary rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${item.pct}%` }}
+                          transition={{ duration: 0.6, delay: i * 0.1, ease: "easeOut" }}
+                          className="h-full rounded-full"
+                          style={{ backgroundColor: `rgba(26,26,26,${opacity})` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Daily Call Activity */}
+            <div className="bg-white border border-border rounded-card p-5">
+              <h3 className="text-[14px] font-semibold text-text-primary mb-4">Daily Call Activity</h3>
+              <div className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={perf.dailyCallActivity} margin={{ top: 5, right: 10, bottom: 5, left: -10 }}>
+                    <defs>
+                      <linearGradient id="callFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#1A1A1A" stopOpacity={0.08} />
+                        <stop offset="100%" stopColor="#1A1A1A" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#F0F0F0" vertical={false} />
+                    <XAxis dataKey="date" tick={{ fontSize: 10, fill: "#9B9B9B" }} axisLine={{ stroke: "#E5E5E5" }} tickLine={false} interval={4} />
+                    <YAxis tick={{ fontSize: 10, fill: "#9B9B9B" }} axisLine={{ stroke: "#E5E5E5" }} tickLine={false} />
+                    <Tooltip contentStyle={{ background: "#fff", border: "1px solid #E5E5E5", borderRadius: "6px", fontSize: "12px" }} />
+                    <Area type="monotone" dataKey="calls" stroke="#1A1A1A" strokeWidth={2} fill="url(#callFill)" dot={{ r: 2, fill: "#1A1A1A", strokeWidth: 0 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
 
-          {/* Top Disqualification Reasons */}
-          <div className="bg-white border border-border rounded-card p-5">
-            <h3 className="text-section-header text-text-primary mb-4">Top Disqualification Reasons</h3>
-            <div className="space-y-2.5">
-              {[
-                { reason: "Budget below threshold", pct: 41 },
-                { reason: "Timeline >12 months", pct: 30 },
-                { reason: "Not decision maker", pct: 17 },
-                { reason: "Not interested", pct: 12 },
-              ].map((item) => (
-                <div key={item.reason} className="flex items-center gap-3">
-                  <span className="text-[12px] text-text-secondary flex-1">{item.reason}</span>
-                  <div className="w-32 h-1.5 bg-surface-secondary rounded-full overflow-hidden">
-                    <div className="h-full bg-text-tertiary rounded-full" style={{ width: `${item.pct}%` }} />
+          {/* TOP DISQUALIFICATION REASONS */}
+          <div>
+            <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">Top Disqualification Reasons</div>
+            <div className="bg-white border border-border rounded-card p-5">
+              <div className="space-y-3">
+                {perf.disqualificationReasons.map((item) => (
+                  <div key={item.reason} className="flex items-center gap-4">
+                    <span className="text-[12px] text-text-secondary w-[200px] shrink-0">{item.reason}</span>
+                    <div className="flex-1 h-2 bg-surface-secondary rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${item.pct}%` }}
+                        transition={{ duration: 0.5, ease: "easeOut" }}
+                        className="h-full bg-[#F87171] rounded-full"
+                      />
+                    </div>
+                    <span className="text-[12px] font-medium text-text-primary tabular-nums w-16 text-right">{item.pct}% <span className="text-text-tertiary">({item.count})</span></span>
                   </div>
-                  <span className="text-[12px] font-medium text-text-primary tabular-nums w-8 text-right">{item.pct}%</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>

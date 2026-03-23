@@ -106,6 +106,71 @@ export const defaultFAQs = [
   { question: "Where is the project located?", answer: "IVC Road, near Kempegowda International Airport, North Bangalore" },
 ];
 
+// ── Agent Performance Data ───────────────────────────────────
+
+export const agentPerformance = {
+  dateRange: { start: "2025-10-01", end: "2026-03-23", days: 187 },
+  leadMetrics: {
+    totalLeads: 397,
+    leadsDialed: 397,
+    leadsConnected: 318,
+    leadsInteracted: 170,
+    leadsQualified: 123,
+    coverageRate: 100.0,
+    connectRate: 80.1,
+    interactionRate: 53.46,
+    qualificationRate: 30.98,
+  },
+  callMetrics: {
+    totalCalls: 2730,
+    callsPerLead: 7,
+    totalMinutes: 822,
+    avgMinPerLead: 2.07,
+    totalCost: 12329,
+    costPerLead: 31,
+    cpql: 100,
+    spentOnQLs: 12329,
+    qualifiedLeads: 123,
+  },
+  dialAttemptsDistribution: [
+    { dials: "1", count: 71 },
+    { dials: "2", count: 35 },
+    { dials: "3", count: 21 },
+    { dials: "4", count: 12 },
+    { dials: "5", count: 11 },
+    { dials: "6", count: 5 },
+    { dials: "7", count: 12 },
+    { dials: "8", count: 5 },
+    { dials: "9", count: 5 },
+    { dials: "10", count: 220 },
+  ],
+  leadStatusDistribution: [
+    { name: "RNR", value: 209, color: "#F87171" },
+    { name: "Follow Up", value: 39, color: "#FBBF24" },
+    { name: "Customer Follow Up", value: 3, color: "#FB923C" },
+    { name: "Intent Qualified", value: 23, color: "#F97316" },
+    { name: "Qualified", value: 36, color: "#1A1A1A" },
+    { name: "Disqualified", value: 87, color: "#991B1B" },
+  ],
+  funnelData: [
+    { label: "Total Leads", value: 397, pct: 100 },
+    { label: "Dialed", value: 397, pct: 100 },
+    { label: "Connected", value: 318, pct: 80.1 },
+    { label: "Interacted", value: 170, pct: 42.8 },
+    { label: "Qualified", value: 123, pct: 30.98 },
+  ],
+  dailyCallActivity: Array.from({ length: 30 }, (_, i) => ({
+    date: `${i < 8 ? "Feb" : "Mar"} ${i < 8 ? 22 + i : i - 7}`,
+    calls: Math.floor(10 + Math.random() * 15 + (i > 15 ? 5 : 0)),
+  })),
+  disqualificationReasons: [
+    { reason: "Budget below threshold", pct: 41, count: 36 },
+    { reason: "Timeline beyond 12 months", pct: 30, count: 26 },
+    { reason: "Not the decision maker", pct: 17, count: 15 },
+    { reason: "Not interested", pct: 12, count: 10 },
+  ],
+};
+
 // Agent detail data
 export const agentDetail = {
   ...agentsList[0],
