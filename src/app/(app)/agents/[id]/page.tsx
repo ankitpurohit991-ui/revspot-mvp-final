@@ -73,15 +73,15 @@ function renderCustomizedLabel(props: any) {
 
 export default function AgentDetailPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<Tab>("configuration");
+  const [activeTab, setActiveTab] = useState<Tab>("performance");
   const [dateRange, setDateRange] = useState("lifetime");
   const d = agentDetail;
   const perf = agentPerformance;
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: "configuration", label: "Configuration" },
-    { key: "call_history", label: "Call History" },
     { key: "performance", label: "Performance" },
+    { key: "call_history", label: "Call History" },
+    { key: "configuration", label: "Configuration" },
   ];
 
   const dateRangeOptions = [
