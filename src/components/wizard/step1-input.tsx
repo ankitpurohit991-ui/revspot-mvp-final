@@ -155,9 +155,9 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
       <div className="bg-white border border-border rounded-card p-6 space-y-5">
         <div className="grid grid-cols-2 gap-4">
           <SelectField
-            label="Client"
+            label="Project"
             options={existingClients}
-            placeholder="Select a client..."
+            placeholder="Select a project..."
             value={client}
             onChange={setClient}
             required

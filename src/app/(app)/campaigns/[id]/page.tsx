@@ -61,7 +61,7 @@ export default function CampaignDetailPage() {
           </span>
           <span className="text-border">|</span>
           <span>
-            Client: <span className="text-text-primary font-medium">{campaign.client}</span>
+            Project: <span className="text-text-primary font-medium">{campaign.client}</span>
           </span>
           <span className="text-border">|</span>
           <span>

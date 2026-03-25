@@ -79,9 +79,7 @@ export default function ProjectDetailPage() {
             </span>
           </div>
           <div className="flex items-center gap-3 text-[12px] text-text-secondary">
-            <span>
-              Client: <span className="text-text-primary font-medium">{project.client}</span>
-            </span>
+            <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8]">{project.category}</span>
             <span className="text-border">|</span>
             <span>
               {project.campaignIds.length} campaign{project.campaignIds.length !== 1 ? "s" : ""}

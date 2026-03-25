@@ -162,7 +162,7 @@ export default function CampaignsPage() {
                 {[
                   { label: "Campaign", align: "left" },
                   { label: "Type", align: "left" },
-                  { label: "Client", align: "left" },
+                  { label: "Project", align: "left" },
                   { label: "Status", align: "left" },
                   { label: "Spend", align: "right" },
                   { label: "Leads", align: "right" },
