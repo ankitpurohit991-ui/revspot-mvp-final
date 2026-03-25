@@ -4,15 +4,16 @@ export const dashboardMetrics = {
     previous: 7,
     label: "Active campaigns",
     trend: { value: 28.6, direction: "up" as const },
+    comparisonText: "+2 vs previous period",
   },
-  monthlySpend: {
+  spends: {
     value: "₹6.8L",
     rawValue: 680000,
     formattedFull: "₹6,80,000",
-    previous: "₹5.4L",
-    previousRaw: 540000,
-    label: "Monthly spend",
-    trend: { value: 25.9, direction: "up" as const },
+    previous: "₹5.9L",
+    previousRaw: 590000,
+    label: "Spends",
+    trend: { value: 15, direction: "up" as const },
   },
   totalLeads: {
     value: 845,
@@ -52,29 +53,103 @@ export const dashboardMetrics = {
   },
 };
 
-export const aiRecommendations = [
+// ── Insights ────────────────────────────────────────────────
+
+export interface InsightItem {
+  id: string;
+  icon: string;
+  text: string;
+  highlights: string[]; // Bold segments within the text
+}
+
+export const yesterdayInsights: InsightItem[] = [
   {
-    id: "rec-1",
-    priority: "high" as const,
-    title: "Shift ₹30K from Google Search to Meta Ads",
-    description:
-      "Meta generates qualified leads at ₹380 CPL vs Google's ₹620. Shifting budget could yield +15 qualified leads this month.",
+    id: "yi-1",
+    icon: "📊",
+    text: "You received 32 new enquiries yesterday — 18% above your daily average of 27.",
+    highlights: ["32 new enquiries", "18% above", "27"],
   },
   {
-    id: "rec-2",
-    priority: "medium" as const,
-    title: "Refresh HNI carousel creative",
-    description:
-      "CTR declined 28% in 7 days — creative fatigue detected on the top-performing ad set.",
+    id: "yi-2",
+    icon: "💰",
+    text: "Meta spend was ₹14,200 with a CPL of ₹890 — your best Meta CPL day this month.",
+    highlights: ["₹14,200", "₹890", "best Meta CPL day"],
   },
   {
-    id: "rec-3",
-    priority: "low" as const,
-    title: "Add Sarjapur Road to Meta targeting",
-    description:
-      "12% of qualified leads are coming from Sarjapur, which isn't in current targeting.",
+    id: "yi-3",
+    icon: "📞",
+    text: "Voice agent qualified 8 leads yesterday. Top disqualification reason: budget below threshold (4 leads).",
+    highlights: ["8 leads", "budget below threshold", "4 leads"],
+  },
+  {
+    id: "yi-4",
+    icon: "🔻",
+    text: "Google Search CPL spiked to ₹1,450 — 42% above your 7-day average. Keyword 'luxury villas whitefield' drove most of the spend.",
+    highlights: ["₹1,450", "42% above", "luxury villas whitefield"],
+  },
+  {
+    id: "yi-5",
+    icon: "✅",
+    text: "3 leads moved to 'Site Visit Scheduled' stage in your CRM.",
+    highlights: ["3 leads", "Site Visit Scheduled"],
   },
 ];
+
+export const weeklyInsights: InsightItem[] = [
+  {
+    id: "wi-1",
+    icon: "📊",
+    text: "You received 198 enquiries in the last 7 days — up 12% from the previous week.",
+    highlights: ["198 enquiries", "12%"],
+  },
+  {
+    id: "wi-2",
+    icon: "💰",
+    text: "Total spend across channels: ₹1.58L. Meta accounted for 62% of spend but 71% of qualified leads.",
+    highlights: ["₹1.58L", "62% of spend", "71% of qualified leads"],
+  },
+  {
+    id: "wi-3",
+    icon: "📞",
+    text: "Voice agent made 342 calls, qualifying 45 leads (13.2% qualification rate). Rate is improving — was 11.8% the week before.",
+    highlights: ["342 calls", "45 leads", "13.2%", "11.8%"],
+  },
+  {
+    id: "wi-4",
+    icon: "🔻",
+    text: "LinkedIn campaigns generated only 6 enquiries at ₹2,100 CPL — consider pausing or reallocating budget.",
+    highlights: ["6 enquiries", "₹2,100 CPL"],
+  },
+  {
+    id: "wi-5",
+    icon: "📈",
+    text: "Your overall CPL dropped from ₹1,245 to ₹1,183 week-over-week. Meta optimization is driving the improvement.",
+    highlights: ["₹1,245", "₹1,183", "Meta optimization"],
+  },
+];
+
+// ── Recently Qualified Leads ────────────────────────────────
+
+export interface QualifiedLead {
+  id: string;
+  name: string;
+  phone: string;
+  campaign: string;
+  timeAgo: string;
+  temperature: "warm" | "lukewarm" | "cold";
+  crmSynced: boolean; // true = pushed, false = pending
+}
+
+export const recentlyQualifiedLeads: QualifiedLead[] = [
+  { id: "ql-1", name: "R***** M*****", phone: "+91 ****9826", campaign: "Prestige Lakeside", timeAgo: "2 hours ago", temperature: "warm", crmSynced: true },
+  { id: "ql-2", name: "A***** K*****", phone: "+91 ****4156", campaign: "Assetz Mizumi PM R3", timeAgo: "3 hours ago", temperature: "warm", crmSynced: true },
+  { id: "ql-3", name: "T***** S*****", phone: "+91 ****7390", campaign: "Sobha Windsor", timeAgo: "5 hours ago", temperature: "lukewarm", crmSynced: false },
+  { id: "ql-4", name: "D***** T*****", phone: "+91 ****2912", campaign: "Embassy Lake Terraces", timeAgo: "8 hours ago", temperature: "warm", crmSynced: true },
+  { id: "ql-5", name: "M***** P*****", phone: "+91 ****6218", campaign: "Assetz Mizumi PM R3", timeAgo: "12 hours ago", temperature: "lukewarm", crmSynced: true },
+  { id: "ql-6", name: "V***** R*****", phone: "+91 ****8342", campaign: "Prestige Lakeside", timeAgo: "1 day ago", temperature: "warm", crmSynced: false },
+];
+
+// ── Campaign Performance (unchanged) ────────────────────────
 
 export interface CampaignRow {
   id: string;
@@ -88,67 +163,16 @@ export interface CampaignRow {
 }
 
 export const campaignPerformance: CampaignRow[] = [
-  {
-    id: "camp-1",
-    name: "Prestige Lakeside — Lead Gen",
-    spend: 185000,
-    leads: 214,
-    verified: 38,
-    qualified: 18,
-    cpl: 864,
-    status: "on-track",
-  },
-  {
-    id: "camp-2",
-    name: "Brigade Utopia — Retargeting",
-    spend: 142000,
-    leads: 156,
-    verified: 22,
-    qualified: 11,
-    cpl: 910,
-    status: "needs-attention",
-  },
-  {
-    id: "camp-3",
-    name: "Sobha Windsor — Lookalike",
-    spend: 95000,
-    leads: 128,
-    verified: 24,
-    qualified: 14,
-    cpl: 742,
-    status: "on-track",
-  },
-  {
-    id: "camp-4",
-    name: "Godrej Splendour — Lead Gen",
-    spend: 110000,
-    leads: 142,
-    verified: 18,
-    qualified: 8,
-    cpl: 775,
-    status: "underperforming",
-  },
-  {
-    id: "camp-5",
-    name: "Embassy Lake Terraces — HNI",
-    spend: 88000,
-    leads: 98,
-    verified: 16,
-    qualified: 10,
-    cpl: 898,
-    status: "on-track",
-  },
-  {
-    id: "camp-6",
-    name: "Total Environment — Carousel",
-    spend: 60000,
-    leads: 107,
-    verified: 9,
-    qualified: 7,
-    cpl: 561,
-    status: "on-track",
-  },
+  { id: "camp-1", name: "Prestige Lakeside — Lead Gen", spend: 185000, leads: 214, verified: 38, qualified: 18, cpl: 864, status: "on-track" },
+  { id: "camp-2", name: "Brigade Utopia — Retargeting", spend: 142000, leads: 156, verified: 22, qualified: 11, cpl: 910, status: "needs-attention" },
+  { id: "camp-3", name: "Sobha Windsor — Lookalike", spend: 95000, leads: 128, verified: 24, qualified: 14, cpl: 742, status: "on-track" },
+  { id: "camp-4", name: "Godrej Splendour — Lead Gen", spend: 110000, leads: 142, verified: 18, qualified: 8, cpl: 775, status: "underperforming" },
+  { id: "camp-5", name: "Embassy Lake Terraces — HNI", spend: 88000, leads: 98, verified: 16, qualified: 10, cpl: 898, status: "on-track" },
+  { id: "camp-6", name: "Total Environment — Carousel", spend: 60000, leads: 107, verified: 9, qualified: 7, cpl: 561, status: "on-track" },
 ];
+
+// Keep old exports for backward compat
+export const aiRecommendations = [] as { id: string; priority: "high" | "medium" | "low"; title: string; description: string }[];
 
 export interface RecentLead {
   id: string;
@@ -159,63 +183,7 @@ export interface RecentLead {
   status: "qualified" | "not_qualified" | "pending";
   verified: boolean;
 }
-
-export const recentLeads: RecentLead[] = [
-  {
-    id: "lead-1",
-    name: "V***** R*****",
-    phone: "98XXX XX342",
-    campaign: "Prestige Lakeside",
-    timeAgo: "12 min ago",
-    status: "qualified",
-    verified: true,
-  },
-  {
-    id: "lead-2",
-    name: "S***** M*****",
-    phone: "90XXX XX891",
-    campaign: "Brigade Utopia",
-    timeAgo: "34 min ago",
-    status: "pending",
-    verified: false,
-  },
-  {
-    id: "lead-3",
-    name: "A***** K*****",
-    phone: "87XXX XX156",
-    campaign: "Sobha Windsor",
-    timeAgo: "1 hr ago",
-    status: "qualified",
-    verified: true,
-  },
-  {
-    id: "lead-4",
-    name: "P***** J*****",
-    phone: "99XXX XX723",
-    campaign: "Godrej Splendour",
-    timeAgo: "2 hr ago",
-    status: "not_qualified",
-    verified: false,
-  },
-  {
-    id: "lead-5",
-    name: "R***** B*****",
-    phone: "80XXX XX445",
-    campaign: "Embassy Lake Terraces",
-    timeAgo: "3 hr ago",
-    status: "qualified",
-    verified: true,
-  },
-  {
-    id: "lead-6",
-    name: "N***** D*****",
-    phone: "91XXX XX867",
-    campaign: "Total Environment",
-    timeAgo: "4 hr ago",
-    status: "pending",
-    verified: false,
-  },
-];
+export const recentLeads: RecentLead[] = [];
 
 export const voiceAgentMetrics = {
   totalCalls: 142,

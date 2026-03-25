@@ -1,30 +1,23 @@
 "use client";
 
 import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
 import { DateRangeSelector } from "@/components/dashboard/date-range-selector";
 import { MetricCard } from "@/components/dashboard/metric-card";
-import { AIRecommendations } from "@/components/dashboard/ai-recommendations";
+import { Insights } from "@/components/dashboard/insights";
 import { CampaignTable } from "@/components/dashboard/campaign-table";
-import { RecentLeads } from "@/components/dashboard/recent-enquiries";
+import { RecentlyQualified } from "@/components/dashboard/recently-qualified";
 import { VoiceAgentPerformance } from "@/components/dashboard/voice-agent-performance";
 import {
   dashboardMetrics,
-  aiRecommendations,
   campaignPerformance,
-  recentLeads,
   voiceAgentMetrics,
   disqualificationReasons,
 } from "@/lib/mock-data";
 
-import type { Variants } from "framer-motion";
-
 const stagger: Variants = {
   hidden: {},
-  show: {
-    transition: {
-      staggerChildren: 0.05,
-    },
-  },
+  show: { transition: { staggerChildren: 0.05 } },
 };
 
 const fadeUp: Variants = {
@@ -36,7 +29,7 @@ export default function DashboardPage() {
   return (
     <motion.div variants={stagger} initial="hidden" animate="show">
       {/* Header */}
-      <motion.div variants={fadeUp} className="flex items-center justify-between mb-6">
+      <motion.div variants={fadeUp} className="flex items-start justify-between mb-6">
         <div>
           <div className="text-meta text-text-secondary mb-1">Lead Generation</div>
           <h1 className="text-page-title text-text-primary">Dashboard</h1>
@@ -53,11 +46,11 @@ export default function DashboardPage() {
           trend={dashboardMetrics.activeCampaigns.trend}
         />
         <MetricCard
-          label={dashboardMetrics.monthlySpend.label}
-          value={dashboardMetrics.monthlySpend.value}
-          previous={dashboardMetrics.monthlySpend.previous}
-          tooltip={dashboardMetrics.monthlySpend.formattedFull}
-          trend={dashboardMetrics.monthlySpend.trend}
+          label={dashboardMetrics.spends.label}
+          value={dashboardMetrics.spends.value}
+          previous={dashboardMetrics.spends.previous}
+          tooltip={dashboardMetrics.spends.formattedFull}
+          trend={dashboardMetrics.spends.trend}
         />
         <MetricCard
           label={dashboardMetrics.totalLeads.label}
@@ -97,19 +90,19 @@ export default function DashboardPage() {
         />
       </motion.div>
 
-      {/* Two column: AI Recommendations + Voice Agent Performance */}
+      {/* Two column: Insights + Voice Agent Performance */}
       <motion.div variants={fadeUp} className="grid grid-cols-[3fr_2fr] gap-5 mb-5">
-        <AIRecommendations recommendations={aiRecommendations} />
+        <Insights />
         <VoiceAgentPerformance
           metrics={voiceAgentMetrics}
           disqualificationReasons={disqualificationReasons}
         />
       </motion.div>
 
-      {/* Two column: Campaign table + Recent leads */}
+      {/* Two column: Campaign table + Recently qualified leads */}
       <motion.div variants={fadeUp} className="grid grid-cols-[3fr_2fr] gap-5">
         <CampaignTable campaigns={campaignPerformance} />
-        <RecentLeads leads={recentLeads} />
+        <RecentlyQualified />
       </motion.div>
     </motion.div>
   );
