@@ -54,18 +54,24 @@ export default function CampaignDetailPage() {
           <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8]">
             {campaign.platform}
           </span>
+          <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge bg-surface-secondary text-text-secondary">
+            Day 14 of 30
+          </span>
+          <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#F0FDF4] text-[#15803D]">
+            Improving
+          </span>
         </div>
         <div className="flex items-center gap-4 text-[12px] text-text-secondary">
           <span>
-            Type: <span className="text-text-primary font-medium">{campaign.type}</span>
-          </span>
-          <span className="text-border">|</span>
-          <span>
-            Project: <span className="text-text-primary font-medium">{campaign.client}</span>
+            Project: <a href="/projects/proj-1" className="text-text-primary font-medium hover:underline">{campaign.client}</a>
           </span>
           <span className="text-border">|</span>
           <span>
             Owner: <span className="text-text-primary font-medium">{campaign.owner}</span>
+          </span>
+          <span className="text-border">|</span>
+          <span>
+            ₹{campaign.dailyBudget.toLocaleString("en-IN")}/day
           </span>
         </div>
       </div>
