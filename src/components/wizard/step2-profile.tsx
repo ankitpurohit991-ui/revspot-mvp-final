@@ -27,21 +27,6 @@ export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
         </p>
       </div>
 
-      {/* Special Ad Category Alert */}
-      {profile.specialAdCategory && (
-        <div className="flex items-start gap-3 bg-[#FEF3C7] border border-[#F5A623]/30 rounded-card px-5 py-4">
-          <AlertTriangle size={16} strokeWidth={1.5} className="text-[#92400E] mt-0.5 shrink-0" />
-          <div>
-            <p className="text-[13px] font-medium text-[#92400E]">Special Ad Category Detected</p>
-            <p className="text-[12px] text-[#92400E]/80 mt-0.5">
-              This campaign may fall under Meta&apos;s special ad category:{" "}
-              <span className="font-semibold capitalize">{profile.specialAdCategory}</span>. Targeting
-              restrictions will apply.
-            </p>
-          </div>
-        </div>
-      )}
-
       {/* Profile Fields */}
       <div className="bg-white border border-border rounded-card p-6 space-y-5">
         <div className="grid grid-cols-2 gap-4">

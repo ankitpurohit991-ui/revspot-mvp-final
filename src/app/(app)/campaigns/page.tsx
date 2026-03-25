@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import {
@@ -12,6 +13,11 @@ import {
   XCircle,
   ChevronLeft,
   ChevronRight,
+  Download,
+  X,
+  ArrowRight,
+  ArrowLeft,
+  CheckCircle2,
 } from "lucide-react";
 import { campaignsList } from "@/lib/campaign-data";
 import type { CampaignStatus, CampaignHealth } from "@/lib/campaign-data";
@@ -96,6 +102,8 @@ export default function CampaignsPage() {
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  const [showImport, setShowImport] = useState(false);
+
   return (
     <motion.div variants={stagger} initial="hidden" animate="show">
       {/* Header */}
@@ -104,13 +112,22 @@ export default function CampaignsPage() {
           <div className="text-meta text-text-secondary mb-1">Lead Generation</div>
           <h1 className="text-page-title text-text-primary">Campaigns</h1>
         </div>
-        <button
-          onClick={() => router.push("/campaigns/create")}
-          className="inline-flex items-center gap-1.5 h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150"
-        >
-          <Plus size={15} strokeWidth={2} />
-          Create campaign
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowImport(true)}
+            className="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150"
+          >
+            <Download size={15} strokeWidth={1.5} />
+            Import Campaigns
+          </button>
+          <button
+            onClick={() => router.push("/campaigns/create")}
+            className="inline-flex items-center gap-1.5 h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150"
+          >
+            <Plus size={15} strokeWidth={2} />
+            Create campaign
+          </button>
+        </div>
       </motion.div>
 
       {/* Filters */}
@@ -246,6 +263,194 @@ export default function CampaignsPage() {
           </div>
         </div>
       </motion.div>
+
+      {/* Import Modal */}
+      {showImport && <ImportCampaignsModal onClose={() => setShowImport(false)} />}
     </motion.div>
+  );
+}
+
+// ── Import Campaigns Modal ──────────────────────────────────
+
+const importableCampaigns = {
+  meta: [
+    { id: "imp-m1", name: "Whitefield Villas LeadGen", status: "Active", spend: "₹2.4L/mo", leads: 320, adSets: 4, imported: false },
+    { id: "imp-m2", name: "Sarjapur 2BHK Campaign", status: "Active", spend: "₹89K/mo", leads: 210, adSets: 3, imported: false },
+    { id: "imp-m3", name: "NRI Investment Campaign", status: "Active", spend: "₹45K/mo", leads: 65, adSets: 2, imported: false },
+    { id: "imp-m4", name: "Brand Awareness — Q1", status: "Paused", spend: "₹25K/mo", leads: 0, adSets: 1, imported: true },
+  ],
+  google: [
+    { id: "imp-g1", name: "Luxury Villas Search", status: "Active", spend: "₹1.8L/mo", leads: 148, adSets: 5, imported: false },
+    { id: "imp-g2", name: "Brand Campaign", status: "Active", spend: "₹55K/mo", leads: 42, adSets: 2, imported: false },
+    { id: "imp-g3", name: "Competitor Keywords", status: "Active", spend: "₹40K/mo", leads: 35, adSets: 3, imported: false },
+  ],
+  linkedin: [
+    { id: "imp-l1", name: "CXO Real Estate", status: "Active", spend: "₹65K/mo", leads: 28, adSets: 2, imported: false },
+    { id: "imp-l2", name: "IT Pros Bangalore", status: "Active", spend: "₹35K/mo", leads: 18, adSets: 1, imported: false },
+  ],
+};
+
+type Platform = "meta" | "google" | "linkedin";
+
+function ImportCampaignsModal({ onClose }: { onClose: () => void }) {
+  const [step, setStep] = useState(0);
+  const [platform, setPlatform] = useState<Platform | "">("");
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [assignProject, setAssignProject] = useState("skip");
+
+  const campaigns = platform ? importableCampaigns[platform] : [];
+  const selectableCount = campaigns.filter((c) => !c.imported).length;
+
+  const toggleSelect = (id: string) => {
+    setSelected((prev) => { const n = new Set(prev); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  };
+
+  const selectAll = () => {
+    if (selected.size === selectableCount) setSelected(new Set());
+    else setSelected(new Set(campaigns.filter((c) => !c.imported).map((c) => c.id)));
+  };
+
+  const platforms: { key: Platform; label: string; connected: boolean; account: string }[] = [
+    { key: "meta", label: "Meta Ads", connected: true, account: "Star Realtor Ad Account" },
+    { key: "google", label: "Google Ads", connected: true, account: "Star Realtor Google" },
+    { key: "linkedin", label: "LinkedIn Ads", connected: true, account: "Star Realtor LinkedIn" },
+  ];
+
+  return createPortal(
+    <>
+      <div className="fixed inset-0 bg-black/20 z-[60]" onClick={onClose} />
+      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <div className="bg-white rounded-card border border-border shadow-lg w-full max-w-[600px] max-h-[80vh] flex flex-col">
+          {/* Header */}
+          <div className="px-6 py-4 border-b border-border-subtle flex items-center justify-between shrink-0">
+            <h2 className="text-[16px] font-semibold text-text-primary">Import Campaigns</h2>
+            <button onClick={onClose} className="p-1 text-text-secondary hover:bg-surface-secondary rounded-button"><X size={16} strokeWidth={1.5} /></button>
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {/* Step 0 — Select Platform */}
+            {step === 0 && (
+              <div className="space-y-4">
+                <p className="text-[13px] text-text-secondary mb-4">Import campaigns from</p>
+                <div className="space-y-2">
+                  {platforms.map((p) => (
+                    <button key={p.key} onClick={() => { setPlatform(p.key); setStep(1); setSelected(new Set()); }}
+                      className={`w-full flex items-center justify-between p-4 border rounded-card text-left hover:border-border-hover transition-all duration-150 ${
+                        platform === p.key ? "border-accent" : "border-border"
+                      }`}>
+                      <div>
+                        <div className="text-[14px] font-medium text-text-primary">{p.label}</div>
+                        <div className="text-[12px] text-text-secondary mt-0.5 flex items-center gap-1">
+                          {p.connected ? (
+                            <><CheckCircle2 size={12} strokeWidth={2} className="text-[#15803D]" /> Connected — {p.account}</>
+                          ) : "Not connected"}
+                        </div>
+                      </div>
+                      <ArrowRight size={16} strokeWidth={1.5} className="text-text-tertiary" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Step 1 — Select Campaigns */}
+            {step === 1 && (
+              <div>
+                <p className="text-[13px] text-text-secondary mb-4">Select campaigns from {platforms.find((p) => p.key === platform)?.label}</p>
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border-subtle">
+                      <th className="px-3 py-2 text-left w-8">
+                        <input type="checkbox" checked={selected.size === selectableCount && selectableCount > 0} onChange={selectAll}
+                          className="w-3.5 h-3.5 rounded cursor-pointer" />
+                      </th>
+                      {["Campaign", "Status", "Spend", "Leads"].map((h) => (
+                        <th key={h} className="px-3 py-2 text-[10px] font-medium text-text-tertiary uppercase tracking-[0.5px] text-left">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {campaigns.map((c) => (
+                      <tr key={c.id} className={`border-b border-border-subtle last:border-0 ${c.imported ? "opacity-50" : ""}`}>
+                        <td className="px-3 py-2.5">
+                          {c.imported ? (
+                            <span className="text-[10px] text-text-tertiary">—</span>
+                          ) : (
+                            <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggleSelect(c.id)}
+                              className="w-3.5 h-3.5 rounded cursor-pointer" />
+                          )}
+                        </td>
+                        <td className="px-3 py-2.5">
+                          <div className="text-[12px] text-text-primary font-medium">{c.name}</div>
+                          {c.imported && <span className="text-[10px] text-text-tertiary">Already imported</span>}
+                        </td>
+                        <td className="px-3 py-2.5 text-[11px] text-text-secondary">{c.status}</td>
+                        <td className="px-3 py-2.5 text-[11px] text-text-secondary tabular-nums">{c.spend}</td>
+                        <td className="px-3 py-2.5 text-[11px] text-text-secondary tabular-nums">{c.leads}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Step 2 — Assign to Project */}
+            {step === 2 && (
+              <div className="space-y-4">
+                <p className="text-[13px] text-text-secondary">Assign to a project (optional)</p>
+                <p className="text-[12px] text-text-tertiary">Organize imported campaigns into a project, or leave them unassigned.</p>
+                <div className="space-y-2">
+                  {[
+                    { value: "skip", label: "Skip — leave unassigned" },
+                    { value: "proj-1", label: "Whitefield Luxury Villas" },
+                    { value: "proj-2", label: "Assetz Mizumi — Phase 3 Launch" },
+                    { value: "proj-3", label: "Brigade Utopia — Pre-launch" },
+                    { value: "__new__", label: "+ Create new project" },
+                  ].map((opt) => (
+                    <label key={opt.value} className={`flex items-center gap-3 p-3 border rounded-card cursor-pointer transition-all ${
+                      assignProject === opt.value ? "border-accent bg-surface-page" : "border-border hover:border-border-hover"
+                    }`}>
+                      <input type="radio" name="project" value={opt.value} checked={assignProject === opt.value}
+                        onChange={() => setAssignProject(opt.value)} className="w-3.5 h-3.5" />
+                      <span className="text-[13px] text-text-primary">{opt.label}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Footer */}
+          <div className="px-6 py-4 border-t border-border-subtle flex items-center justify-between shrink-0">
+            {step > 0 ? (
+              <button onClick={() => setStep((s) => s - 1)}
+                className="inline-flex items-center gap-1 h-9 px-3 text-[13px] font-medium text-text-secondary hover:text-text-primary transition-colors">
+                <ArrowLeft size={14} strokeWidth={1.5} /> Back
+              </button>
+            ) : <div />}
+            <div className="flex items-center gap-3">
+              {step === 1 && selected.size > 0 && (
+                <span className="text-[12px] text-text-secondary">{selected.size} selected</span>
+              )}
+              {step === 0 && <button onClick={onClose} className="h-9 px-4 text-[13px] font-medium text-text-secondary">Cancel</button>}
+              {step === 1 && (
+                <button onClick={() => setStep(2)} disabled={selected.size === 0}
+                  className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-1">
+                  Continue <ArrowRight size={14} strokeWidth={1.5} />
+                </button>
+              )}
+              {step === 2 && (
+                <button onClick={onClose}
+                  className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors">
+                  Import {selected.size} Campaign{selected.size !== 1 ? "s" : ""}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </>,
+    document.body
   );
 }
