@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, TrendingUp, Calendar } from "lucide-react";
 import { campaignDetail } from "@/lib/campaign-data";
 import { LeadsTab } from "@/components/campaigns/leads-tab";
 import { AnalysisTab } from "@/components/campaigns/analysis-tab";
@@ -54,18 +55,29 @@ export default function CampaignDetailPage() {
           <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8]">
             {campaign.platform}
           </span>
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge bg-surface-secondary text-text-secondary">
+            <Calendar size={10} strokeWidth={1.5} />
+            Day 14 of 30
+          </span>
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#F0FDF4] text-[#15803D]">
+            <TrendingUp size={10} strokeWidth={2} />
+            Improving
+          </span>
         </div>
         <div className="flex items-center gap-4 text-[12px] text-text-secondary">
           <span>
-            Type: <span className="text-text-primary font-medium">{campaign.type}</span>
-          </span>
-          <span className="text-border">|</span>
-          <span>
-            Project: <span className="text-text-primary font-medium">{campaign.client}</span>
+            Project:{" "}
+            <Link href="/projects/proj-2" className="text-text-primary font-medium hover:underline">
+              {campaign.client}
+            </Link>
           </span>
           <span className="text-border">|</span>
           <span>
             Owner: <span className="text-text-primary font-medium">{campaign.owner}</span>
+          </span>
+          <span className="text-border">|</span>
+          <span>
+            Budget: <span className="text-text-primary font-medium">₹{campaign.dailyBudget.toLocaleString("en-IN")}/day</span>
           </span>
         </div>
       </div>
@@ -103,8 +115,8 @@ export default function CampaignDetailPage() {
 
       {/* Tab Content */}
       <div>
-        {activeTab === "leads" && <LeadsTab />}
         {activeTab === "analysis" && <AnalysisTab />}
+        {activeTab === "leads" && <LeadsTab />}
         {activeTab === "settings" && <SettingsTab />}
       </div>
     </motion.div>
