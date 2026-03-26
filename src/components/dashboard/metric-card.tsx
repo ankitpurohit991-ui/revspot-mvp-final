@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 
+type CardStatus = "good" | "warning" | "bad" | "neutral";
+
 interface MetricCardProps {
   label: string;
   value: string | number;
@@ -13,9 +15,29 @@ interface MetricCardProps {
     direction: "up" | "down";
     positive?: boolean;
   };
+  status?: CardStatus;
+  trendContext?: string; // e.g. "₹62 cheaper per lead vs last 30 days"
 }
 
-export function MetricCard({ label, value, previous, tooltip, trend }: MetricCardProps) {
+function getCardBg(status: CardStatus) {
+  return {
+    good: "bg-[#F7FDF9]",
+    warning: "bg-[#FFFBF5]",
+    bad: "bg-[#FEF9F9]",
+    neutral: "bg-white",
+  }[status];
+}
+
+function getCardBorder(status: CardStatus) {
+  return {
+    good: "border-[#E2F5E9]",
+    warning: "border-[#F5EDD8]",
+    bad: "border-[#F5E2E2]",
+    neutral: "border-border",
+  }[status];
+}
+
+export function MetricCard({ label, value, previous, tooltip, trend, status = "neutral", trendContext }: MetricCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const trendIsPositive = trend
@@ -26,7 +48,7 @@ export function MetricCard({ label, value, previous, tooltip, trend }: MetricCar
 
   return (
     <div
-      className="relative bg-white border border-border rounded-card px-4 py-3.5 hover:shadow-card-hover hover:-translate-y-px transition-all duration-150"
+      className={`relative ${getCardBg(status)} border ${getCardBorder(status)} rounded-card px-4 py-3.5 hover:shadow-card-hover hover:-translate-y-px transition-all duration-150`}
       onMouseEnter={() => tooltip && setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
     >
@@ -53,8 +75,13 @@ export function MetricCard({ label, value, previous, tooltip, trend }: MetricCar
         {value}
       </span>
       {previous !== undefined && (
-        <div className="mt-1.5 text-[11px] text-text-tertiary">
+        <div className="mt-1 text-[11px] text-text-tertiary">
           prev: <span className="font-medium text-text-secondary">{previous}</span>
+        </div>
+      )}
+      {trendContext && (
+        <div className={`mt-1 text-[10px] leading-snug ${trendIsPositive ? "text-status-success" : "text-status-error"}`}>
+          {trendContext}
         </div>
       )}
       {showTooltip && tooltip && (

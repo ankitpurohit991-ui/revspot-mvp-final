@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Target, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { campaignDiagnosis, campaignDetail, healthIndicators } from "@/lib/campaign-data";
+import { DateRangeSelector } from "@/components/dashboard/date-range-selector";
 import { MetricExplorer } from "./metric-explorer";
 
 // ── Performance Status ──────────────────────────────────────
@@ -93,19 +94,10 @@ const funnelStages = [
   { label: "Qualified", value: 22, rate: "64.7%" },
 ];
 
-// ── Date Range Select Style ─────────────────────────────────
-
-const selectStyle = {
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9B9B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-  backgroundRepeat: "no-repeat" as const,
-  backgroundPosition: "right 10px center",
-};
-
 // ══════════════════════════════════════════════════════════════
 
 export function AnalysisTab() {
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>(["cpl"]);
-  const [dateRange, setDateRange] = useState("30d");
 
   const toggleMetric = (key: string) => {
     setSelectedMetrics((prev) => {
@@ -119,85 +111,71 @@ export function AnalysisTab() {
     <div className="space-y-5">
       {/* Date Range + Target CPL */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <span className="inline-flex items-center gap-1.5 text-[12px] font-medium px-3 py-1 rounded-badge bg-surface-secondary text-text-secondary">
-            <Target size={13} strokeWidth={1.5} />
-            Target CPL: ₹{campaignDetail.targetCPL.toLocaleString("en-IN")}
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="text-right">
-            <div className="text-[12px] text-text-secondary">Mar 1 — Mar 23, 2026</div>
-            <div className="text-[11px] text-text-tertiary">vs previous period (Feb 1 — Feb 28)</div>
-          </div>
-          <select value={dateRange} onChange={(e) => setDateRange(e.target.value)}
-            className="h-8 px-3 pr-8 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
-            style={selectStyle}>
-            <option value="1d">Yesterday</option><option value="7d">Last 7 days</option>
-            <option value="14d">Last 14 days</option><option value="30d">Last 30 days</option>
-            <option value="all">Lifetime</option>
-          </select>
-        </div>
+        <span className="inline-flex items-center gap-1.5 text-[12px] font-medium px-3 py-1 rounded-badge bg-surface-secondary text-text-secondary">
+          <Target size={13} strokeWidth={1.5} />
+          Target CPL: ₹{campaignDetail.targetCPL.toLocaleString("en-IN")}
+        </span>
+        <DateRangeSelector compact />
       </div>
 
-      {/* Row 1: 5 metric cards + funnel side by side */}
-      <div className="grid grid-cols-[1fr_280px] gap-4">
-        {/* Metrics */}
-        <div className="grid grid-cols-5 gap-2.5">
-          <HeadlineCard label="Spend" value="₹2.2L" sub="₹2,20,000" chartKey="spend" status="neutral"
-            trend={{ value: 25.9, direction: "up" }}
-            trendContext="₹46K more than last period"
-            tooltip="Total amount spent in the selected period."
-            selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
-          <HeadlineCard label="Leads" value="186" chartKey="leads" status="good"
-            trend={{ value: 12, direction: "up" }}
-            trendContext="20 more leads than last period"
-            tooltip="Total lead form submissions."
-            selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
-          <HeadlineCard label="Qualified" value="22" sub="11.8% of total" chartKey="qualified" status="good"
-            trend={{ value: 7.9, direction: "up" }}
-            trendContext="2 more qualified than last period"
-            tooltip="Leads that passed all qualification criteria."
-            selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
-          <HeadlineCard label="CPL" value="₹1,183" sub="Target ₹1,200" chartKey="cpl" status="good"
-            trend={{ value: 5, direction: "down", positive: true }}
-            trendContext="₹62 cheaper per lead vs last period"
-            tooltip="Cost per lead vs your target. Under target = outperforming."
-            selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
-          <HeadlineCard label="CPQL" value="₹10,000" sub="Cost per qualified" chartKey="cpql" status="warning"
-            trend={{ value: 5, direction: "up", positive: false }}
-            trendContext="₹476 more per qualified lead"
-            tooltip="True cost of acquiring a sales-ready lead."
-            selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
-        </div>
+      {/* 5 metric cards — full width row */}
+      <div className="grid grid-cols-5 gap-2.5">
+        <HeadlineCard label="Spend" value="₹2.2L" sub="₹2,20,000" chartKey="spend" status="neutral"
+          trend={{ value: 25.9, direction: "up" }}
+          trendContext="₹46K more vs last 30d"
+          tooltip="Total amount spent in the selected period."
+          selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
+        <HeadlineCard label="Leads" value="186" chartKey="leads" status="good"
+          trend={{ value: 12, direction: "up" }}
+          trendContext="+20 vs last 30d"
+          tooltip="Total lead form submissions."
+          selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
+        <HeadlineCard label="Qualified" value="22" sub="11.8% of total" chartKey="qualified" status="good"
+          trend={{ value: 7.9, direction: "up" }}
+          trendContext="+2 vs last 30d"
+          tooltip="Leads that passed all qualification criteria."
+          selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
+        <HeadlineCard label="CPL" value="₹1,183" sub="Target ₹1,200" chartKey="cpl" status="good"
+          trend={{ value: 5, direction: "down", positive: true }}
+          trendContext="₹62 cheaper vs last 30d"
+          tooltip="Cost per lead vs your target. Under target = outperforming."
+          selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
+        <HeadlineCard label="CPQL" value="₹10,000" sub="Per qualified lead" chartKey="cpql" status="warning"
+          trend={{ value: 5, direction: "up", positive: false }}
+          trendContext="₹476 more vs last 30d"
+          tooltip="True cost of acquiring a sales-ready lead."
+          selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
+      </div>
 
-        {/* Funnel — compact vertical card */}
-        <div className="bg-white border border-border rounded-card px-4 py-3">
-          <div className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-2.5">Lead Funnel</div>
-          <div className="space-y-1.5">
-            {funnelStages.map((stage, i) => {
-              const maxVal = funnelStages[0].value;
-              const widthPct = Math.max((stage.value / maxVal) * 100, 14);
-              const opacity = 0.85 - i * 0.15;
-              return (
-                <div key={stage.label}>
-                  <div className="flex items-center justify-between mb-0.5">
-                    <span className="text-[10px] text-text-secondary">{stage.label}</span>
-                    <span className="text-[10px] text-text-tertiary tabular-nums">{stage.rate || ""}</span>
-                  </div>
+      {/* Lead Funnel — horizontal strip */}
+      <div className="bg-white border border-border rounded-card px-5 py-3">
+        <div className="flex items-center gap-6">
+          <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.5px] shrink-0">Lead Funnel</span>
+          {funnelStages.map((stage, i) => {
+            const maxVal = funnelStages[0].value;
+            const widthPx = Math.max(Math.round((stage.value / maxVal) * 200), 30);
+            const opacity = 0.85 - i * 0.15;
+            return (
+              <div key={stage.label} className="flex items-center gap-2">
+                {i > 0 && <span className="text-[9px] text-text-tertiary">→</span>}
+                <div className="flex items-center gap-1.5">
                   <motion.div
                     initial={{ width: 0 }}
-                    animate={{ width: `${widthPct}%` }}
-                    transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
-                    className="h-5 rounded-[3px] flex items-center px-2"
+                    animate={{ width: widthPx }}
+                    transition={{ duration: 0.4, delay: i * 0.08, ease: "easeOut" }}
+                    className="h-6 rounded-[3px] flex items-center justify-center px-2 shrink-0"
                     style={{ backgroundColor: `rgba(26,26,26,${opacity})` }}
                   >
-                    <span className="text-[10px] font-semibold text-white tabular-nums">{stage.value.toLocaleString("en-IN")}</span>
+                    <span className="text-[10px] font-semibold text-white tabular-nums whitespace-nowrap">{stage.value}</span>
                   </motion.div>
+                  <div className="shrink-0">
+                    <div className="text-[10px] text-text-secondary leading-tight">{stage.label}</div>
+                    {stage.rate && <div className="text-[9px] text-text-tertiary leading-tight">{stage.rate}</div>}
+                  </div>
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
