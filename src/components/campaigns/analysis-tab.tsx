@@ -140,23 +140,45 @@ export function AnalysisTab() {
           selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
       </div>
 
-      {/* Funnel Strip */}
-      <div className="bg-white border border-border rounded-card px-5 py-3">
-        <div className="flex items-center gap-0">
-          {funnelStages.map((stage, i) => (
-            <div key={stage.label} className="flex items-center">
-              {i > 0 && (
-                <div className="flex flex-col items-center mx-3">
-                  <ArrowRight size={14} strokeWidth={1.5} className="text-text-tertiary" />
-                  {stage.rate && <span className="text-[9px] text-text-tertiary mt-0.5">{stage.rate}</span>}
+      {/* Cost Metrics Row */}
+      <div className="grid grid-cols-4 gap-3">
+        <HeadlineCard label="CPVL" value="₹5,238" sub="Cost per verified lead" chartKey="cpvl"
+          trend={{ value: 3.1, direction: "up", positive: false }} tooltip="What you pay for each lead with confirmed valid contact info. High CPVL relative to CPL indicates many invalid leads."
+          selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
+        <HeadlineCard label="CPQL" value="₹10,000" sub="Cost per qualified lead" chartKey="cpql"
+          trend={{ value: 5, direction: "up", positive: false }} tooltip="True cost of acquiring a sales-ready lead. This is the real customer acquisition cost."
+          selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
+        <div /><div />
+      </div>
+
+      {/* Lead Funnel — stepped horizontal bars */}
+      <div className="bg-white border border-border rounded-card p-5">
+        <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-4">Lead Funnel</div>
+        <div className="space-y-2">
+          {funnelStages.map((stage, i) => {
+            const maxVal = funnelStages[0].value;
+            const widthPct = Math.max((stage.value / maxVal) * 100, 10);
+            const opacity = 0.85 - i * 0.15;
+            return (
+              <div key={stage.label} className="flex items-center gap-3">
+                <span className="text-[11px] text-text-secondary w-[80px] text-right shrink-0">{stage.label}</span>
+                <div className="flex-1 relative">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${widthPct}%` }}
+                    transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
+                    className="h-8 rounded-[4px] flex items-center justify-between px-3"
+                    style={{ backgroundColor: `rgba(26,26,26,${opacity})` }}
+                  >
+                    <span className="text-[12px] font-semibold text-white tabular-nums">{stage.value.toLocaleString("en-IN")}</span>
+                  </motion.div>
                 </div>
-              )}
-              <div className="text-center">
-                <div className="text-[18px] font-semibold text-text-primary tabular-nums">{stage.value.toLocaleString("en-IN")}</div>
-                <div className="text-[10px] text-text-tertiary uppercase tracking-[0.3px]">{stage.label}</div>
+                <span className="text-[11px] text-text-tertiary tabular-nums w-[50px] shrink-0">
+                  {stage.rate || "100%"}
+                </span>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

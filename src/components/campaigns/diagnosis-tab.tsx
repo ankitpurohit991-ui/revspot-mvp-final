@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  CircleCheck, AlertTriangle, XCircle, TrendingDown, Lightbulb,
+  CircleCheck, AlertTriangle, XCircle, TrendingDown, Lightbulb, Sparkles,
 } from "lucide-react";
 import { campaignDiagnosis, adSetsData } from "@/lib/campaign-data";
 import type { AdSetRow } from "@/lib/campaign-data";
@@ -35,34 +35,55 @@ export function DiagnosisTab() {
   return (
     <div className="space-y-6">
       {/* AI Diagnosis */}
-      <div className="bg-white border border-border rounded-card p-5">
-        <div className="flex items-start justify-between mb-4">
-          <h3 className="text-section-header text-text-primary">Campaign Diagnosis</h3>
-          <CampaignStatusBadge status={campaignDiagnosis.status} />
-        </div>
-        <p className="text-[13px] text-text-primary leading-relaxed mb-5">{campaignDiagnosis.summary}</p>
-        <div className="grid grid-cols-2 gap-5">
-          <div>
-            <div className="flex items-center gap-1.5 mb-3">
-              <TrendingDown size={14} strokeWidth={1.5} className="text-text-tertiary" />
-              <span className="text-[12px] font-medium text-text-secondary uppercase tracking-[0.4px]">Why</span>
+      <div className="bg-[#FAFAF8] border border-border rounded-card overflow-hidden">
+        <div className="border-l-4 border-l-accent p-5">
+          {/* Header */}
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-[8px] bg-accent flex items-center justify-center">
+                <Sparkles size={14} strokeWidth={1.5} className="text-white" />
+              </div>
+              <div>
+                <h3 className="text-[16px] font-semibold text-text-primary">AI Diagnosis</h3>
+                <span className="text-[11px] text-text-tertiary">Auto-generated campaign analysis</span>
+              </div>
             </div>
-            <ul className="space-y-2">
-              {campaignDiagnosis.reasons.map((r, i) => (
-                <li key={i} className="text-[12px] text-text-secondary leading-relaxed pl-3 relative before:content-[''] before:absolute before:left-0 before:top-[7px] before:w-1 before:h-1 before:bg-text-tertiary before:rounded-full">{r}</li>
-              ))}
-            </ul>
+            <CampaignStatusBadge status={campaignDiagnosis.status} />
           </div>
-          <div>
-            <div className="flex items-center gap-1.5 mb-3">
-              <Lightbulb size={14} strokeWidth={1.5} className="text-text-tertiary" />
-              <span className="text-[12px] font-medium text-text-secondary uppercase tracking-[0.4px]">What to do</span>
+
+          {/* Summary */}
+          <p className="text-[14px] text-text-primary leading-relaxed mb-5 font-medium">{campaignDiagnosis.summary}</p>
+
+          {/* Why + What to do */}
+          <div className="grid grid-cols-2 gap-5">
+            <div>
+              <div className="flex items-center gap-1.5 mb-3">
+                <TrendingDown size={14} strokeWidth={1.5} className="text-text-tertiary" />
+                <span className="text-[12px] font-medium text-text-secondary uppercase tracking-[0.4px]">Why</span>
+              </div>
+              <ul className="space-y-2">
+                {campaignDiagnosis.reasons.map((r, i) => (
+                  <li key={i} className="text-[12px] text-text-secondary leading-relaxed pl-3 relative before:content-[''] before:absolute before:left-0 before:top-[7px] before:w-1 before:h-1 before:bg-text-tertiary before:rounded-full">{r}</li>
+                ))}
+              </ul>
             </div>
-            <ul className="space-y-2">
-              {campaignDiagnosis.recommendations.map((r, i) => (
-                <li key={i} className="text-[12px] text-text-secondary leading-relaxed pl-3 relative before:content-[''] before:absolute before:left-0 before:top-[7px] before:w-1 before:h-1 before:bg-accent before:rounded-full">{r}</li>
-              ))}
-            </ul>
+            <div>
+              <div className="flex items-center gap-1.5 mb-3">
+                <Lightbulb size={14} strokeWidth={1.5} className="text-text-tertiary" />
+                <span className="text-[12px] font-medium text-text-secondary uppercase tracking-[0.4px]">What to do</span>
+              </div>
+              <ul className="space-y-2">
+                {campaignDiagnosis.recommendations.map((r, i) => (
+                  <li key={i} className="text-[12px] text-text-secondary leading-relaxed pl-3 relative before:content-[''] before:absolute before:left-0 before:top-[7px] before:w-1 before:h-1 before:bg-accent before:rounded-full">{r}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          {/* AI Footer */}
+          <div className="flex items-center gap-1.5 mt-5 pt-4 border-t border-border-subtle">
+            <Sparkles size={11} strokeWidth={1.5} className="text-text-tertiary" />
+            <span className="text-[10px] text-text-tertiary">Generated by Revspot AI · Updated 2 hours ago</span>
           </div>
         </div>
       </div>

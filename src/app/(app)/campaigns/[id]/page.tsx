@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { ArrowLeft, Calendar, ArrowRight } from "lucide-react";
+import { ArrowLeft, Calendar, ArrowRight, Sparkles } from "lucide-react";
 import { campaignDetail, campaignDiagnosis } from "@/lib/campaign-data";
 import { LeadsTab } from "@/components/campaigns/leads-tab";
 import { AnalysisTab } from "@/components/campaigns/analysis-tab";
@@ -76,6 +76,9 @@ export default function CampaignDetailPage() {
 
       {/* Diagnosis Summary Bar */}
       <div className="flex items-center gap-3 mb-5 px-4 py-2.5 bg-white border border-border rounded-card">
+        <div className="w-5 h-5 rounded-[5px] bg-accent flex items-center justify-center shrink-0">
+          <Sparkles size={11} strokeWidth={1.5} className="text-white" />
+        </div>
         <span className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-badge ${diagCfg.cls}`}>
           {diagCfg.label}
         </span>
