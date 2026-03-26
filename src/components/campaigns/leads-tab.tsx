@@ -206,7 +206,7 @@ export function LeadsTab() {
           {[
             { icon: RefreshCw, label: "Sync" },
             { icon: Download, label: "Export" },
-            { icon: ShieldCheck, label: "Mark SQL" },
+            { icon: ShieldCheck, label: "Mark Qualified" },
             { icon: Zap, label: "Enrich" },
           ].map(({ icon: Icon, label }) => (
             <button key={label} className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page hover:text-text-primary transition-colors duration-150">

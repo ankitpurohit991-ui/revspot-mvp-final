@@ -375,9 +375,9 @@ export const analysisMetrics = {
     { label: "Verified leads", value: 42, subtext: "22.6% rate" },
     { label: "AI qualified", value: 34, subtext: "18.3% rate" },
     { label: "CPVL", value: "₹5,238", subtext: "Cost per verified" },
-    { label: "Qualified (SQL)", value: 22, subtext: "11.8% rate" },
-    { label: "CPQL", value: "₹10,000", subtext: "Cost per SQL" },
-    { label: "Sent to CRM", value: 18, subtext: "81.8% of SQL" },
+    { label: "Qualified Leads", value: 22, subtext: "11.8% rate" },
+    { label: "CPQL", value: "₹10,000", subtext: "Cost per qualified lead" },
+    { label: "Sent to CRM", value: 18, subtext: "81.8% of qualified" },
   ] as AnalysisMetric[],
 };
 
@@ -510,7 +510,7 @@ export const metricsMeta: MetricMeta[] = [
   { key: "cvr", label: "CVR", category: "funnel", unit: "percentage", currentValue: "4.8%", color: "#3B82F6" },
   { key: "verificationRate", label: "Verification Rate", category: "funnel", unit: "percentage", currentValue: "22.6%", color: "#3B82F6" },
   { key: "aiQualRate", label: "AI Qual Rate", category: "funnel", unit: "percentage", currentValue: "18.3%", color: "#3B82F6" },
-  { key: "sqlRate", label: "SQL Rate", category: "funnel", unit: "percentage", currentValue: "11.8%", color: "#3B82F6" },
+  { key: "sqlRate", label: "Qualification Rate", category: "funnel", unit: "percentage", currentValue: "11.8%", color: "#3B82F6" },
   // Cost
   { key: "cpm", label: "CPM", category: "cost", unit: "currency", currentValue: "₹245", color: "#F59E0B" },
   { key: "cpc", label: "CPC", category: "cost", unit: "currency", currentValue: "₹57", color: "#F59E0B" },

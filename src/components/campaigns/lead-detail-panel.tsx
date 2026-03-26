@@ -153,7 +153,7 @@ export function LeadDetailPanel({ lead, onClose }: LeadDetailPanelProps) {
                 </div>
               </div>
               <div className="bg-surface-page rounded-[6px] px-3 py-2">
-                <div className="text-[11px] text-text-tertiary">SQL</div>
+                <div className="text-[11px] text-text-tertiary">Qualified</div>
                 <div className="text-[13px] text-text-primary font-medium mt-0.5 flex items-center gap-1.5">
                   {lead.sql ? (<><CheckCircle2 size={13} strokeWidth={2} className="text-status-success" /> Yes</>) : "No"}
                 </div>

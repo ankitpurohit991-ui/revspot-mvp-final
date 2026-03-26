@@ -259,7 +259,7 @@ function LeadPanel({
                 </div>
               </div>
               <div className="bg-surface-page rounded-[6px] px-3 py-2">
-                <div className="text-[11px] text-text-tertiary">SQL</div>
+                <div className="text-[11px] text-text-tertiary">Qualified</div>
                 <div className="text-[13px] text-text-primary font-medium mt-0.5 flex items-center gap-1.5">
                   {lead.sql ? (
                     <>
@@ -485,7 +485,7 @@ export default function EnquiriesPage() {
                   { label: "AI Status", align: "left" },
                   { label: "Temp", align: "left" },
                   { label: "Status", align: "left" },
-                  { label: "SQL", align: "center" },
+                  { label: "Qualified", align: "center" },
                 ].map((h) => (
                   <th
                     key={h.label}

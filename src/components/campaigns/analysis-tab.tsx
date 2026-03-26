@@ -2,19 +2,44 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Target, ArrowUpRight, ArrowDownRight, ArrowRight } from "lucide-react";
+import { Target, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { campaignDiagnosis, campaignDetail, healthIndicators } from "@/lib/campaign-data";
 import { MetricExplorer } from "./metric-explorer";
+
+// ── Performance Status ──────────────────────────────────────
+// Determines subtle card background tint based on metric performance
+type CardStatus = "good" | "warning" | "bad" | "neutral";
+
+function getCardBg(status: CardStatus) {
+  return {
+    good: "bg-[#F7FDF9]", // very subtle green tint
+    warning: "bg-[#FFFBF5]", // very subtle amber tint
+    bad: "bg-[#FEF9F9]", // very subtle red tint
+    neutral: "bg-surface-page",
+  }[status];
+}
+
+function getCardBorder(status: CardStatus, isSelected: boolean) {
+  if (isSelected) return "border-accent ring-1 ring-accent/20";
+  return {
+    good: "border-[#E2F5E9]",
+    warning: "border-[#F5EDD8]",
+    bad: "border-[#F5E2E2]",
+    neutral: "border-border",
+  }[status];
+}
 
 // ── Headline Metric Card ────────────────────────────────────
 
 function HeadlineCard({
-  label, value, sub, trend, tooltip, chartKey, selectedMetrics, onToggle,
+  label, value, sub, trend, tooltip, chartKey, selectedMetrics, onToggle, status = "neutral", trendContext,
 }: {
   label: string; value: string; sub?: string;
   trend?: { value: number; direction: "up" | "down"; positive?: boolean };
   tooltip: string; chartKey: string;
   selectedMetrics: string[]; onToggle: (key: string) => void;
+  status?: CardStatus;
+  trendContext?: string; // e.g. "₹476 more per qualified lead vs last period"
 }) {
   const [showTooltip, setShowTooltip] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -26,22 +51,25 @@ function HeadlineCard({
       onClick={() => onToggle(chartKey)}
       onMouseEnter={() => { timeoutRef.current = setTimeout(() => setShowTooltip(true), 300); }}
       onMouseLeave={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); setShowTooltip(false); }}
-      className={`relative text-left w-full bg-surface-page border rounded-card px-5 py-4 transition-all duration-150 hover:shadow-card-hover hover:-translate-y-px ${
-        isSelected ? "border-accent ring-1 ring-accent/20" : "border-border"
-      }`}
+      className={`relative text-left w-full ${getCardBg(status)} border rounded-card px-4 py-3.5 transition-all duration-150 hover:shadow-card-hover hover:-translate-y-px ${getCardBorder(status, isSelected)}`}
     >
       <div className="flex items-center justify-between mb-1">
-        <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.3px]">{label}</span>
+        <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">{label}</span>
         {trend && (
-          <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${trendPositive ? "text-status-success" : "text-status-error"}`}>
-            {trend.direction === "up" ? <ArrowUpRight size={11} strokeWidth={2.5} /> : <ArrowDownRight size={11} strokeWidth={2.5} />}
+          <span className={`inline-flex items-center gap-0.5 text-[10px] font-medium ${trendPositive ? "text-status-success" : "text-status-error"}`}>
+            {trend.direction === "up" ? <ArrowUpRight size={10} strokeWidth={2.5} /> : <ArrowDownRight size={10} strokeWidth={2.5} />}
             {trend.value}%
           </span>
         )}
       </div>
-      <div className="text-[26px] font-semibold text-text-primary leading-tight tabular-nums">{value}</div>
-      {sub && <div className="mt-1 text-[11px] text-text-tertiary">{sub}</div>}
-      {isSelected && <div className="absolute bottom-0 left-3 right-3 h-[2px] bg-accent rounded-full" />}
+      <div className="text-[22px] font-semibold text-text-primary leading-tight tabular-nums">{value}</div>
+      {sub && <div className="mt-0.5 text-[10px] text-text-tertiary">{sub}</div>}
+      {trendContext && (
+        <div className={`mt-1 text-[10px] leading-tight ${trendPositive ? "text-status-success" : "text-status-error"}`}>
+          {trendContext}
+        </div>
+      )}
+      {isSelected && <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-accent rounded-full" />}
 
       <AnimatePresence>
         {showTooltip && (
@@ -62,20 +90,8 @@ const funnelStages = [
   { label: "Leads", value: 186 },
   { label: "Verified", value: 42, rate: "22.6%" },
   { label: "AI Qualified", value: 34, rate: "81.0%" },
-  { label: "SQL", value: 22, rate: "64.7%" },
+  { label: "Qualified", value: 22, rate: "64.7%" },
 ];
-
-// ── Diagnosis Status Badge ──────────────────────────────────
-
-function StatusBadge({ status }: { status: "on-target" | "near-target" | "off-target" }) {
-  const cfg = {
-    "on-target": { label: "On Target", cls: "bg-[#F0FDF4] text-[#15803D]" },
-    "near-target": { label: "Near Target", cls: "bg-[#FEF3C7] text-[#92400E]" },
-    "off-target": { label: "Off Target", cls: "bg-[#FEF2F2] text-[#DC2626]" },
-  };
-  const { label, cls } = cfg[status];
-  return <span className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-badge ${cls}`}>{label}</span>;
-}
 
 // ── Date Range Select Style ─────────────────────────────────
 
@@ -124,61 +140,64 @@ export function AnalysisTab() {
         </div>
       </div>
 
-      {/* Headline Metrics — click to add to chart */}
-      <div className="grid grid-cols-4 gap-3">
-        <HeadlineCard label="Spend" value="₹2.2L" sub="₹2,20,000" chartKey="spend"
-          trend={{ value: 25.9, direction: "up" }} tooltip="Total amount spent in the selected period."
-          selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
-        <HeadlineCard label="Leads" value="186" chartKey="leads"
-          trend={{ value: 12, direction: "up" }} tooltip="Total lead form submissions."
-          selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
-        <HeadlineCard label="Qualified" value="22" sub="11.8% of total" chartKey="qualified"
-          trend={{ value: 7.9, direction: "up" }} tooltip="Sales-qualified leads ready for follow-up."
-          selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
-        <HeadlineCard label="CPL vs Target" value="₹1,183" sub="Target: ₹1,200 · 1.4% under" chartKey="cpl"
-          trend={{ value: 5, direction: "down", positive: true }} tooltip="Actual cost per lead vs your target."
-          selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
-      </div>
+      {/* Row 1: 5 metric cards + funnel side by side */}
+      <div className="grid grid-cols-[1fr_280px] gap-4">
+        {/* Metrics */}
+        <div className="grid grid-cols-5 gap-2.5">
+          <HeadlineCard label="Spend" value="₹2.2L" sub="₹2,20,000" chartKey="spend" status="neutral"
+            trend={{ value: 25.9, direction: "up" }}
+            trendContext="₹46K more than last period"
+            tooltip="Total amount spent in the selected period."
+            selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
+          <HeadlineCard label="Leads" value="186" chartKey="leads" status="good"
+            trend={{ value: 12, direction: "up" }}
+            trendContext="20 more leads than last period"
+            tooltip="Total lead form submissions."
+            selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
+          <HeadlineCard label="Qualified" value="22" sub="11.8% of total" chartKey="qualified" status="good"
+            trend={{ value: 7.9, direction: "up" }}
+            trendContext="2 more qualified than last period"
+            tooltip="Leads that passed all qualification criteria."
+            selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
+          <HeadlineCard label="CPL" value="₹1,183" sub="Target ₹1,200" chartKey="cpl" status="good"
+            trend={{ value: 5, direction: "down", positive: true }}
+            trendContext="₹62 cheaper per lead vs last period"
+            tooltip="Cost per lead vs your target. Under target = outperforming."
+            selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
+          <HeadlineCard label="CPQL" value="₹10,000" sub="Cost per qualified" chartKey="cpql" status="warning"
+            trend={{ value: 5, direction: "up", positive: false }}
+            trendContext="₹476 more per qualified lead"
+            tooltip="True cost of acquiring a sales-ready lead."
+            selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
+        </div>
 
-      {/* Cost Metrics Row */}
-      <div className="grid grid-cols-4 gap-3">
-        <HeadlineCard label="CPVL" value="₹5,238" sub="Cost per verified lead" chartKey="cpvl"
-          trend={{ value: 3.1, direction: "up", positive: false }} tooltip="What you pay for each lead with confirmed valid contact info. High CPVL relative to CPL indicates many invalid leads."
-          selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
-        <HeadlineCard label="CPQL" value="₹10,000" sub="Cost per qualified lead" chartKey="cpql"
-          trend={{ value: 5, direction: "up", positive: false }} tooltip="True cost of acquiring a sales-ready lead. This is the real customer acquisition cost."
-          selectedMetrics={selectedMetrics} onToggle={toggleMetric} />
-        <div /><div />
-      </div>
-
-      {/* Lead Funnel — stepped horizontal bars */}
-      <div className="bg-white border border-border rounded-card p-5">
-        <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-4">Lead Funnel</div>
-        <div className="space-y-2">
-          {funnelStages.map((stage, i) => {
-            const maxVal = funnelStages[0].value;
-            const widthPct = Math.max((stage.value / maxVal) * 100, 10);
-            const opacity = 0.85 - i * 0.15;
-            return (
-              <div key={stage.label} className="flex items-center gap-3">
-                <span className="text-[11px] text-text-secondary w-[80px] text-right shrink-0">{stage.label}</span>
-                <div className="flex-1 relative">
+        {/* Funnel — compact vertical card */}
+        <div className="bg-white border border-border rounded-card px-4 py-3">
+          <div className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-2.5">Lead Funnel</div>
+          <div className="space-y-1.5">
+            {funnelStages.map((stage, i) => {
+              const maxVal = funnelStages[0].value;
+              const widthPct = Math.max((stage.value / maxVal) * 100, 14);
+              const opacity = 0.85 - i * 0.15;
+              return (
+                <div key={stage.label}>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="text-[10px] text-text-secondary">{stage.label}</span>
+                    <span className="text-[10px] text-text-tertiary tabular-nums">{stage.rate || ""}</span>
+                  </div>
                   <motion.div
                     initial={{ width: 0 }}
                     animate={{ width: `${widthPct}%` }}
                     transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
-                    className="h-8 rounded-[4px] flex items-center justify-between px-3"
+                    className="h-5 rounded-[3px] flex items-center px-2"
                     style={{ backgroundColor: `rgba(26,26,26,${opacity})` }}
                   >
-                    <span className="text-[12px] font-semibold text-white tabular-nums">{stage.value.toLocaleString("en-IN")}</span>
+                    <span className="text-[10px] font-semibold text-white tabular-nums">{stage.value.toLocaleString("en-IN")}</span>
                   </motion.div>
                 </div>
-                <span className="text-[11px] text-text-tertiary tabular-nums w-[50px] shrink-0">
-                  {stage.rate || "100%"}
-                </span>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
