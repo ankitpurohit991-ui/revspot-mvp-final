@@ -488,6 +488,48 @@ export const adSetsData: AdSetRow[] = [
   },
 ];
 
+// ── Metric Explorer Metadata ────────────────────────────────
+
+export interface MetricMeta {
+  key: string;
+  label: string;
+  category: "headline" | "funnel" | "cost" | "health";
+  unit: "currency" | "percentage" | "number";
+  currentValue: string;
+  color: string;
+}
+
+export const metricsMeta: MetricMeta[] = [
+  // Headlines (also selectable in explorer)
+  { key: "spend", label: "Spend", category: "headline", unit: "currency", currentValue: "₹2.2L", color: "#1A1A1A" },
+  { key: "leads", label: "Leads", category: "headline", unit: "number", currentValue: "186", color: "#1A1A1A" },
+  { key: "qualified", label: "Qualified", category: "headline", unit: "number", currentValue: "22", color: "#1A1A1A" },
+  { key: "cpl", label: "CPL", category: "headline", unit: "currency", currentValue: "₹1,183", color: "#1A1A1A" },
+  // Funnel
+  { key: "ctr", label: "CTR", category: "funnel", unit: "percentage", currentValue: "2.1%", color: "#3B82F6" },
+  { key: "cvr", label: "CVR", category: "funnel", unit: "percentage", currentValue: "4.8%", color: "#3B82F6" },
+  { key: "verificationRate", label: "Verification Rate", category: "funnel", unit: "percentage", currentValue: "22.6%", color: "#3B82F6" },
+  { key: "aiQualRate", label: "AI Qual Rate", category: "funnel", unit: "percentage", currentValue: "18.3%", color: "#3B82F6" },
+  { key: "sqlRate", label: "SQL Rate", category: "funnel", unit: "percentage", currentValue: "11.8%", color: "#3B82F6" },
+  // Cost
+  { key: "cpm", label: "CPM", category: "cost", unit: "currency", currentValue: "₹245", color: "#F59E0B" },
+  { key: "cpc", label: "CPC", category: "cost", unit: "currency", currentValue: "₹57", color: "#F59E0B" },
+  { key: "cpvl", label: "CPVL", category: "cost", unit: "currency", currentValue: "₹5,238", color: "#F59E0B" },
+  { key: "cpql", label: "CPQL", category: "cost", unit: "currency", currentValue: "₹10,000", color: "#F59E0B" },
+  // Health
+  { key: "frequency", label: "Frequency", category: "health", unit: "number", currentValue: "2.4", color: "#22C55E" },
+  { key: "budgetPacing", label: "Budget Pacing", category: "health", unit: "percentage", currentValue: "97.5%", color: "#22C55E" },
+];
+
+export const healthIndicators = [
+  { key: "ctr", label: "CTR", value: "2.1%", status: "green" as const },
+  { key: "cvr", label: "CVR", value: "4.8%", status: "green" as const },
+  { key: "cpl", label: "CPL vs Target", value: "₹1,183", status: "green" as const },
+  { key: "cpm", label: "CPM", value: "₹245", status: "green" as const },
+  { key: "budgetPacing", label: "Budget", value: "97.5%", status: "green" as const },
+  { key: "frequency", label: "Frequency", value: "2.4", status: "green" as const },
+];
+
 // ── Settings Tab Data ───────────────────────────────────────
 
 export interface ConnectedAdset {
