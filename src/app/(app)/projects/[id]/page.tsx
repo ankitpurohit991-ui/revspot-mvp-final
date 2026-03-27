@@ -13,7 +13,7 @@ import {
 import type { CampaignHealth } from "@/lib/campaign-data";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { MetricChart } from "@/components/shared/metric-chart";
-import type { MetricChartDef } from "@/components/shared/metric-chart";
+import type { MetricChartDef, MetricOption } from "@/components/shared/metric-chart";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
@@ -79,6 +79,14 @@ export default function ProjectDetailPage() {
 
   const selectedChartDefs = selectedMetrics.map((k) => projectTrends[k]).filter(Boolean);
 
+  const projectAvailableMetrics: MetricOption[] = [
+    { key: "totalSpend", label: "Total Spend", category: "Overview", currentValue: formatCurrency(project.totalSpend) },
+    { key: "totalLeads", label: "Total Leads", category: "Leads", currentValue: project.totalLeads.toString() },
+    { key: "verifiedLeads", label: "Verified Leads", category: "Leads", currentValue: project.verifiedLeads.toString() },
+    { key: "qualifiedLeads", label: "Qualified", category: "Leads", currentValue: project.qualifiedLeads.toString() },
+    { key: "avgCPL", label: "Avg CPL", category: "Cost", currentValue: `₹${project.avgCPL.toLocaleString("en-IN")}` },
+  ];
+
   return (
     <motion.div initial="hidden" animate="show" variants={fadeUp}>
       {/* Breadcrumb */}
@@ -128,7 +136,8 @@ export default function ProjectDetailPage() {
       {/* Chart */}
       {selectedChartDefs.length > 0 && (
         <div className="mb-6">
-          <MetricChart metrics={selectedChartDefs} dates={dates} onRemove={toggleMetric} maxMetrics={MAX_CHART} />
+          <MetricChart metrics={selectedChartDefs} dates={dates} onRemove={toggleMetric}
+            onAdd={toggleMetric} availableMetrics={projectAvailableMetrics} selectedKeys={selectedMetrics} maxMetrics={MAX_CHART} />
         </div>
       )}
 

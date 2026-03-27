@@ -17,32 +17,27 @@ interface MetricCardProps {
   };
   status?: CardStatus;
   trendContext?: string;
+  /** Secondary metric shown inside the card (e.g. "15% verification rate") */
+  subMetric?: string;
   /** If provided, card is clickable to toggle chart selection */
   chartKey?: string;
   isSelected?: boolean;
   onToggle?: (key: string) => void;
 }
 
-function getCardBg(status: CardStatus) {
+function getLeftBorder(status: CardStatus) {
   return {
-    good: "bg-[#F7FDF9]",
-    warning: "bg-[#FFFBF5]",
-    bad: "bg-[#FEF9F9]",
-    neutral: "bg-white",
+    good: "border-l-[#22C55E]",
+    warning: "border-l-[#F5A623]",
+    bad: "border-l-[#E53E3E]",
+    neutral: "border-l-transparent",
   }[status];
 }
 
-function getCardBorder(status: CardStatus, isSelected: boolean) {
-  if (isSelected) return "border-accent ring-1 ring-accent/20";
-  return {
-    good: "border-[#E2F5E9]",
-    warning: "border-[#F5EDD8]",
-    bad: "border-[#F5E2E2]",
-    neutral: "border-border",
-  }[status];
-}
-
-export function MetricCard({ label, value, previous, tooltip, trend, status = "neutral", trendContext, chartKey, isSelected = false, onToggle }: MetricCardProps) {
+export function MetricCard({
+  label, value, previous, tooltip, trend, status = "neutral",
+  trendContext, subMetric, chartKey, isSelected = false, onToggle,
+}: MetricCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -53,17 +48,15 @@ export function MetricCard({ label, value, previous, tooltip, trend, status = "n
     : false;
 
   const isClickable = !!chartKey && !!onToggle;
-
-  const handleClick = () => {
-    if (isClickable) onToggle!(chartKey!);
-  };
-
+  const handleClick = () => { if (isClickable) onToggle!(chartKey!); };
   const Tag = isClickable ? "button" : "div";
 
   return (
     <Tag
       onClick={isClickable ? handleClick : undefined}
-      className={`relative text-left w-full ${getCardBg(status)} border ${getCardBorder(status, isSelected)} rounded-card px-4 py-3.5 hover:shadow-card-hover hover:-translate-y-px transition-all duration-150 ${isClickable ? "cursor-pointer" : ""}`}
+      className={`relative text-left w-full bg-white border border-border ${getLeftBorder(status)} border-l-[3px] rounded-card px-4 py-3.5 hover:shadow-card-hover hover:-translate-y-px transition-all duration-150 ${
+        isSelected ? "ring-1 ring-accent/20 border-accent border-l-accent" : ""
+      } ${isClickable ? "cursor-pointer" : ""}`}
       onMouseEnter={() => { if (tooltip) timeoutRef.current = setTimeout(() => setShowTooltip(true), 300); }}
       onMouseLeave={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); setShowTooltip(false); }}
     >
@@ -72,16 +65,8 @@ export function MetricCard({ label, value, previous, tooltip, trend, status = "n
           {label}
         </span>
         {trend && (
-          <span
-            className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${
-              trendIsPositive ? "text-status-success" : "text-status-error"
-            }`}
-          >
-            {trend.direction === "up" ? (
-              <ArrowUpRight size={11} strokeWidth={2.5} />
-            ) : (
-              <ArrowDownRight size={11} strokeWidth={2.5} />
-            )}
+          <span className={`inline-flex items-center gap-0.5 text-[11px] font-medium ${trendIsPositive ? "text-status-success" : "text-status-error"}`}>
+            {trend.direction === "up" ? <ArrowUpRight size={11} strokeWidth={2.5} /> : <ArrowDownRight size={11} strokeWidth={2.5} />}
             {trend.value}%
           </span>
         )}
@@ -89,6 +74,9 @@ export function MetricCard({ label, value, previous, tooltip, trend, status = "n
       <span className="text-[22px] font-semibold text-text-primary leading-tight tabular-nums">
         {value}
       </span>
+      {subMetric && (
+        <div className="mt-1 text-[11px] text-text-secondary font-medium">{subMetric}</div>
+      )}
       {previous !== undefined && (
         <div className="mt-1 text-[11px] text-text-tertiary">
           prev: <span className="font-medium text-text-secondary">{previous}</span>

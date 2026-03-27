@@ -6,7 +6,7 @@ import type { Variants } from "framer-motion";
 import { DateRangeSelector } from "@/components/dashboard/date-range-selector";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { MetricChart } from "@/components/shared/metric-chart";
-import type { MetricChartDef } from "@/components/shared/metric-chart";
+import type { MetricChartDef, MetricOption } from "@/components/shared/metric-chart";
 import { Insights } from "@/components/dashboard/insights";
 import { CampaignTable } from "@/components/dashboard/campaign-table";
 import { RecentlyQualified } from "@/components/dashboard/recently-qualified";
@@ -43,11 +43,34 @@ const dashboardTrends: Record<string, MetricChartDef> = {
   spends: { key: "spends", label: "Spends", unit: "currency", data: makeTrend(540000, 680000) },
   totalLeads: { key: "totalLeads", label: "Total Leads", unit: "number", data: makeTrend(754, 845) },
   verifiedLeads: { key: "verifiedLeads", label: "Verified Leads", unit: "number", data: makeTrend(104, 127) },
-  verificationRate: { key: "verificationRate", label: "Verification Rate", unit: "percentage", data: makeTrend(13.8, 15) },
   qualifiedLeads: { key: "qualifiedLeads", label: "Qualified Leads", unit: "number", data: makeTrend(63, 68) },
-  avgCPL: { key: "avgCPL", label: "Avg CPL", unit: "currency", data: makeTrend(1245, 1183) },
-  costPerVerified: { key: "costPerVerified", label: "Cost per Verified", unit: "currency", data: makeTrend(5192, 5354) },
+  cpl: { key: "cpl", label: "CPL", unit: "currency", data: makeTrend(1245, 1183) },
+  cpvl: { key: "cpvl", label: "CPVL", unit: "currency", data: makeTrend(5192, 5354) },
+  cpql: { key: "cpql", label: "CPQL", unit: "currency", data: makeTrend(8800, 10000) },
+  // Additional metrics available in dropdown
+  verificationRate: { key: "verificationRate", label: "Verification Rate", unit: "percentage", data: makeTrend(13.8, 15) },
+  qualificationRate: { key: "qualificationRate", label: "Qualification Rate", unit: "percentage", data: makeTrend(7.4, 8.1) },
+  ctr: { key: "ctr", label: "CTR", unit: "percentage", data: makeTrend(1.6, 2.1) },
+  connectRate: { key: "connectRate", label: "Connect Rate", unit: "percentage", data: makeTrend(72, 78.9) },
 };
+
+// Available metrics for the "Add metric" dropdown (beyond the 8 cards)
+const allAvailableMetrics: MetricOption[] = [
+  // Card metrics
+  { key: "activeCampaigns", label: "Active Campaigns", category: "Overview", currentValue: "9" },
+  { key: "spends", label: "Spends", category: "Overview", currentValue: "₹6.8L" },
+  { key: "totalLeads", label: "Total Leads", category: "Leads", currentValue: "845" },
+  { key: "verifiedLeads", label: "Verified Leads", category: "Leads", currentValue: "127" },
+  { key: "qualifiedLeads", label: "Qualified Leads", category: "Leads", currentValue: "68" },
+  { key: "cpl", label: "CPL", category: "Cost", currentValue: "₹1,183" },
+  { key: "cpvl", label: "CPVL", category: "Cost", currentValue: "₹5,354" },
+  { key: "cpql", label: "CPQL", category: "Cost", currentValue: "₹10,000" },
+  // Additional (not on cards but chartable)
+  { key: "verificationRate", label: "Verification Rate", category: "Rates", currentValue: "15%" },
+  { key: "qualificationRate", label: "Qualification Rate", category: "Rates", currentValue: "8.1%" },
+  { key: "ctr", label: "CTR", category: "Rates", currentValue: "2.1%" },
+  { key: "connectRate", label: "Voice Connect Rate", category: "Rates", currentValue: "78.9%" },
+];
 
 const MAX_CHART_METRICS = 3;
 
@@ -75,51 +98,63 @@ export default function DashboardPage() {
         <DateRangeSelector />
       </motion.div>
 
-      {/* Metric cards — 4x2 grid with chart selection */}
+      {/* Metric cards — 4x2 grid */}
       <motion.div variants={fadeUp} className="grid grid-cols-4 gap-3 mb-3">
-        <MetricCard label={dashboardMetrics.activeCampaigns.label} value={dashboardMetrics.activeCampaigns.value}
-          previous={dashboardMetrics.activeCampaigns.previous} trend={dashboardMetrics.activeCampaigns.trend}
-          status="good" trendContext="+2 campaigns vs last 30 days"
+        {/* Row 1 */}
+        <MetricCard label="Active campaigns" value={9} previous={7}
+          trend={{ value: 28.6, direction: "up" }} status="good"
+          trendContext="+2 vs last 30 days"
           chartKey="activeCampaigns" isSelected={selectedMetrics.includes("activeCampaigns")} onToggle={toggleMetric} />
-        <MetricCard label={dashboardMetrics.spends.label} value={dashboardMetrics.spends.value}
-          previous={dashboardMetrics.spends.previous} tooltip={dashboardMetrics.spends.formattedFull}
-          trend={dashboardMetrics.spends.trend} status="neutral" trendContext="₹90K more vs last 30 days"
+        <MetricCard label="Spends" value="₹6.8L" previous="₹5.9L"
+          tooltip="₹6,80,000" trend={{ value: 15, direction: "up" }} status="neutral"
+          trendContext="₹90K more vs last 30 days"
           chartKey="spends" isSelected={selectedMetrics.includes("spends")} onToggle={toggleMetric} />
-        <MetricCard label={dashboardMetrics.totalLeads.label} value={dashboardMetrics.totalLeads.value}
-          previous={dashboardMetrics.totalLeads.previous} trend={dashboardMetrics.totalLeads.trend}
-          status="good" trendContext="91 more leads vs last 30 days"
+        <MetricCard label="Total leads" value={845} previous={754}
+          trend={{ value: 12, direction: "up" }} status="good"
+          trendContext="+91 vs last 30 days"
           chartKey="totalLeads" isSelected={selectedMetrics.includes("totalLeads")} onToggle={toggleMetric} />
-        <MetricCard label={dashboardMetrics.verifiedLeads.label} value={dashboardMetrics.verifiedLeads.value}
-          previous={dashboardMetrics.verifiedLeads.previous} trend={dashboardMetrics.verifiedLeads.trend}
-          status="good" trendContext="23 more verified vs last 30 days"
+        <MetricCard label="Verified leads" value={127} previous={104}
+          trend={{ value: 22.1, direction: "up" }} status="good"
+          subMetric="15% verification rate"
+          trendContext="+23 vs last 30 days"
           chartKey="verifiedLeads" isSelected={selectedMetrics.includes("verifiedLeads")} onToggle={toggleMetric} />
-        <MetricCard label={dashboardMetrics.verificationRate.label} value={dashboardMetrics.verificationRate.value}
-          previous={dashboardMetrics.verificationRate.previous} trend={dashboardMetrics.verificationRate.trend}
-          status="good" trendContext="1.2% higher rate vs last 30 days"
-          chartKey="verificationRate" isSelected={selectedMetrics.includes("verificationRate")} onToggle={toggleMetric} />
-        <MetricCard label={dashboardMetrics.qualifiedLeads.label} value={dashboardMetrics.qualifiedLeads.value}
-          previous={dashboardMetrics.qualifiedLeads.previous} trend={dashboardMetrics.qualifiedLeads.trend}
-          status="good" trendContext="5 more qualified vs last 30 days"
+
+        {/* Row 2 */}
+        <MetricCard label="Qualified leads" value={68} previous={63}
+          trend={{ value: 7.9, direction: "up" }} status="good"
+          subMetric="8.1% qualification rate"
+          trendContext="+5 vs last 30 days"
           chartKey="qualifiedLeads" isSelected={selectedMetrics.includes("qualifiedLeads")} onToggle={toggleMetric} />
-        <MetricCard label={dashboardMetrics.avgCPL.label} value={dashboardMetrics.avgCPL.value}
-          previous={dashboardMetrics.avgCPL.previous} trend={dashboardMetrics.avgCPL.trend}
-          status="good" trendContext="₹62 cheaper per lead vs last 30 days"
-          chartKey="avgCPL" isSelected={selectedMetrics.includes("avgCPL")} onToggle={toggleMetric} />
-        <MetricCard label={dashboardMetrics.costPerVerified.label} value={dashboardMetrics.costPerVerified.value}
-          previous={dashboardMetrics.costPerVerified.previous} trend={dashboardMetrics.costPerVerified.trend}
-          status="warning" trendContext="₹162 more per verified vs last 30 days"
-          chartKey="costPerVerified" isSelected={selectedMetrics.includes("costPerVerified")} onToggle={toggleMetric} />
+        <MetricCard label="CPL" value="₹1,183" previous="₹1,245"
+          trend={{ value: 5, direction: "down", positive: true }} status="good"
+          trendContext="₹62 cheaper vs last 30 days"
+          chartKey="cpl" isSelected={selectedMetrics.includes("cpl")} onToggle={toggleMetric} />
+        <MetricCard label="CPVL" value="₹5,354" previous="₹5,192"
+          tooltip="Cost per verified lead"
+          trend={{ value: 3.1, direction: "up", positive: false }} status="warning"
+          trendContext="₹162 more vs last 30 days"
+          chartKey="cpvl" isSelected={selectedMetrics.includes("cpvl")} onToggle={toggleMetric} />
+        <MetricCard label="CPQL" value="₹10,000" previous="₹9,524"
+          tooltip="Cost per qualified lead"
+          trend={{ value: 5, direction: "up", positive: false }} status="warning"
+          trendContext="₹476 more vs last 30 days"
+          chartKey="cpql" isSelected={selectedMetrics.includes("cpql")} onToggle={toggleMetric} />
       </motion.div>
 
-      {/* Chart — shows when metrics are selected */}
-      {selectedChartDefs.length > 0 && (
+      {/* Chart — shows when metrics are selected, with "Add metric" dropdown */}
+      {selectedChartDefs.length > 0 ? (
         <motion.div variants={fadeUp} className="mb-5">
-          <MetricChart metrics={selectedChartDefs} dates={dates} onRemove={toggleMetric} maxMetrics={MAX_CHART_METRICS} />
+          <MetricChart
+            metrics={selectedChartDefs}
+            dates={dates}
+            onRemove={toggleMetric}
+            onAdd={toggleMetric}
+            availableMetrics={allAvailableMetrics}
+            selectedKeys={selectedMetrics}
+            maxMetrics={MAX_CHART_METRICS}
+          />
         </motion.div>
-      )}
-
-      {/* Hint text when no chart */}
-      {selectedChartDefs.length === 0 && (
+      ) : (
         <motion.div variants={fadeUp} className="mb-5">
           <div className="text-[11px] text-text-tertiary text-center py-2">
             Click any metric card to visualize its trend
