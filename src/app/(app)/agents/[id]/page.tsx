@@ -259,7 +259,7 @@ export default function AgentDetailPage() {
           <div>
             <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">Lead Metrics</div>
             <div className="grid grid-cols-5 gap-3">
-              <MetricCard icon={Target} label="Total Leads" value={perf.leadMetrics.totalLeads.toLocaleString()} trendContext={`in ${perf.dateRange.days} days`} />
+              <MetricCard icon={Target} label="Total Leads" value={perf.leadMetrics.totalLeads.toLocaleString()} subMetric={`in ${perf.dateRange.days} days`} />
               <MetricCard icon={PhoneIncoming} label="Leads Dialed" value={perf.leadMetrics.leadsDialed.toLocaleString()} subMetric={`${perf.leadMetrics.coverageRate}% coverage`} />
               <MetricCard icon={Phone} label="Connected" value={perf.leadMetrics.leadsConnected.toLocaleString()} subMetric={`${perf.leadMetrics.connectRate}% connect rate`} />
               <MetricCard icon={MessageSquare} label="Interacted" value={perf.leadMetrics.leadsInteracted.toLocaleString()} subMetric={`${perf.leadMetrics.interactionRate}% interaction rate`} />
@@ -271,10 +271,10 @@ export default function AgentDetailPage() {
           <div>
             <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">Call Metrics</div>
             <div className="grid grid-cols-4 gap-3">
-              <MetricCard label="Total Calls" value={perf.callMetrics.totalCalls.toLocaleString()} trendContext={`${perf.callMetrics.callsPerLead} calls / lead avg`} />
-              <MetricCard label="Total Minutes" value={`${perf.callMetrics.totalMinutes}m`} trendContext={`${perf.callMetrics.avgMinPerLead} avg per lead`} />
-              <MetricCard label="Total Cost" value={`₹${perf.callMetrics.totalCost.toLocaleString("en-IN")}`} trendContext={`₹${perf.callMetrics.costPerLead} / lead avg`} />
-              <MetricCard label="CPQL" value={`₹${perf.callMetrics.cpql}`} trendContext={`₹${perf.callMetrics.spentOnQLs.toLocaleString("en-IN")} → ${perf.callMetrics.qualifiedLeads} QLs`} />
+              <MetricCard label="Total Calls" value={perf.callMetrics.totalCalls.toLocaleString()} subMetric={`${perf.callMetrics.callsPerLead} calls / lead avg`} />
+              <MetricCard label="Total Minutes" value={`${perf.callMetrics.totalMinutes}m`} subMetric={`${perf.callMetrics.avgMinPerLead} avg per lead`} />
+              <MetricCard label="Total Cost" value={`₹${perf.callMetrics.totalCost.toLocaleString("en-IN")}`} subMetric={`₹${perf.callMetrics.costPerLead} / lead avg`} />
+              <MetricCard label="CPQL" value={`₹${perf.callMetrics.cpql}`} subMetric={`₹${perf.callMetrics.spentOnQLs.toLocaleString("en-IN")} → ${perf.callMetrics.qualifiedLeads} QLs`} />
             </div>
           </div>
 

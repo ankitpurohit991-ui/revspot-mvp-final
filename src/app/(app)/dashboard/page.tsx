@@ -97,40 +97,31 @@ export default function DashboardPage() {
       <motion.div variants={fadeUp} className="grid grid-cols-4 gap-3 mb-3">
         <MetricCard label="Active campaigns" value={9} previous={7}
           delta="+2" trend={{ value: 28.6, direction: "up" }}
-          trendContext="+2 vs last 30d"
           chartKey="activeCampaigns" isSelected={selectedMetrics.includes("activeCampaigns")} onToggle={toggleMetric} />
         <MetricCard label="Spends" value="₹6.8L" previous="₹5.9L"
-          delta="+₹90K" tooltip="₹6,80,000"
-          trend={{ value: 15, direction: "up" }}
-          trendContext="₹90K more vs last 30d"
+          delta="+₹90K" tooltip="₹6,80,000" trend={{ value: 15, direction: "up" }}
           chartKey="spends" isSelected={selectedMetrics.includes("spends")} onToggle={toggleMetric} />
         <MetricCard label="Total leads" value={845} previous={754}
           delta="+91" trend={{ value: 12, direction: "up" }}
-          trendContext="+91 vs last 30d"
           chartKey="totalLeads" isSelected={selectedMetrics.includes("totalLeads")} onToggle={toggleMetric} />
         <MetricCard label="Verified leads" value={127} previous={104}
           delta="+23" trend={{ value: 22.1, direction: "up" }}
           subMetric="15% verification rate"
-          trendContext="+23 vs last 30d"
           chartKey="verifiedLeads" isSelected={selectedMetrics.includes("verifiedLeads")} onToggle={toggleMetric} />
         <MetricCard label="Qualified leads" value={68} previous={63}
           delta="+5" trend={{ value: 7.9, direction: "up" }}
           subMetric="8.1% qualification rate"
-          trendContext="+5 vs last 30d"
           chartKey="qualifiedLeads" isSelected={selectedMetrics.includes("qualifiedLeads")} onToggle={toggleMetric} />
         <MetricCard label="CPL" value="₹1,183" previous="₹1,245"
           delta="-₹62" trend={{ value: 5, direction: "down", positive: true }}
-          trendContext="₹62 cheaper vs last 30d"
           chartKey="cpl" isSelected={selectedMetrics.includes("cpl")} onToggle={toggleMetric} />
         <MetricCard label="CPVL" value="₹5,354" previous="₹5,192"
           delta="+₹162" tooltip="Cost per verified lead"
           trend={{ value: 3.1, direction: "up", positive: false }}
-          trendContext="₹162 more vs last 30d"
           chartKey="cpvl" isSelected={selectedMetrics.includes("cpvl")} onToggle={toggleMetric} />
         <MetricCard label="CPQL" value="₹10,000" previous="₹9,524"
           delta="+₹476" tooltip="Cost per qualified lead"
           trend={{ value: 5, direction: "up", positive: false }}
-          trendContext="₹476 more vs last 30d"
           chartKey="cpql" isSelected={selectedMetrics.includes("cpql")} onToggle={toggleMetric} />
       </motion.div>
 

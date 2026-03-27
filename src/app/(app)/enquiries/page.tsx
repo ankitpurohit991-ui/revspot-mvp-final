@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
@@ -16,6 +16,9 @@ import {
   ExternalLink,
   Copy,
 } from "lucide-react";
+import { MetricCard } from "@/components/dashboard/metric-card";
+import { MetricChart } from "@/components/shared/metric-chart";
+import type { MetricChartDef, MetricOption } from "@/components/shared/metric-chart";
 import { format } from "date-fns";
 import {
   allLeads,
@@ -334,6 +337,23 @@ const selectStyle = {
   backgroundPosition: "right 10px center",
 };
 
+// Lead metric trends
+const leadDates = Array.from({ length: 14 }, (_, i) => `Mar ${10 + i}`);
+const leadTrends: Record<string, MetricChartDef> = {
+  total: { key: "total", label: "Total Leads", unit: "number", data: Array.from({ length: 14 }, (_, i) => Math.round(780 + i * 5 + Math.random() * 15)) },
+  verified: { key: "verified", label: "Verified", unit: "number", data: Array.from({ length: 14 }, (_, i) => Math.round(120 + i * 1.5 + Math.random() * 5)) },
+  qualified: { key: "qualified", label: "Qualified", unit: "number", data: Array.from({ length: 14 }, (_, i) => Math.round(105 + i * 1.5 + Math.random() * 5)) },
+  notQualified: { key: "notQualified", label: "Not Qualified", unit: "number", data: Array.from({ length: 14 }, (_, i) => Math.round(380 + i * 2 + Math.random() * 10)) },
+  pending: { key: "pending", label: "Pending", unit: "number", data: Array.from({ length: 14 }, (_, i) => Math.round(280 + i * 2 + Math.random() * 8)) },
+};
+const leadMetricOptions: MetricOption[] = [
+  { key: "total", label: "Total Leads", category: "Leads", currentValue: "845" },
+  { key: "verified", label: "Verified", category: "Leads", currentValue: "142" },
+  { key: "qualified", label: "Qualified", category: "Leads", currentValue: "127" },
+  { key: "notQualified", label: "Not Qualified", category: "Leads", currentValue: "412" },
+  { key: "pending", label: "Pending", category: "Leads", currentValue: "306" },
+];
+
 export default function EnquiriesPage() {
   const [search, setSearch] = useState("");
   const [campaignFilter, setCampaignFilter] = useState("All Campaigns");
@@ -342,6 +362,14 @@ export default function EnquiriesPage() {
   >("all");
   const [page, setPage] = useState(1);
   const [selectedLead, setSelectedLead] = useState<EnquiryLead | null>(null);
+  const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
+  const toggleMetric = useCallback((key: string) => {
+    setSelectedMetrics((prev) => {
+      if (prev.includes(key)) return prev.filter((k) => k !== key);
+      if (prev.length >= 3) return prev;
+      return [...prev, key];
+    });
+  }, []);
 
   const filtered = useMemo(() => {
     return allLeads.filter((l) => {
@@ -389,23 +417,32 @@ export default function EnquiriesPage() {
         </div>
       </div>
 
-      {/* Stats Bar */}
-      <div className="flex items-center gap-5 mb-5">
-        {[
-          { label: "Total", value: enquiryStats.total, cls: "text-text-primary" },
-          { label: "Verified", value: enquiryStats.verified, cls: "text-status-success" },
-          { label: "Qualified", value: enquiryStats.qualified, cls: "text-[#15803D]" },
-          { label: "Not Qualified", value: enquiryStats.notQualified, cls: "text-status-error" },
-          { label: "Pending", value: enquiryStats.pending, cls: "text-[#92400E]" },
-        ].map((stat) => (
-          <div key={stat.label} className="flex items-baseline gap-1.5">
-            <span className={`text-[18px] font-semibold tabular-nums ${stat.cls}`}>
-              {stat.value}
-            </span>
-            <span className="text-[12px] text-text-tertiary">{stat.label}</span>
-          </div>
-        ))}
+      {/* Metric Cards */}
+      <div className="grid grid-cols-5 gap-2.5 mb-3">
+        <MetricCard label="Total" value={enquiryStats.total}
+          chartKey="total" isSelected={selectedMetrics.includes("total")} onToggle={toggleMetric} />
+        <MetricCard label="Verified" value={enquiryStats.verified}
+          subMetric={`${Math.round((enquiryStats.verified / enquiryStats.total) * 100)}% rate`}
+          chartKey="verified" isSelected={selectedMetrics.includes("verified")} onToggle={toggleMetric} />
+        <MetricCard label="Qualified" value={enquiryStats.qualified}
+          subMetric={`${Math.round((enquiryStats.qualified / enquiryStats.total) * 100)}% rate`}
+          chartKey="qualified" isSelected={selectedMetrics.includes("qualified")} onToggle={toggleMetric} />
+        <MetricCard label="Not Qualified" value={enquiryStats.notQualified}
+          chartKey="notQualified" isSelected={selectedMetrics.includes("notQualified")} onToggle={toggleMetric} />
+        <MetricCard label="Pending" value={enquiryStats.pending}
+          chartKey="pending" isSelected={selectedMetrics.includes("pending")} onToggle={toggleMetric} />
       </div>
+
+      {/* Chart */}
+      {selectedMetrics.length > 0 && (
+        <div className="mb-5">
+          <MetricChart
+            metrics={selectedMetrics.map((k) => leadTrends[k]).filter(Boolean)}
+            dates={leadDates} onRemove={toggleMetric}
+            onAdd={toggleMetric} availableMetrics={leadMetricOptions}
+            selectedKeys={selectedMetrics} maxMetrics={3} />
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex items-center gap-3 mb-4">

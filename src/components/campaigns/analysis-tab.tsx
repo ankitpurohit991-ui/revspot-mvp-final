@@ -45,25 +45,25 @@ export function AnalysisTab() {
       <div className="grid grid-cols-5 gap-2.5">
         <MetricCard label="Spend" value="₹2.2L" previous="₹1.74L"
           delta="+₹46K" tooltip="Total amount spent in the selected period."
-          trend={{ value: 25.9, direction: "up" }} trendContext="₹46K more vs last 30d"
+          trend={{ value: 25.9, direction: "up" }}
           chartKey="spend" isSelected={selectedMetrics.includes("spend")} onToggle={toggleMetric} />
         <MetricCard label="Leads" value="186" previous={166}
           delta="+20" tooltip="Total lead form submissions."
-          trend={{ value: 12, direction: "up" }} trendContext="+20 vs last 30d"
+          trend={{ value: 12, direction: "up" }}
           chartKey="leads" isSelected={selectedMetrics.includes("leads")} onToggle={toggleMetric} />
         <MetricCard label="Qualified" value="22" previous={20}
           delta="+2" tooltip="Leads that passed all qualification criteria."
           subMetric="11.8% qualification rate"
-          trend={{ value: 7.9, direction: "up" }} trendContext="+2 vs last 30d"
+          trend={{ value: 7.9, direction: "up" }}
           chartKey="qualified" isSelected={selectedMetrics.includes("qualified")} onToggle={toggleMetric} />
         <MetricCard label="CPL" value="₹1,183" previous="₹1,245"
-          delta="-₹62" tooltip="Cost per lead vs your target. Under target = outperforming."
+          delta="-₹62" tooltip="Cost per lead vs your target."
           subMetric="Target ₹1,200"
-          trend={{ value: 5, direction: "down", positive: true }} trendContext="₹62 cheaper vs last 30d"
+          trend={{ value: 5, direction: "down", positive: true }}
           chartKey="cpl" isSelected={selectedMetrics.includes("cpl")} onToggle={toggleMetric} />
         <MetricCard label="CPQL" value="₹10,000" previous="₹9,524"
           delta="+₹476" tooltip="True cost of acquiring a sales-ready lead."
-          trend={{ value: 5, direction: "up", positive: false }} trendContext="₹476 more vs last 30d"
+          trend={{ value: 5, direction: "up", positive: false }}
           chartKey="cpql" isSelected={selectedMetrics.includes("cpql")} onToggle={toggleMetric} />
       </div>
 

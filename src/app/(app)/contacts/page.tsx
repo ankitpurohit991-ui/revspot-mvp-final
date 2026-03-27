@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
+import { MetricCard } from "@/components/dashboard/metric-card";
 import {
   Search,
   Upload,
@@ -315,23 +316,13 @@ export default function ContactsPage() {
       </div>
 
       {/* Stats */}
-      <div className="flex items-center gap-5 mb-5">
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-[18px] font-semibold tabular-nums text-text-primary">{contacts.length}</span>
-          <span className="text-[12px] text-text-tertiary">Total contacts</span>
-        </div>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-[18px] font-semibold tabular-nums text-status-success">
-            {contacts.filter((c) => c.enquiries.some((e) => e.verified)).length}
-          </span>
-          <span className="text-[12px] text-text-tertiary">Verified</span>
-        </div>
-        <div className="flex items-baseline gap-1.5">
-          <span className="text-[18px] font-semibold tabular-nums text-[#1D4ED8]">
-            {contacts.filter((c) => c.enquiriesCount > 1).length}
-          </span>
-          <span className="text-[12px] text-text-tertiary">Multi-enquiry</span>
-        </div>
+      <div className="grid grid-cols-4 gap-3 mb-5">
+        <MetricCard label="Total contacts" value={contacts.length} />
+        <MetricCard label="Verified" value={contacts.filter((c) => c.enquiries.some((e) => e.verified)).length}
+          subMetric={`${Math.round((contacts.filter((c) => c.enquiries.some((e) => e.verified)).length / contacts.length) * 100)}% verified`} />
+        <MetricCard label="Multi-enquiry" value={contacts.filter((c) => c.enquiriesCount > 1).length}
+          subMetric="Contacts with 2+ enquiries" />
+        <MetricCard label="Sources" value={new Set(contacts.map((c) => c.source)).size} />
       </div>
 
       {/* Filters */}
