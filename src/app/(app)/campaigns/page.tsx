@@ -440,7 +440,7 @@ function ImportCampaignsModal({ onClose }: { onClose: () => void }) {
             {step === 2 && hasLeadGen && (
               <div className="space-y-4">
                 <p className="text-[13px] text-text-secondary">Configure lead processing for imported campaigns</p>
-                <p className="text-[12px] text-text-tertiary">{selectedLeadGen.length} campaign{selectedLeadGen.length !== 1 ? "s" : ""} with leads detected.</p>
+                <p className="text-[12px] text-text-tertiary">{selectedLeadGen.length} campaign{selectedLeadGen.length !== 1 ? "s" : ""} with {selectedLeadGen.reduce((s, c) => s + c.leads, 0).toLocaleString()} existing leads detected.</p>
 
                 <div className="space-y-1.5">
                   {selectedLeadGen.map((c) => (
@@ -451,22 +451,37 @@ function ImportCampaignsModal({ onClose }: { onClose: () => void }) {
                   ))}
                 </div>
 
-                <div className="border border-border rounded-card divide-y divide-border-subtle overflow-hidden">
-                  <ImportToggle enabled={verifyLeads} onToggle={() => setVerifyLeads(!verifyLeads)}
-                    label="Verify existing leads" helper="Run email & phone verification on imported leads" />
-                  <ImportToggle enabled={enableAICalling} onToggle={() => setEnableAICalling(!enableAICalling)}
-                    label="Enable AI calling" helper="Assign a voice agent to qualify leads automatically" />
+                <div className="border border-border rounded-card overflow-hidden">
+                  {/* Verification — for existing leads */}
+                  <div className="border-b border-border-subtle">
+                    <ImportToggle enabled={verifyLeads} onToggle={() => setVerifyLeads(!verifyLeads)}
+                      label="Verify existing leads" helper={`Run email & phone verification on ${selectedLeadGen.reduce((s, c) => s + c.leads, 0).toLocaleString()} imported leads`} />
+                  </div>
+
+                  {/* AI Calling — for future leads only */}
+                  <div className="border-b border-border-subtle">
+                    <ImportToggle enabled={enableAICalling} onToggle={() => setEnableAICalling(!enableAICalling)}
+                      label="Enable AI calling for new leads" helper="Automatically call and qualify new leads that come in after import. Past leads won't be called." />
+                  </div>
+
                   {enableAICalling && (
-                    <div className="px-4 py-3">
-                      <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-1.5 block">Select Agent</label>
-                      <select value={selectedAgent} onChange={(e) => setSelectedAgent(e.target.value)}
-                        className="w-full h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
-                        style={selectStyle}>
-                        <option value="">Choose an agent...</option>
-                        {activeAgents.map((a) => (
-                          <option key={a.id} value={a.id}>{a.name} · {a.qualificationRate}% qual rate</option>
-                        ))}
-                      </select>
+                    <div className="px-4 py-3 space-y-2.5">
+                      <div className="flex items-start gap-2 bg-[#EFF6FF] border border-[#3B82F6]/15 rounded-[6px] px-3 py-2">
+                        <span className="text-[11px] text-[#1D4ED8] leading-relaxed">
+                          AI calling applies to <span className="font-medium">future leads only</span>. Existing {selectedLeadGen.reduce((s, c) => s + c.leads, 0).toLocaleString()} leads won&apos;t be called — use Outreach for bulk calling past leads.
+                        </span>
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-1.5 block">Select Agent</label>
+                        <select value={selectedAgent} onChange={(e) => setSelectedAgent(e.target.value)}
+                          className="w-full h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
+                          style={selectStyle}>
+                          <option value="">Choose an agent...</option>
+                          {activeAgents.map((a) => (
+                            <option key={a.id} value={a.id}>{a.name} · {a.qualificationRate}% qual rate</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -525,25 +540,26 @@ function ImportCampaignsModal({ onClose }: { onClose: () => void }) {
                     {/* Status items */}
                     {(hasLeadGen && (verifyLeads || enableAICalling)) && (
                       <div className="space-y-2">
-                        <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px]">In Progress</div>
+                        <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px]">Processing</div>
                         {verifyLeads && (
                           <div className="flex items-center gap-3 px-4 py-3 bg-[#FFFBF5] border border-[#F5EDD8] rounded-card">
                             <div className="w-5 h-5 border-2 border-[#F5A623]/30 border-t-[#F5A623] rounded-full animate-spin shrink-0" />
                             <div>
-                              <p className="text-[13px] text-text-primary font-medium">Lead verification in progress</p>
+                              <p className="text-[13px] text-text-primary font-medium">Verifying existing leads</p>
                               <p className="text-[11px] text-text-tertiary mt-0.5">
-                                Verifying {selectedLeadGen.reduce((sum, c) => sum + c.leads, 0).toLocaleString()} leads across {selectedLeadGen.length} campaign{selectedLeadGen.length !== 1 ? "s" : ""}. You&apos;ll be notified when complete.
+                                Running verification on {selectedLeadGen.reduce((sum, c) => sum + c.leads, 0).toLocaleString()} existing leads across {selectedLeadGen.length} campaign{selectedLeadGen.length !== 1 ? "s" : ""}. You&apos;ll be notified when complete.
                               </p>
                             </div>
                           </div>
                         )}
                         {enableAICalling && selectedAgent && (
-                          <div className="flex items-center gap-3 px-4 py-3 bg-[#EFF6FF] border border-[#3B82F6]/15 rounded-card">
-                            <div className="w-5 h-5 border-2 border-[#3B82F6]/30 border-t-[#3B82F6] rounded-full animate-spin shrink-0" />
+                          <div className="flex items-start gap-3 px-4 py-3 bg-[#F0FDF4] border border-[#E2F5E9] rounded-card">
+                            <CheckCircle2 size={16} strokeWidth={1.5} className="text-[#15803D] mt-0.5 shrink-0" />
                             <div>
-                              <p className="text-[13px] text-text-primary font-medium">AI calling queued</p>
+                              <p className="text-[13px] text-text-primary font-medium">AI calling enabled for new leads</p>
                               <p className="text-[11px] text-text-tertiary mt-0.5">
-                                Agent will start qualifying leads from {selectedLeadGen.length} campaign{selectedLeadGen.length !== 1 ? "s" : ""} during configured calling hours.
+                                New leads from {selectedLeadGen.length} campaign{selectedLeadGen.length !== 1 ? "s" : ""} will be automatically called and qualified by your voice agent.
+                                Existing leads are not affected — use <span className="font-medium text-text-secondary">Outreach</span> to call past leads in bulk.
                               </p>
                             </div>
                           </div>
