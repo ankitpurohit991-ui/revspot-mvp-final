@@ -316,6 +316,7 @@ function ImportCampaignsModal({ onClose }: { onClose: () => void }) {
   const [platform, setPlatform] = useState<Platform | "">("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [assignProject, setAssignProject] = useState("skip");
+  const [importing, setImporting] = useState(false);
 
   // Lead processing (step 2)
   const [verifyLeads, setVerifyLeads] = useState(true);
@@ -496,41 +497,121 @@ function ImportCampaignsModal({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
             )}
+
+            {/* Step 4 — Importing / Conclusion */}
+            {step === 4 && (
+              <div className="py-4">
+                {importing ? (
+                  <div className="text-center py-8">
+                    <div className="w-10 h-10 border-[3px] border-surface-secondary border-t-accent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-[14px] font-medium text-text-primary">Importing {selected.size} campaign{selected.size !== 1 ? "s" : ""}...</p>
+                    <p className="text-[12px] text-text-tertiary mt-1">Syncing data from {platforms.find(p => p.key === platform)?.label}</p>
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    {/* Success */}
+                    <div className="text-center py-4">
+                      <div className="w-12 h-12 rounded-full bg-[#F0FDF4] flex items-center justify-center mx-auto mb-3">
+                        <CheckCircle2 size={24} strokeWidth={1.5} className="text-[#15803D]" />
+                      </div>
+                      <h3 className="text-[16px] font-semibold text-text-primary mb-1">
+                        {selected.size} campaign{selected.size !== 1 ? "s" : ""} imported
+                      </h3>
+                      <p className="text-[12px] text-text-tertiary">
+                        From {platforms.find(p => p.key === platform)?.label} · {platforms.find(p => p.key === platform)?.account}
+                      </p>
+                    </div>
+
+                    {/* Status items */}
+                    {(hasLeadGen && (verifyLeads || enableAICalling)) && (
+                      <div className="space-y-2">
+                        <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px]">In Progress</div>
+                        {verifyLeads && (
+                          <div className="flex items-center gap-3 px-4 py-3 bg-[#FFFBF5] border border-[#F5EDD8] rounded-card">
+                            <div className="w-5 h-5 border-2 border-[#F5A623]/30 border-t-[#F5A623] rounded-full animate-spin shrink-0" />
+                            <div>
+                              <p className="text-[13px] text-text-primary font-medium">Lead verification in progress</p>
+                              <p className="text-[11px] text-text-tertiary mt-0.5">
+                                Verifying {selectedLeadGen.reduce((sum, c) => sum + c.leads, 0).toLocaleString()} leads across {selectedLeadGen.length} campaign{selectedLeadGen.length !== 1 ? "s" : ""}. You&apos;ll be notified when complete.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                        {enableAICalling && selectedAgent && (
+                          <div className="flex items-center gap-3 px-4 py-3 bg-[#EFF6FF] border border-[#3B82F6]/15 rounded-card">
+                            <div className="w-5 h-5 border-2 border-[#3B82F6]/30 border-t-[#3B82F6] rounded-full animate-spin shrink-0" />
+                            <div>
+                              <p className="text-[13px] text-text-primary font-medium">AI calling queued</p>
+                              <p className="text-[11px] text-text-tertiary mt-0.5">
+                                Agent will start qualifying leads from {selectedLeadGen.length} campaign{selectedLeadGen.length !== 1 ? "s" : ""} during configured calling hours.
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Summary */}
+                    <div className="bg-surface-page rounded-card p-4 space-y-2">
+                      {campaigns.filter(c => selected.has(c.id)).map(c => (
+                        <div key={c.id} className="flex items-center justify-between">
+                          <span className="text-[12px] text-text-primary font-medium">{c.name}</span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-text-tertiary tabular-nums">{c.leads} leads</span>
+                            <CheckCircle2 size={12} strokeWidth={2} className="text-[#15803D]" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-border-subtle flex items-center justify-between shrink-0">
-            {step > 0 ? (
-              <button onClick={goBack}
-                className="inline-flex items-center gap-1 h-9 px-3 text-[13px] font-medium text-text-secondary hover:text-text-primary transition-colors">
-                <ArrowLeft size={14} strokeWidth={1.5} /> Back
-              </button>
-            ) : <div />}
-            <div className="flex items-center gap-3">
-              {step === 1 && selected.size > 0 && (
-                <span className="text-[12px] text-text-secondary">{selected.size} selected</span>
-              )}
-              {step === 0 && <button onClick={onClose} className="h-9 px-4 text-[13px] font-medium text-text-secondary">Cancel</button>}
-              {step === 1 && (
-                <button onClick={() => setStep(hasLeadGen ? 2 : 3)} disabled={selected.size === 0}
-                  className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-1">
-                  Continue <ArrowRight size={14} strokeWidth={1.5} />
+          {step < 4 && (
+            <div className="px-6 py-4 border-t border-border-subtle flex items-center justify-between shrink-0">
+              {step > 0 ? (
+                <button onClick={goBack}
+                  className="inline-flex items-center gap-1 h-9 px-3 text-[13px] font-medium text-text-secondary hover:text-text-primary transition-colors">
+                  <ArrowLeft size={14} strokeWidth={1.5} /> Back
                 </button>
-              )}
-              {step === 2 && (
-                <button onClick={() => setStep(3)}
-                  className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors inline-flex items-center gap-1">
-                  Continue <ArrowRight size={14} strokeWidth={1.5} />
-                </button>
-              )}
-              {step === 3 && (
-                <button onClick={onClose}
-                  className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors">
-                  Import {selected.size} Campaign{selected.size !== 1 ? "s" : ""}
-                </button>
-              )}
+              ) : <div />}
+              <div className="flex items-center gap-3">
+                {step === 1 && selected.size > 0 && (
+                  <span className="text-[12px] text-text-secondary">{selected.size} selected</span>
+                )}
+                {step === 0 && <button onClick={onClose} className="h-9 px-4 text-[13px] font-medium text-text-secondary">Cancel</button>}
+                {step === 1 && (
+                  <button onClick={() => setStep(hasLeadGen ? 2 : 3)} disabled={selected.size === 0}
+                    className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors inline-flex items-center gap-1">
+                    Continue <ArrowRight size={14} strokeWidth={1.5} />
+                  </button>
+                )}
+                {step === 2 && (
+                  <button onClick={() => setStep(3)}
+                    className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors inline-flex items-center gap-1">
+                    Continue <ArrowRight size={14} strokeWidth={1.5} />
+                  </button>
+                )}
+                {step === 3 && (
+                  <button onClick={() => { setStep(4); setImporting(true); setTimeout(() => setImporting(false), 2000); }}
+                    className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors">
+                    Import {selected.size} Campaign{selected.size !== 1 ? "s" : ""}
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
+          {step === 4 && !importing && (
+            <div className="px-6 py-4 border-t border-border-subtle flex items-center justify-end shrink-0">
+              <button onClick={onClose}
+                className="h-9 px-5 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors">
+                Done
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </>,
