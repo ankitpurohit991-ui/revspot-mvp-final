@@ -17,6 +17,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { format } from "date-fns";
+import { MetricCard } from "@/components/dashboard/metric-card";
 import {
   outreachDetail,
   outreachContacts,
@@ -132,30 +133,14 @@ export default function OutreachDetailPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-7 gap-2.5 mb-5">
-        {[
-          { label: "Total", value: d.totalContacts },
-          { label: "Called", value: d.called },
-          { label: "Connected", value: d.connected },
-          { label: "Qualified", value: d.qualified, highlight: true },
-          { label: "Not Qualified", value: d.notQualified },
-          { label: "Callback", value: d.callback },
-          { label: "No Answer", value: d.noAnswer },
-        ].map((s) => (
-          <div
-            key={s.label}
-            className={`bg-white border rounded-card px-3 py-3 ${
-              s.highlight ? "border-accent/30" : "border-border"
-            }`}
-          >
-            <div className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">
-              {s.label}
-            </div>
-            <div className="text-[20px] font-semibold text-text-primary leading-tight tabular-nums mt-0.5">
-              {s.value}
-            </div>
-          </div>
-        ))}
+      <div className="grid grid-cols-7 gap-2 mb-5">
+        <MetricCard label="Total" value={d.totalContacts} />
+        <MetricCard label="Called" value={d.called} subMetric={`${Math.round((d.called / d.totalContacts) * 100)}% coverage`} />
+        <MetricCard label="Connected" value={d.connected} subMetric={`${Math.round((d.connected / d.called) * 100)}% rate`} />
+        <MetricCard label="Qualified" value={d.qualified} subMetric={`${Math.round((d.qualified / d.connected) * 100)}% qual rate`} />
+        <MetricCard label="Not Qualified" value={d.notQualified} />
+        <MetricCard label="Callback" value={d.callback} />
+        <MetricCard label="No Answer" value={d.noAnswer} />
       </div>
 
       {/* Progress Bar */}

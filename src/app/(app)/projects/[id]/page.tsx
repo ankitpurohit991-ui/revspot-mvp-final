@@ -114,7 +114,7 @@ export default function ProjectDetailPage() {
           </div>
         </div>
         <button className="inline-flex items-center gap-1.5 h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
-          <Plus size={15} strokeWidth={2} /> Add campaign
+          <Plus size={15} strokeWidth={2} /> Attach campaign
         </button>
       </div>
 

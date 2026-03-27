@@ -6,7 +6,9 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 interface MetricCardProps {
   label: string;
   value: string | number;
-  /** Absolute change from previous period, shown as small pill: "+23", "-₹62" */
+  /** Previous period value: "₹5.9L", "104" */
+  previous?: string | number;
+  /** Absolute change shown as small pill: "+23", "-₹62" */
   delta?: string;
   tooltip?: string;
   trend?: {
@@ -14,7 +16,7 @@ interface MetricCardProps {
     direction: "up" | "down";
     positive?: boolean;
   };
-  /** Secondary metric inline: "15% verification rate" */
+  /** Secondary metric shown prominently: "15% verification rate" */
   subMetric?: string;
   /** Trend context: "+23 vs last 30d" */
   trendContext?: string;
@@ -22,11 +24,14 @@ interface MetricCardProps {
   chartKey?: string;
   isSelected?: boolean;
   onToggle?: (key: string) => void;
+  /** Icon component to show in top-left */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon?: React.ComponentType<any>;
 }
 
 export function MetricCard({
-  label, value, delta, tooltip, trend, subMetric, trendContext,
-  chartKey, isSelected = false, onToggle,
+  label, value, previous, delta, tooltip, trend, subMetric, trendContext,
+  chartKey, isSelected = false, onToggle, icon: Icon,
 }: MetricCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -41,17 +46,20 @@ export function MetricCard({
   return (
     <Tag
       onClick={isClickable ? () => onToggle!(chartKey!) : undefined}
-      className={`relative text-left w-full bg-white border rounded-card px-4 py-3.5 transition-all duration-150 hover:shadow-card-hover hover:-translate-y-px h-[120px] flex flex-col ${
+      className={`relative text-left w-full bg-white border rounded-card px-4 py-3.5 transition-all duration-150 hover:shadow-card-hover hover:-translate-y-px min-h-[120px] flex flex-col ${
         isSelected ? "border-accent ring-1 ring-accent/20" : "border-border"
       } ${isClickable ? "cursor-pointer" : ""}`}
       onMouseEnter={() => { if (tooltip) timeoutRef.current = setTimeout(() => setShowTooltip(true), 300); }}
       onMouseLeave={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); setShowTooltip(false); }}
     >
-      {/* Row 1: Label + Trend Icon */}
+      {/* Row 1: Icon/Label + Trend Icon */}
       <div className="flex items-center justify-between mb-1.5">
-        <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.3px]">
-          {label}
-        </span>
+        <div className="flex items-center gap-1.5">
+          {Icon && <Icon size={13} strokeWidth={1.5} className="text-text-tertiary" />}
+          <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.3px]">
+            {label}
+          </span>
+        </div>
         {trend && (
           <div className={`${trendIsPositive ? "text-status-success" : "text-status-error"}`}>
             {trend.direction === "up"
@@ -76,10 +84,21 @@ export function MetricCard({
         )}
       </div>
 
-      {/* Row 3: Sub-metric (fixed position) */}
-      <div className="mt-auto">
-        {subMetric && (
-          <div className="text-[11px] text-text-secondary">{subMetric}</div>
+      {/* Row 3: Sub-metric — prominent inline badge */}
+      {subMetric && (
+        <div className="mt-1.5">
+          <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-[4px] bg-surface-secondary text-text-primary tabular-nums">
+            {subMetric}
+          </span>
+        </div>
+      )}
+
+      {/* Row 4: Previous + trend context — pushed to bottom */}
+      <div className="mt-auto pt-1">
+        {previous !== undefined && (
+          <div className="text-[11px] text-text-tertiary tabular-nums">
+            prev: <span className="font-medium text-text-secondary">{previous}</span>
+          </div>
         )}
         {trendContext && (
           <div className={`text-[10px] ${trendIsPositive ? "text-status-success" : "text-status-error"}`}>

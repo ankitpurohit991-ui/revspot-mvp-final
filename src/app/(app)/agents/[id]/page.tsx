@@ -10,6 +10,7 @@ import {
   PhoneIncoming, MessageSquare, ShieldCheck, Clock,
 } from "lucide-react";
 import { format } from "date-fns";
+import { MetricCard } from "@/components/dashboard/metric-card";
 import { agentDetail, agentPerformance } from "@/lib/voice-agent-data";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -39,22 +40,7 @@ function OutcomeIcon({ outcome }: { outcome: string }) {
   );
 }
 
-// ── Metric Card for Performance Tab ─────────────────────────
-function PerfMetricCard({ icon: Icon, label, value, subtext }: {
-  icon?: typeof Target;
-  label: string;
-  value: string;
-  subtext: string;
-}) {
-  return (
-    <div className="bg-white border border-border rounded-card px-4 py-3.5 hover:shadow-card-hover hover:-translate-y-px transition-all duration-150">
-      {Icon && <Icon size={15} strokeWidth={1.5} className="text-text-tertiary mb-2" />}
-      <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px]">{label}</div>
-      <div className="text-[24px] font-semibold text-text-primary mt-1 tabular-nums leading-tight">{value}</div>
-      <div className="text-[12px] text-text-secondary mt-0.5">{subtext}</div>
-    </div>
-  );
-}
+// PerfMetricCard removed — using shared MetricCard from @/components/dashboard/metric-card
 
 // ── Donut Chart Custom Label ────────────────────────────────
 const RADIAN = Math.PI / 180;
@@ -273,11 +259,11 @@ export default function AgentDetailPage() {
           <div>
             <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">Lead Metrics</div>
             <div className="grid grid-cols-5 gap-3">
-              <PerfMetricCard icon={Target} label="Total Leads" value={perf.leadMetrics.totalLeads.toLocaleString()} subtext={`in ${perf.dateRange.days} days`} />
-              <PerfMetricCard icon={PhoneIncoming} label="Leads Dialed" value={perf.leadMetrics.leadsDialed.toLocaleString()} subtext={`${perf.leadMetrics.coverageRate}% Coverage`} />
-              <PerfMetricCard icon={Phone} label="Leads Connected" value={perf.leadMetrics.leadsConnected.toLocaleString()} subtext={`${perf.leadMetrics.connectRate}% Connect Rate`} />
-              <PerfMetricCard icon={MessageSquare} label="Leads Interacted" value={perf.leadMetrics.leadsInteracted.toLocaleString()} subtext={`${perf.leadMetrics.interactionRate}% Interaction Rate`} />
-              <PerfMetricCard icon={ShieldCheck} label="Leads Qualified" value={perf.leadMetrics.leadsQualified.toLocaleString()} subtext={`${perf.leadMetrics.qualificationRate}% Qualification Rate`} />
+              <MetricCard icon={Target} label="Total Leads" value={perf.leadMetrics.totalLeads.toLocaleString()} trendContext={`in ${perf.dateRange.days} days`} />
+              <MetricCard icon={PhoneIncoming} label="Leads Dialed" value={perf.leadMetrics.leadsDialed.toLocaleString()} subMetric={`${perf.leadMetrics.coverageRate}% coverage`} />
+              <MetricCard icon={Phone} label="Connected" value={perf.leadMetrics.leadsConnected.toLocaleString()} subMetric={`${perf.leadMetrics.connectRate}% connect rate`} />
+              <MetricCard icon={MessageSquare} label="Interacted" value={perf.leadMetrics.leadsInteracted.toLocaleString()} subMetric={`${perf.leadMetrics.interactionRate}% interaction rate`} />
+              <MetricCard icon={ShieldCheck} label="Qualified" value={perf.leadMetrics.leadsQualified.toLocaleString()} subMetric={`${perf.leadMetrics.qualificationRate}% qualification rate`} />
             </div>
           </div>
 
@@ -285,10 +271,10 @@ export default function AgentDetailPage() {
           <div>
             <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">Call Metrics</div>
             <div className="grid grid-cols-4 gap-3">
-              <PerfMetricCard label="Total Calls" value={perf.callMetrics.totalCalls.toLocaleString()} subtext={`${perf.callMetrics.callsPerLead} calls / lead average`} />
-              <PerfMetricCard label="Total Minutes" value={`${perf.callMetrics.totalMinutes}m`} subtext={`${perf.callMetrics.avgMinPerLead} average per lead`} />
-              <PerfMetricCard label="Total Cost" value={`₹${perf.callMetrics.totalCost.toLocaleString("en-IN")}`} subtext={`₹${perf.callMetrics.costPerLead} / lead average`} />
-              <PerfMetricCard label="CPQL" value={`₹${perf.callMetrics.cpql}`} subtext={`₹${perf.callMetrics.spentOnQLs.toLocaleString("en-IN")} spent → ${perf.callMetrics.qualifiedLeads} QLs`} />
+              <MetricCard label="Total Calls" value={perf.callMetrics.totalCalls.toLocaleString()} trendContext={`${perf.callMetrics.callsPerLead} calls / lead avg`} />
+              <MetricCard label="Total Minutes" value={`${perf.callMetrics.totalMinutes}m`} trendContext={`${perf.callMetrics.avgMinPerLead} avg per lead`} />
+              <MetricCard label="Total Cost" value={`₹${perf.callMetrics.totalCost.toLocaleString("en-IN")}`} trendContext={`₹${perf.callMetrics.costPerLead} / lead avg`} />
+              <MetricCard label="CPQL" value={`₹${perf.callMetrics.cpql}`} trendContext={`₹${perf.callMetrics.spentOnQLs.toLocaleString("en-IN")} → ${perf.callMetrics.qualifiedLeads} QLs`} />
             </div>
           </div>
 
@@ -412,21 +398,29 @@ export default function AgentDetailPage() {
           <div>
             <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-3">Top Disqualification Reasons</div>
             <div className="bg-white border border-border rounded-card p-5">
-              <div className="space-y-3">
-                {perf.disqualificationReasons.map((item) => (
-                  <div key={item.reason} className="flex items-center gap-4">
-                    <span className="text-[12px] text-text-secondary w-[200px] shrink-0">{item.reason}</span>
-                    <div className="flex-1 h-2 bg-surface-secondary rounded-full overflow-hidden">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${item.pct}%` }}
-                        transition={{ duration: 0.5, ease: "easeOut" }}
-                        className="h-full bg-[#F87171] rounded-full"
-                      />
+              <div className="flex items-center gap-6">
+                <div className="w-[160px] h-[160px] shrink-0">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={perf.disqualificationReasons.map((r) => ({ name: r.reason, value: r.pct }))}
+                        cx="50%" cy="50%" innerRadius={40} outerRadius={70} paddingAngle={2} dataKey="value">
+                        {perf.disqualificationReasons.map((_, i) => (
+                          <Cell key={i} fill={["#1A1A1A", "#6B6B6B", "#A0A0A0", "#D4D4D4"][i % 4]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="space-y-3 flex-1">
+                  {perf.disqualificationReasons.map((item, i) => (
+                    <div key={item.reason} className="flex items-center gap-2.5">
+                      <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: ["#1A1A1A", "#6B6B6B", "#A0A0A0", "#D4D4D4"][i % 4] }} />
+                      <span className="text-[12px] text-text-secondary flex-1">{item.reason}</span>
+                      <span className="text-[12px] font-medium text-text-primary tabular-nums">{item.pct}%</span>
+                      <span className="text-[11px] text-text-tertiary tabular-nums">({item.count})</span>
                     </div>
-                    <span className="text-[12px] font-medium text-text-primary tabular-nums w-16 text-right">{item.pct}% <span className="text-text-tertiary">({item.count})</span></span>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </div>
           </div>
