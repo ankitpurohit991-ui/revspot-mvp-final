@@ -129,14 +129,15 @@ function getMetrics(range: string): MetricSet {
   return metricsByRange[range] || metricsByRange["30"];
 }
 
-function getPeriodLabel(range: string) {
+function getPrevLabel(range: string) {
+  // "was X yesterday" / "was X last week" / "was X in prev. period"
   const labels: Record<string, string> = {
-    "today": "today", "yesterday": "yesterday", "7": "last 7 days", "14": "last 14 days",
-    "30": "last 30 days", "60": "last 60 days", "90": "last 90 days",
-    "thisweek": "this week", "lastweek": "last week", "thismonth": "this month",
-    "lastmonth": "last month", "lifetime": "lifetime",
+    "today": "yesterday",
+    "yesterday": "day before",
+    "thisweek": "last week",
+    "thismonth": "last month",
   };
-  return labels[range] || "last 30 days";
+  return labels[range] || "in prev. period";
 }
 
 export default function DashboardPage() {
@@ -153,7 +154,7 @@ export default function DashboardPage() {
 
   const selectedChartDefs = selectedMetrics.map((k) => dashboardTrends[k]).filter(Boolean);
   const m = getMetrics(dateRange);
-  const period = getPeriodLabel(dateRange);
+  const pl = getPrevLabel(dateRange);
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="show">
@@ -168,35 +169,31 @@ export default function DashboardPage() {
 
       {/* Metric cards — 4x2 grid */}
       <motion.div variants={fadeUp} className="grid grid-cols-4 gap-3 mb-3" key={dateRange}>
-        <MetricCard label="Active campaigns" value={m.activeCampaigns.value} previous={m.activeCampaigns.prev}
+        <MetricCard label="Active campaigns" value={m.activeCampaigns.value} previous={m.activeCampaigns.prev} previousLabel={pl}
           delta={m.activeCampaigns.delta} trend={m.activeCampaigns.pct ? { value: m.activeCampaigns.pct, direction: "up" } : undefined}
-          helper={m.activeCampaigns.delta !== "—" ? `${m.activeCampaigns.delta} campaigns vs ${period}` : undefined}
           chartKey="activeCampaigns" isSelected={selectedMetrics.includes("activeCampaigns")} onToggle={toggleMetric} />
-        <MetricCard label="Spends" value={m.spends.value} previous={m.spends.prev}
+        <MetricCard label="Spends" value={m.spends.value} previous={m.spends.prev} previousLabel={pl}
           delta={m.spends.delta} tooltip={m.spends.full} trend={{ value: m.spends.pct, direction: "up" }}
-          helper={`${m.spends.delta} more than ${period}`}
           chartKey="spends" isSelected={selectedMetrics.includes("spends")} onToggle={toggleMetric} />
-        <MetricCard label="Total leads" value={m.totalLeads.value} previous={m.totalLeads.prev}
+        <MetricCard label="Total leads" value={m.totalLeads.value} previous={m.totalLeads.prev} previousLabel={pl}
           delta={m.totalLeads.delta} trend={{ value: m.totalLeads.pct, direction: "up" }}
-          helper={`${m.totalLeads.delta} more leads than ${period}`}
           chartKey="totalLeads" isSelected={selectedMetrics.includes("totalLeads")} onToggle={toggleMetric} />
-        <MetricCard label="Verified leads" value={m.verifiedLeads.value} previous={m.verifiedLeads.prev}
+        <MetricCard label="Verified leads" value={m.verifiedLeads.value} previous={m.verifiedLeads.prev} previousLabel={pl}
           delta={m.verifiedLeads.delta} trend={{ value: m.verifiedLeads.pct, direction: "up" }}
           subMetric={`${m.verifiedLeads.rate} verification rate`}
           chartKey="verifiedLeads" isSelected={selectedMetrics.includes("verifiedLeads")} onToggle={toggleMetric} />
-        <MetricCard label="Qualified leads" value={m.qualifiedLeads.value} previous={m.qualifiedLeads.prev}
+        <MetricCard label="Qualified leads" value={m.qualifiedLeads.value} previous={m.qualifiedLeads.prev} previousLabel={pl}
           delta={m.qualifiedLeads.delta} trend={{ value: m.qualifiedLeads.pct, direction: "up" }}
           subMetric={`${m.qualifiedLeads.rate} qualification rate`}
           chartKey="qualifiedLeads" isSelected={selectedMetrics.includes("qualifiedLeads")} onToggle={toggleMetric} />
-        <MetricCard label="CPL" value={m.cpl.value} previous={m.cpl.prev}
+        <MetricCard label="CPL" value={m.cpl.value} previous={m.cpl.prev} previousLabel={pl}
           delta={m.cpl.delta} trend={{ value: m.cpl.pct, direction: "down", positive: true }}
-          helper={`${m.cpl.delta} cheaper per lead`}
           chartKey="cpl" isSelected={selectedMetrics.includes("cpl")} onToggle={toggleMetric} />
-        <MetricCard label="CPVL" value={m.cpvl.value} previous={m.cpvl.prev}
+        <MetricCard label="CPVL" value={m.cpvl.value} previous={m.cpvl.prev} previousLabel={pl}
           delta={m.cpvl.delta} tooltip="Cost per verified lead"
           trend={{ value: m.cpvl.pct, direction: m.cpvl.delta.startsWith("-") ? "down" : "up", positive: m.cpvl.delta.startsWith("-") }}
           chartKey="cpvl" isSelected={selectedMetrics.includes("cpvl")} onToggle={toggleMetric} />
-        <MetricCard label="CPQL" value={m.cpql.value} previous={m.cpql.prev}
+        <MetricCard label="CPQL" value={m.cpql.value} previous={m.cpql.prev} previousLabel={pl}
           delta={m.cpql.delta} tooltip="Cost per qualified lead"
           trend={{ value: m.cpql.pct, direction: m.cpql.delta.startsWith("-") ? "down" : "up", positive: m.cpql.delta.startsWith("-") }}
           chartKey="cpql" isSelected={selectedMetrics.includes("cpql")} onToggle={toggleMetric} />

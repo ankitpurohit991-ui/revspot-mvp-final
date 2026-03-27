@@ -12,8 +12,8 @@ interface MetricCardProps {
   previous?: string | number;
   /** Absolute change as chip: "+23", "-₹62", "+₹90K" */
   delta?: string;
-  /** Explanatory helper: "₹90K more than last month" */
-  helper?: string;
+  /** Label for the previous period: "yesterday", "last week", "in prev. period" */
+  previousLabel?: string;
   tooltip?: string;
   trend?: {
     value: number;
@@ -43,7 +43,7 @@ function getCardBorder(status: CardStatus, isSelected: boolean) {
 }
 
 export function MetricCard({
-  label, value, previous, delta, helper, tooltip, trend, subMetric,
+  label, value, previous, delta, previousLabel, tooltip, trend, subMetric,
   status = "neutral", chartKey, isSelected = false, onToggle, icon: Icon,
 }: MetricCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -96,16 +96,11 @@ export function MetricCard({
         </div>
       )}
 
-      {/* Row 4: Helper + Previous — pushed to bottom */}
+      {/* Row 4: Previous — pushed to bottom */}
       <div className="mt-auto pt-1">
-        {helper && (
-          <div className={`text-[10px] leading-snug ${trendIsPositive ? "text-status-success" : "text-status-error"}`}>
-            {helper}
-          </div>
-        )}
         {previous !== undefined && (
           <div className="text-[10px] text-text-tertiary tabular-nums">
-            was <span className="font-medium">{previous}</span> in prev. period
+            was <span className="font-medium">{previous}</span>{previousLabel ? ` ${previousLabel}` : ""}
           </div>
         )}
       </div>
