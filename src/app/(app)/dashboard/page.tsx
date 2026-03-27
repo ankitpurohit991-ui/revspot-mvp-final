@@ -69,8 +69,79 @@ const allAvailableMetrics: MetricOption[] = [
 
 const MAX_CHART_METRICS = 3;
 
+// Mock data by date range
+type MetricSet = {
+  activeCampaigns: { value: number; prev: number; delta: string; pct: number };
+  spends: { value: string; full: string; prev: string; delta: string; pct: number };
+  totalLeads: { value: number; prev: number; delta: string; pct: number };
+  verifiedLeads: { value: number; prev: number; delta: string; pct: number; rate: string };
+  qualifiedLeads: { value: number; prev: number; delta: string; pct: number; rate: string };
+  cpl: { value: string; prev: string; delta: string; pct: number };
+  cpvl: { value: string; prev: string; delta: string; pct: number };
+  cpql: { value: string; prev: string; delta: string; pct: number };
+};
+
+const metricsByRange: Record<string, MetricSet> = {
+  "30": {
+    activeCampaigns: { value: 9, prev: 7, delta: "+2", pct: 28.6 },
+    spends: { value: "₹6.8L", full: "₹6,80,000", prev: "₹5.9L", delta: "+₹90K", pct: 15 },
+    totalLeads: { value: 845, prev: 754, delta: "+91", pct: 12 },
+    verifiedLeads: { value: 127, prev: 104, delta: "+23", pct: 22.1, rate: "15%" },
+    qualifiedLeads: { value: 68, prev: 63, delta: "+5", pct: 7.9, rate: "8.1%" },
+    cpl: { value: "₹1,183", prev: "₹1,245", delta: "-₹62", pct: 5 },
+    cpvl: { value: "₹5,354", prev: "₹5,192", delta: "+₹162", pct: 3.1 },
+    cpql: { value: "₹10,000", prev: "₹9,524", delta: "+₹476", pct: 5 },
+  },
+  "7": {
+    activeCampaigns: { value: 9, prev: 9, delta: "—", pct: 0 },
+    spends: { value: "₹1.58L", full: "₹1,58,000", prev: "₹1.41L", delta: "+₹17K", pct: 12 },
+    totalLeads: { value: 198, prev: 177, delta: "+21", pct: 11.9 },
+    verifiedLeads: { value: 32, prev: 26, delta: "+6", pct: 23.1, rate: "16.2%" },
+    qualifiedLeads: { value: 18, prev: 15, delta: "+3", pct: 20, rate: "9.1%" },
+    cpl: { value: "₹798", prev: "₹797", delta: "-₹1", pct: 0.1 },
+    cpvl: { value: "₹4,938", prev: "₹5,423", delta: "-₹485", pct: 8.9 },
+    cpql: { value: "₹8,778", prev: "₹9,400", delta: "-₹622", pct: 6.6 },
+  },
+  "14": {
+    activeCampaigns: { value: 9, prev: 8, delta: "+1", pct: 12.5 },
+    spends: { value: "₹3.2L", full: "₹3,20,000", prev: "₹2.8L", delta: "+₹40K", pct: 14.3 },
+    totalLeads: { value: 412, prev: 368, delta: "+44", pct: 12 },
+    verifiedLeads: { value: 62, prev: 51, delta: "+11", pct: 21.6, rate: "15%" },
+    qualifiedLeads: { value: 34, prev: 30, delta: "+4", pct: 13.3, rate: "8.3%" },
+    cpl: { value: "₹1,068", prev: "₹1,087", delta: "-₹19", pct: 1.7 },
+    cpvl: { value: "₹5,161", prev: "₹5,490", delta: "-₹329", pct: 6 },
+    cpql: { value: "₹9,412", prev: "₹9,333", delta: "+₹79", pct: 0.8 },
+  },
+  "yesterday": {
+    activeCampaigns: { value: 9, prev: 9, delta: "—", pct: 0 },
+    spends: { value: "₹24.2K", full: "₹24,200", prev: "₹22.8K", delta: "+₹1.4K", pct: 6.1 },
+    totalLeads: { value: 32, prev: 27, delta: "+5", pct: 18.5 },
+    verifiedLeads: { value: 6, prev: 4, delta: "+2", pct: 50, rate: "18.8%" },
+    qualifiedLeads: { value: 3, prev: 2, delta: "+1", pct: 50, rate: "9.4%" },
+    cpl: { value: "₹756", prev: "₹844", delta: "-₹88", pct: 10.4 },
+    cpvl: { value: "₹4,033", prev: "₹5,700", delta: "-₹1,667", pct: 29.2 },
+    cpql: { value: "₹8,067", prev: "₹11,400", delta: "-₹3,333", pct: 29.2 },
+  },
+};
+
+// Fallback to 30d
+function getMetrics(range: string): MetricSet {
+  return metricsByRange[range] || metricsByRange["30"];
+}
+
+function getPeriodLabel(range: string) {
+  const labels: Record<string, string> = {
+    "today": "today", "yesterday": "yesterday", "7": "last 7 days", "14": "last 14 days",
+    "30": "last 30 days", "60": "last 60 days", "90": "last 90 days",
+    "thisweek": "this week", "lastweek": "last week", "thismonth": "this month",
+    "lastmonth": "last month", "lifetime": "lifetime",
+  };
+  return labels[range] || "last 30 days";
+}
+
 export default function DashboardPage() {
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
+  const [dateRange, setDateRange] = useState("30");
 
   const toggleMetric = useCallback((key: string) => {
     setSelectedMetrics((prev) => {
@@ -81,6 +152,8 @@ export default function DashboardPage() {
   }, []);
 
   const selectedChartDefs = selectedMetrics.map((k) => dashboardTrends[k]).filter(Boolean);
+  const m = getMetrics(dateRange);
+  const period = getPeriodLabel(dateRange);
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="show">
@@ -90,38 +163,42 @@ export default function DashboardPage() {
           <div className="text-meta text-text-secondary mb-1">Lead Generation</div>
           <h1 className="text-page-title text-text-primary">Dashboard</h1>
         </div>
-        <DateRangeSelector />
+        <DateRangeSelector onChange={setDateRange} />
       </motion.div>
 
       {/* Metric cards — 4x2 grid */}
-      <motion.div variants={fadeUp} className="grid grid-cols-4 gap-3 mb-3">
-        <MetricCard label="Active campaigns" value={9} previous={7}
-          delta="+2" trend={{ value: 28.6, direction: "up" }}
+      <motion.div variants={fadeUp} className="grid grid-cols-4 gap-3 mb-3" key={dateRange}>
+        <MetricCard label="Active campaigns" value={m.activeCampaigns.value} previous={m.activeCampaigns.prev}
+          delta={m.activeCampaigns.delta} trend={m.activeCampaigns.pct ? { value: m.activeCampaigns.pct, direction: "up" } : undefined}
+          helper={m.activeCampaigns.delta !== "—" ? `${m.activeCampaigns.delta} campaigns vs ${period}` : undefined}
           chartKey="activeCampaigns" isSelected={selectedMetrics.includes("activeCampaigns")} onToggle={toggleMetric} />
-        <MetricCard label="Spends" value="₹6.8L" previous="₹5.9L"
-          delta="+₹90K" tooltip="₹6,80,000" trend={{ value: 15, direction: "up" }}
+        <MetricCard label="Spends" value={m.spends.value} previous={m.spends.prev}
+          delta={m.spends.delta} tooltip={m.spends.full} trend={{ value: m.spends.pct, direction: "up" }}
+          helper={`${m.spends.delta} more than ${period}`}
           chartKey="spends" isSelected={selectedMetrics.includes("spends")} onToggle={toggleMetric} />
-        <MetricCard label="Total leads" value={845} previous={754}
-          delta="+91" trend={{ value: 12, direction: "up" }}
+        <MetricCard label="Total leads" value={m.totalLeads.value} previous={m.totalLeads.prev}
+          delta={m.totalLeads.delta} trend={{ value: m.totalLeads.pct, direction: "up" }}
+          helper={`${m.totalLeads.delta} more leads than ${period}`}
           chartKey="totalLeads" isSelected={selectedMetrics.includes("totalLeads")} onToggle={toggleMetric} />
-        <MetricCard label="Verified leads" value={127} previous={104}
-          delta="+23" trend={{ value: 22.1, direction: "up" }}
-          subMetric="15% verification rate"
+        <MetricCard label="Verified leads" value={m.verifiedLeads.value} previous={m.verifiedLeads.prev}
+          delta={m.verifiedLeads.delta} trend={{ value: m.verifiedLeads.pct, direction: "up" }}
+          subMetric={`${m.verifiedLeads.rate} verification rate`}
           chartKey="verifiedLeads" isSelected={selectedMetrics.includes("verifiedLeads")} onToggle={toggleMetric} />
-        <MetricCard label="Qualified leads" value={68} previous={63}
-          delta="+5" trend={{ value: 7.9, direction: "up" }}
-          subMetric="8.1% qualification rate"
+        <MetricCard label="Qualified leads" value={m.qualifiedLeads.value} previous={m.qualifiedLeads.prev}
+          delta={m.qualifiedLeads.delta} trend={{ value: m.qualifiedLeads.pct, direction: "up" }}
+          subMetric={`${m.qualifiedLeads.rate} qualification rate`}
           chartKey="qualifiedLeads" isSelected={selectedMetrics.includes("qualifiedLeads")} onToggle={toggleMetric} />
-        <MetricCard label="CPL" value="₹1,183" previous="₹1,245"
-          delta="-₹62" trend={{ value: 5, direction: "down", positive: true }}
+        <MetricCard label="CPL" value={m.cpl.value} previous={m.cpl.prev}
+          delta={m.cpl.delta} trend={{ value: m.cpl.pct, direction: "down", positive: true }}
+          helper={`${m.cpl.delta} cheaper per lead`}
           chartKey="cpl" isSelected={selectedMetrics.includes("cpl")} onToggle={toggleMetric} />
-        <MetricCard label="CPVL" value="₹5,354" previous="₹5,192"
-          delta="+₹162" tooltip="Cost per verified lead"
-          trend={{ value: 3.1, direction: "up", positive: false }}
+        <MetricCard label="CPVL" value={m.cpvl.value} previous={m.cpvl.prev}
+          delta={m.cpvl.delta} tooltip="Cost per verified lead"
+          trend={{ value: m.cpvl.pct, direction: m.cpvl.delta.startsWith("-") ? "down" : "up", positive: m.cpvl.delta.startsWith("-") }}
           chartKey="cpvl" isSelected={selectedMetrics.includes("cpvl")} onToggle={toggleMetric} />
-        <MetricCard label="CPQL" value="₹10,000" previous="₹9,524"
-          delta="+₹476" tooltip="Cost per qualified lead"
-          trend={{ value: 5, direction: "up", positive: false }}
+        <MetricCard label="CPQL" value={m.cpql.value} previous={m.cpql.prev}
+          delta={m.cpql.delta} tooltip="Cost per qualified lead"
+          trend={{ value: m.cpql.pct, direction: m.cpql.delta.startsWith("-") ? "down" : "up", positive: m.cpql.delta.startsWith("-") }}
           chartKey="cpql" isSelected={selectedMetrics.includes("cpql")} onToggle={toggleMetric} />
       </motion.div>
 

@@ -8,10 +8,12 @@ type CardStatus = "good" | "warning" | "bad" | "neutral";
 interface MetricCardProps {
   label: string;
   value: string | number;
-  /** Previous period value: "₹5.9L", "104" */
+  /** Previous period value: "₹5.9L", "104" — shown as "was ₹5.9L" */
   previous?: string | number;
   /** Absolute change as chip: "+23", "-₹62", "+₹90K" */
   delta?: string;
+  /** Explanatory helper: "₹90K more than last month" */
+  helper?: string;
   tooltip?: string;
   trend?: {
     value: number;
@@ -41,7 +43,7 @@ function getCardBorder(status: CardStatus, isSelected: boolean) {
 }
 
 export function MetricCard({
-  label, value, previous, delta, tooltip, trend, subMetric,
+  label, value, previous, delta, helper, tooltip, trend, subMetric,
   status = "neutral", chartKey, isSelected = false, onToggle, icon: Icon,
 }: MetricCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
@@ -51,7 +53,6 @@ export function MetricCard({
     ? trend.positive !== undefined ? trend.positive : trend.direction === "up"
     : false;
 
-  // Auto-detect status from trend if not explicitly set
   const effectiveStatus = status !== "neutral" ? status : (trend ? (trendIsPositive ? "good" : "bad") : "neutral");
 
   const isClickable = !!chartKey && !!onToggle;
@@ -95,11 +96,16 @@ export function MetricCard({
         </div>
       )}
 
-      {/* Row 4: Previous — pushed to bottom */}
+      {/* Row 4: Helper + Previous — pushed to bottom */}
       <div className="mt-auto pt-1">
+        {helper && (
+          <div className={`text-[10px] leading-snug ${trendIsPositive ? "text-status-success" : "text-status-error"}`}>
+            {helper}
+          </div>
+        )}
         {previous !== undefined && (
-          <div className="text-[11px] text-text-tertiary tabular-nums">
-            prev: <span className="font-medium text-text-secondary">{previous}</span>
+          <div className="text-[10px] text-text-tertiary tabular-nums">
+            was <span className="font-medium">{previous}</span> in prev. period
           </div>
         )}
       </div>
