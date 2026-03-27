@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 type CardStatus = "good" | "warning" | "bad" | "neutral";
@@ -16,7 +16,11 @@ interface MetricCardProps {
     positive?: boolean;
   };
   status?: CardStatus;
-  trendContext?: string; // e.g. "₹62 cheaper per lead vs last 30 days"
+  trendContext?: string;
+  /** If provided, card is clickable to toggle chart selection */
+  chartKey?: string;
+  isSelected?: boolean;
+  onToggle?: (key: string) => void;
 }
 
 function getCardBg(status: CardStatus) {
@@ -28,7 +32,8 @@ function getCardBg(status: CardStatus) {
   }[status];
 }
 
-function getCardBorder(status: CardStatus) {
+function getCardBorder(status: CardStatus, isSelected: boolean) {
+  if (isSelected) return "border-accent ring-1 ring-accent/20";
   return {
     good: "border-[#E2F5E9]",
     warning: "border-[#F5EDD8]",
@@ -37,8 +42,9 @@ function getCardBorder(status: CardStatus) {
   }[status];
 }
 
-export function MetricCard({ label, value, previous, tooltip, trend, status = "neutral", trendContext }: MetricCardProps) {
+export function MetricCard({ label, value, previous, tooltip, trend, status = "neutral", trendContext, chartKey, isSelected = false, onToggle }: MetricCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const trendIsPositive = trend
     ? trend.positive !== undefined
@@ -46,11 +52,20 @@ export function MetricCard({ label, value, previous, tooltip, trend, status = "n
       : trend.direction === "up"
     : false;
 
+  const isClickable = !!chartKey && !!onToggle;
+
+  const handleClick = () => {
+    if (isClickable) onToggle!(chartKey!);
+  };
+
+  const Tag = isClickable ? "button" : "div";
+
   return (
-    <div
-      className={`relative ${getCardBg(status)} border ${getCardBorder(status)} rounded-card px-4 py-3.5 hover:shadow-card-hover hover:-translate-y-px transition-all duration-150`}
-      onMouseEnter={() => tooltip && setShowTooltip(true)}
-      onMouseLeave={() => setShowTooltip(false)}
+    <Tag
+      onClick={isClickable ? handleClick : undefined}
+      className={`relative text-left w-full ${getCardBg(status)} border ${getCardBorder(status, isSelected)} rounded-card px-4 py-3.5 hover:shadow-card-hover hover:-translate-y-px transition-all duration-150 ${isClickable ? "cursor-pointer" : ""}`}
+      onMouseEnter={() => { if (tooltip) timeoutRef.current = setTimeout(() => setShowTooltip(true), 300); }}
+      onMouseLeave={() => { if (timeoutRef.current) clearTimeout(timeoutRef.current); setShowTooltip(false); }}
     >
       <div className="flex items-center justify-between mb-1">
         <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.3px]">
@@ -84,11 +99,12 @@ export function MetricCard({ label, value, previous, tooltip, trend, status = "n
           {trendContext}
         </div>
       )}
+      {isSelected && <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-accent rounded-full" />}
       {showTooltip && tooltip && (
-        <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-charcoal text-white text-[11px] px-2.5 py-1.5 rounded-md whitespace-nowrap z-10">
+        <div className="absolute -top-9 left-1/2 -translate-x-1/2 bg-charcoal text-white text-[11px] px-2.5 py-1.5 rounded-md whitespace-nowrap z-10 pointer-events-none">
           {tooltip}
         </div>
       )}
-    </div>
+    </Tag>
   );
 }
