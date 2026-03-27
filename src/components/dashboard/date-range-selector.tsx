@@ -206,7 +206,7 @@ export function DateRangeSelector({ compact }: DateRangeSelectorProps) {
       </button>
 
       {!compact && compText && (
-        <div className="text-[10px] text-text-tertiary mt-0.5 text-right">{compText}</div>
+        <div className="text-[12px] text-text-secondary mt-1 text-right">{compText}</div>
       )}
 
       {/* Dropdown */}

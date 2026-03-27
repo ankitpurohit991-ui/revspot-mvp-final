@@ -125,7 +125,7 @@ export default function ProjectDetailPage() {
         <MetricCard label="Total leads" value={project.totalLeads.toLocaleString()}
           chartKey="totalLeads" isSelected={selectedMetrics.includes("totalLeads")} onToggle={toggleMetric} />
         <MetricCard label="Verified leads" value={project.verifiedLeads.toString()}
-          trendContext={`${verifiedRate}% rate`}
+          subMetric={`${verifiedRate}% verification rate`}
           chartKey="verifiedLeads" isSelected={selectedMetrics.includes("verifiedLeads")} onToggle={toggleMetric} />
         <MetricCard label="Qualified" value={project.qualifiedLeads.toString()}
           chartKey="qualifiedLeads" isSelected={selectedMetrics.includes("qualifiedLeads")} onToggle={toggleMetric} />
