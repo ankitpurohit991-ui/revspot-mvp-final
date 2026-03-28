@@ -70,6 +70,7 @@ export function AnalysisTab() {
       {/* Unified: Funnel + Health in one strip */}
       <div className="bg-white border border-border rounded-card px-5 py-2.5 flex items-center">
         {/* Funnel — left side */}
+        <span className="text-[9px] font-medium text-text-tertiary uppercase tracking-[0.5px] mr-3 shrink-0">Funnel</span>
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
           {funnelStages.map((stage, i) => {
             const maxVal = funnelStages[0].value;
@@ -100,6 +101,7 @@ export function AnalysisTab() {
         <div className="w-px h-5 bg-border mx-4 shrink-0" />
 
         {/* Health — right side */}
+        <span className="text-[9px] font-medium text-text-tertiary uppercase tracking-[0.5px] mr-2.5 shrink-0">Health</span>
         <div className="flex items-center gap-4 shrink-0">
           {healthIndicators.map((h) => (
             <button
