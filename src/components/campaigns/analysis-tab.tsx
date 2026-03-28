@@ -13,7 +13,7 @@ import { MetricExplorer } from "./metric-explorer";
 const funnelStages = [
   { label: "Leads", value: 186 },
   { label: "Verified", value: 42, rate: "22.6%" },
-  { label: "AI Qualified", value: 34, rate: "81.0%" },
+  { label: "AI Qual", value: 34, rate: "81.0%" },
   { label: "Qualified", value: 22, rate: "64.7%" },
 ];
 
@@ -67,64 +67,60 @@ export function AnalysisTab() {
           chartKey="cpql" isSelected={selectedMetrics.includes("cpql")} onToggle={toggleMetric} />
       </div>
 
-      {/* Lead Funnel — horizontal strip */}
-      <div className="bg-white border border-border rounded-card px-5 py-3">
-        <div className="flex items-center gap-6">
-          <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.5px] shrink-0">Lead Funnel</span>
+      {/* Unified: Funnel + Health in one strip */}
+      <div className="bg-white border border-border rounded-card px-5 py-2.5 flex items-center">
+        {/* Funnel — left side */}
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
           {funnelStages.map((stage, i) => {
             const maxVal = funnelStages[0].value;
-            const widthPx = Math.max(Math.round((stage.value / maxVal) * 200), 30);
+            const widthPx = Math.max(Math.round((stage.value / maxVal) * 140), 26);
             const opacity = 0.85 - i * 0.15;
             return (
-              <div key={stage.label} className="flex items-center gap-2">
-                {i > 0 && <span className="text-[9px] text-text-tertiary">→</span>}
-                <div className="flex items-center gap-1.5">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: widthPx }}
-                    transition={{ duration: 0.4, delay: i * 0.08, ease: "easeOut" }}
-                    className="h-6 rounded-[3px] flex items-center justify-center px-2 shrink-0"
-                    style={{ backgroundColor: `rgba(26,26,26,${opacity})` }}
-                  >
-                    <span className="text-[10px] font-semibold text-white tabular-nums whitespace-nowrap">{stage.value}</span>
-                  </motion.div>
-                  <div className="shrink-0">
-                    <div className="text-[10px] text-text-secondary leading-tight">{stage.label}</div>
-                    {stage.rate && <div className="text-[9px] text-text-tertiary leading-tight">{stage.rate}</div>}
-                  </div>
+              <div key={stage.label} className="flex items-center gap-1">
+                {i > 0 && <span className="text-[8px] text-text-tertiary mx-0.5">→</span>}
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: widthPx }}
+                  transition={{ duration: 0.4, delay: i * 0.06, ease: "easeOut" }}
+                  className="h-[22px] rounded-[3px] flex items-center justify-center px-1.5 shrink-0"
+                  style={{ backgroundColor: `rgba(26,26,26,${opacity})` }}
+                >
+                  <span className="text-[9px] font-semibold text-white tabular-nums whitespace-nowrap">{stage.value}</span>
+                </motion.div>
+                <div className="shrink-0 leading-none">
+                  <div className="text-[9px] text-text-secondary">{stage.label}</div>
+                  {stage.rate && <div className="text-[8px] text-text-tertiary">{stage.rate}</div>}
                 </div>
               </div>
             );
           })}
         </div>
+
+        {/* Divider */}
+        <div className="w-px h-5 bg-border mx-4 shrink-0" />
+
+        {/* Health — right side */}
+        <div className="flex items-center gap-4 shrink-0">
+          {healthIndicators.map((h) => (
+            <button
+              key={h.key}
+              onClick={() => toggleMetric(h.key)}
+              className={`flex items-center gap-1 transition-colors duration-150 ${
+                selectedMetrics.includes(h.key) ? "opacity-100" : "opacity-60 hover:opacity-100"
+              }`}
+            >
+              <div className={`w-[5px] h-[5px] rounded-full ${
+                h.status === "green" ? "bg-status-success" : h.status === "yellow" ? "bg-status-warning" : "bg-status-error"
+              }`} />
+              <span className="text-[10px] text-text-secondary">{h.label}</span>
+              <span className="text-[10px] font-medium text-text-primary tabular-nums">{h.value}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Metric Explorer */}
       <MetricExplorer selectedMetrics={selectedMetrics} onToggleMetric={toggleMetric} />
-
-      {/* Health Status Strip */}
-      <div className="bg-white border border-border rounded-card px-5 py-3">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px]">Health</span>
-          <div className="flex items-center gap-5">
-            {healthIndicators.map((h) => (
-              <button
-                key={h.key}
-                onClick={() => toggleMetric(h.key)}
-                className={`flex items-center gap-1.5 transition-colors duration-150 ${
-                  selectedMetrics.includes(h.key) ? "opacity-100" : "opacity-70 hover:opacity-100"
-                }`}
-              >
-                <div className={`w-[6px] h-[6px] rounded-full ${
-                  h.status === "green" ? "bg-status-success" : h.status === "yellow" ? "bg-status-warning" : "bg-status-error"
-                }`} />
-                <span className="text-[11px] text-text-secondary">{h.label}</span>
-                <span className="text-[11px] font-medium text-text-primary tabular-nums">{h.value}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
