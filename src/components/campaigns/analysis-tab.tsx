@@ -56,10 +56,11 @@ export function AnalysisTab() {
           subMetric="11.8% qualification rate"
           trend={{ value: 7.9, direction: "up" }}
           chartKey="qualified" isSelected={selectedMetrics.includes("qualified")} onToggle={toggleMetric} />
-        <MetricCard label="CPL" value="₹1,183" previous="₹1,245"
-          delta="-₹62" tooltip="Cost per lead vs your target."
-          subMetric="Target ₹1,200"
-          trend={{ value: 5, direction: "down", positive: true }}
+        <MetricCard label="CPL vs Target" value="-₹17" previous="₹1,245"
+          delta="₹1,183" tooltip="Actual CPL ₹1,183 vs target ₹1,200. ₹17 below target."
+          subMetric="₹1,183 vs ₹1,200 target"
+          status="good"
+          trend={{ value: 1.4, direction: "down", positive: true }}
           chartKey="cpl" isSelected={selectedMetrics.includes("cpl")} onToggle={toggleMetric} />
         <MetricCard label="CPQL" value="₹10,000" previous="₹9,524"
           delta="+₹476" tooltip="True cost of acquiring a sales-ready lead."
