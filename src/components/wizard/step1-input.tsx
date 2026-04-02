@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Upload, ArrowRight, X, FileText } from "lucide-react";
-import { existingClients, cities, languages, qualityPreferences } from "@/lib/wizard-data";
+import { existingClients, cities, languages } from "@/lib/wizard-data";
 
 interface Step1Props {
   onNext: () => void;
@@ -78,12 +78,8 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
   const [businessDetails, setBusinessDetails] = useState("");
   const [files, setFiles] = useState<string[]>([]);
   const [city, setCity] = useState("Bangalore");
-  const [targetVolume, setTargetVolume] = useState("");
-  const [targetCPL, setTargetCPL] = useState("");
-  const [timeline, setTimeline] = useState("");
   const [budgetCeiling, setBudgetCeiling] = useState("");
   const [language, setLanguage] = useState("English");
-  const [qualityPref, setQualityPref] = useState("balanced");
 
   const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -153,26 +149,12 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
           {/* 7. Primary City */}
           <SelectField label="Primary City" options={cities} placeholder="Select city..." value={city} onChange={setCity} />
 
-          {/* 8. Target Lead Volume */}
-          <TextField label="Target Lead Volume" placeholder="e.g., 200" value={targetVolume} onChange={setTargetVolume} type="number" />
-
-          {/* 9. Target CPL */}
-          <TextField label="Target CPL" placeholder="e.g., 1200" value={targetCPL} onChange={setTargetCPL} type="number" prefix="₹"
-            helper="Your target cost per lead. We'll optimize toward this." />
-
-          {/* 10. Timeline */}
-          <TextField label="Timeline (days)" placeholder="e.g., 30" value={timeline} onChange={setTimeline} type="number" />
-
-          {/* 11. Budget Ceiling */}
+          {/* 8. Budget Ceiling */}
           <TextField label="Budget Ceiling" placeholder="e.g., 250000" value={budgetCeiling} onChange={setBudgetCeiling} type="number" prefix="₹" />
 
-          {/* 12. Language */}
+          {/* 9. Language */}
           <SelectField label="Language" options={languages} placeholder="Select language..." value={language} onChange={setLanguage} />
         </div>
-
-        {/* 13. Lead Quality Preference */}
-        <SelectField label="Lead Quality Preference" options={qualityPreferences} placeholder="Select preference..."
-          value={qualityPref} onChange={setQualityPref} />
       </div>
 
       {/* CTA */}
