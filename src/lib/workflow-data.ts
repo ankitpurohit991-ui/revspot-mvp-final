@@ -501,22 +501,30 @@ export const csvPreviewRows = [
 // ─── Available Trigger Types ────────────────────────────────────────
 
 export const triggerTypes = [
-  { type: "csv_upload" as const, label: "CSV Upload", description: "Upload a contact list" },
+  { type: "csv_upload" as const, label: "CSV Upload", description: "Upload a contact list", comingSoon: false },
   {
     type: "crm_webhook" as const,
     label: "CRM Webhook",
     description: "Trigger when a lead enters your CRM",
+    comingSoon: true,
   },
   {
     type: "campaign_lead" as const,
     label: "Campaign Lead",
-    description: "Trigger when a lead comes from a campaign",
+    description: "Select a campaign to trigger this workflow when a new lead arrives",
+    comingSoon: false,
   },
-  { type: "manual" as const, label: "Manual", description: "Start manually" },
+  {
+    type: "manual" as const,
+    label: "Manually (API)",
+    description: "Get an API endpoint to trigger this workflow programmatically",
+    comingSoon: false,
+  },
   {
     type: "workflow_trigger" as const,
     label: "From Another Workflow",
     description: "Triggered by another workflow's post-action",
+    comingSoon: true,
   },
 ];
 

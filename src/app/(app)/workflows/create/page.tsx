@@ -70,6 +70,7 @@ export default function CreateWorkflowPage() {
   // Step 1 — Trigger
   const [triggerType, setTriggerType] = useState<TriggerType | "">("");
   const [csvUploaded, setCsvUploaded] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState("");
 
   // Step 2 — Routing
   const [routingEnabled, setRoutingEnabled] = useState(false);
@@ -224,24 +225,31 @@ export default function CreateWorkflowPage() {
               {triggerTypes.map((t) => (
                 <button
                   key={t.type}
-                  onClick={() => { setTriggerType(t.type); setCsvUploaded(false); }}
+                  onClick={() => { if (!t.comingSoon) { setTriggerType(t.type); setCsvUploaded(false); } }}
                   className={`flex items-start gap-3 text-left px-4 py-3 rounded-[8px] border transition-all duration-150 ${
-                    triggerType === t.type
-                      ? "border-accent bg-[#EFF6FF]/50 ring-1 ring-accent/20"
-                      : "border-border hover:border-border-hover hover:bg-surface-page/50"
+                    t.comingSoon
+                      ? "border-border bg-surface-page/50 opacity-60 cursor-not-allowed"
+                      : triggerType === t.type
+                        ? "border-accent bg-[#EFF6FF]/50 ring-1 ring-accent/20"
+                        : "border-border hover:border-border-hover hover:bg-surface-page/50"
                   }`}
                 >
                   <div
                     className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                      triggerType === t.type ? "border-accent" : "border-border"
+                      triggerType === t.type && !t.comingSoon ? "border-accent" : "border-border"
                     }`}
                   >
-                    {triggerType === t.type && (
+                    {triggerType === t.type && !t.comingSoon && (
                       <div className="w-2 h-2 rounded-full bg-accent" />
                     )}
                   </div>
-                  <div>
-                    <div className="text-[13px] font-medium text-text-primary">{t.label}</div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[13px] font-medium text-text-primary">{t.label}</span>
+                      {t.comingSoon && (
+                        <span className="text-[10px] font-medium text-text-tertiary bg-surface-secondary px-1.5 py-0.5 rounded">Coming soon</span>
+                      )}
+                    </div>
                     <div className="text-[12px] text-text-secondary mt-0.5">{t.description}</div>
                   </div>
                 </button>
@@ -317,6 +325,57 @@ export default function CreateWorkflowPage() {
                     </div>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Campaign Lead selector */}
+            {triggerType === "campaign_lead" && (
+              <div className="mt-5">
+                <label className="block text-[13px] font-medium text-text-primary mb-1.5">Select Campaign</label>
+                <select
+                  value={selectedCampaign}
+                  onChange={(e) => setSelectedCampaign(e.target.value)}
+                  className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer"
+                  style={selectStyle}
+                >
+                  <option value="">Choose a campaign...</option>
+                  <option value="camp-1">Godrej Reflections Habitat — Lead Gen</option>
+                  <option value="camp-2">Godrej Eternity — Retargeting</option>
+                  <option value="camp-3">Godrej Nurture — Lookalike</option>
+                  <option value="camp-4">Godrej Platinum — Lead Gen</option>
+                  <option value="camp-7">Godrej Air Phase 3 — Lead Gen</option>
+                </select>
+                <p className="text-[11px] text-text-tertiary mt-1.5">New leads from this campaign will automatically enter the workflow.</p>
+              </div>
+            )}
+
+            {/* Manual (API) endpoint */}
+            {triggerType === "manual" && (
+              <div className="mt-5">
+                <label className="block text-[13px] font-medium text-text-primary mb-1.5">API Endpoint</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 bg-surface-page border border-border rounded-input px-3 py-2.5 font-mono text-[12px] text-text-primary select-all">
+                    POST https://api.revspot.io/v1/workflows/<span className="text-accent">&#123;workflow_id&#125;</span>/trigger
+                  </div>
+                  <button
+                    onClick={() => navigator.clipboard?.writeText("https://api.revspot.io/v1/workflows/{workflow_id}/trigger")}
+                    className="h-10 px-3 border border-border rounded-input bg-white text-text-secondary hover:text-text-primary hover:bg-surface-page transition-colors text-[12px] font-medium"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <p className="text-[11px] text-text-tertiary mt-1.5">Send a POST request with lead data in the body to trigger this workflow programmatically.</p>
+
+                <div className="mt-3 bg-surface-page border border-border-subtle rounded-[6px] p-3">
+                  <div className="text-[11px] font-medium text-text-secondary mb-1.5">Example payload</div>
+                  <pre className="text-[11px] text-text-primary font-mono leading-relaxed">{`{
+  "name": "Vikram Reddy",
+  "phone": "+919876543210",
+  "email": "vikram@example.com",
+  "budget": "1.5Cr",
+  "source": "website"
+}`}</pre>
+                </div>
               </div>
             )}
           </div>
