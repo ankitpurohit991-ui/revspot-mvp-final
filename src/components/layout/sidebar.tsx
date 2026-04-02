@@ -6,6 +6,7 @@ import {
   LayoutGrid,
   FolderKanban,
   Monitor,
+  Activity,
   Workflow,
   Image,
   Bot,
@@ -24,7 +25,7 @@ const navSections = [
     items: [
       { name: "Projects", href: "/projects", icon: FolderKanban },
       { name: "Campaigns", href: "/campaigns", icon: Monitor },
-      { name: "Workflows", href: "/workflows", icon: Workflow },
+      { name: "Outreach", href: "/outreach", icon: Activity },
     ],
   },
   {
@@ -39,6 +40,7 @@ const navSections = [
     items: [
       { name: "Creatives", href: "/creatives", icon: Image },
       { name: "Agents", href: "/agents", icon: Bot },
+      { name: "Workflows", href: "/workflows", icon: Workflow },
       { name: "Audiences", href: "/audiences", icon: Globe },
       { name: "Integrations", href: "/integrations", icon: Plug },
     ],
