@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import type { AgentListItem } from "./types/agent";
+import type { WorkflowListItem } from "./types/workflow";
 
 export interface Campaign {
   id: string;
@@ -41,6 +43,14 @@ export interface Contact {
   createdAt: string;
 }
 
+export interface ConnectedAccount {
+  id: string;
+  platform: string;
+  accountName: string;
+  status: "connected" | "disconnected" | "error";
+}
+
+// Legacy types kept for backward compatibility
 export interface VoiceAgent {
   id: string;
   name: string;
@@ -59,19 +69,18 @@ export interface Sequence {
   createdAt: string;
 }
 
-export interface ConnectedAccount {
-  id: string;
-  platform: string;
-  accountName: string;
-  status: "connected" | "disconnected" | "error";
-}
-
 interface AppState {
   connectedAccounts: ConnectedAccount[];
   campaigns: Campaign[];
   projects: Project[];
   leads: Lead[];
   contacts: Contact[];
+
+  // New types
+  agents: AgentListItem[];
+  workflows: WorkflowListItem[];
+
+  // Legacy (kept for backward compat with existing pages)
   voiceAgents: VoiceAgent[];
   sequences: Sequence[];
 
@@ -80,6 +89,8 @@ interface AppState {
   setProjects: (projects: Project[]) => void;
   setLeads: (leads: Lead[]) => void;
   setContacts: (contacts: Contact[]) => void;
+  setAgents: (agents: AgentListItem[]) => void;
+  setWorkflows: (workflows: WorkflowListItem[]) => void;
   setVoiceAgents: (agents: VoiceAgent[]) => void;
   setSequences: (sequences: Sequence[]) => void;
 }
@@ -90,6 +101,8 @@ export const useAppStore = create<AppState>((set) => ({
   projects: [],
   leads: [],
   contacts: [],
+  agents: [],
+  workflows: [],
   voiceAgents: [],
   sequences: [],
 
@@ -98,6 +111,8 @@ export const useAppStore = create<AppState>((set) => ({
   setProjects: (projects) => set({ projects }),
   setLeads: (leads) => set({ leads }),
   setContacts: (contacts) => set({ contacts }),
+  setAgents: (agents) => set({ agents }),
+  setWorkflows: (workflows) => set({ workflows }),
   setVoiceAgents: (agents) => set({ voiceAgents: agents }),
   setSequences: (sequences) => set({ sequences }),
 }));

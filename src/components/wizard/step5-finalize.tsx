@@ -15,7 +15,7 @@ export function Step5Finalize() {
         Campaign Created Successfully
       </h2>
       <p className="text-meta text-text-secondary max-w-[480px] mx-auto mb-8">
-        Your campaign &quot;Assetz Mizumi PM R3&quot; has been created on Meta in paused state.
+        Your campaign &quot;Godrej Air Phase 3&quot; has been created on Meta in paused state.
         Review everything on Meta Ads Manager before going live.
       </p>
 
@@ -26,7 +26,7 @@ export function Step5Finalize() {
         </h3>
         <div className="space-y-3">
           {[
-            { label: "Campaign", value: "Assetz Mizumi PM R3 — Lead Gen" },
+            { label: "Campaign", value: "Godrej Air Phase 3 — Lead Gen" },
             { label: "Ad Sets", value: "3 (Whitefield HNI, Sarjapur IT, Broad Bangalore)" },
             { label: "Ads", value: "9 (3 per ad set)" },
             { label: "Lead Forms", value: "2 (High Intent, Quick Inquiry)" },

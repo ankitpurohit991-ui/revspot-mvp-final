@@ -1,15 +1,15 @@
 // Campaign creation wizard mock data
 
 export const existingClients = [
-  "Prestige Group",
-  "Brigade Group",
-  "Sobha Ltd",
   "Godrej Properties",
-  "Embassy Group",
-  "Total Environment",
-  "Assetz Property",
+  "Godrej Properties",
+  "Godrej Properties",
+  "Godrej Properties",
+  "Godrej Properties",
+  "Godrej Ananda",
+  "Godrej Properties",
   "Puravankara",
-  "Birla Estates",
+  "Godrej Properties",
   "Tata Housing",
 ];
 
@@ -47,8 +47,8 @@ export const qualityPreferences = [
 
 // Step 2 — Business Profile (AI-extracted)
 export const extractedProfile = {
-  builderName: "Assetz Property Group",
-  projectName: "Assetz Mizumi",
+  builderName: "Godrej Properties Group",
+  projectName: "Godrej Air",
   city: "Bangalore",
   industry: "Real Estate",
   geography: "Whitefield, East Bangalore",
@@ -66,7 +66,7 @@ export const extractedProfile = {
   proofPoints: [
     "1200+ happy families across 8 projects",
     "RERA: PRM/KA/RERA/1251/310/PR/171015/001457",
-    "Assetz ranked #1 in customer satisfaction — Track2Realty 2025",
+    "Godrej Properties ranked #1 in customer satisfaction — Track2Realty 2025",
   ],
   primaryObjections: [
     "Price seems high for Whitefield micro-market",
@@ -102,7 +102,7 @@ export const strategyData = {
       targeting: {
         geo: "Whitefield, ITPL, Marathahalli, Kundalahalli — 10km radius",
         audience: "Age 30-45, IT professionals, income > ₹25L, interested in luxury living",
-        exclusions: "Existing Assetz leads, converted customers",
+        exclusions: "Existing Godrej leads, converted customers",
       },
     },
     {
@@ -159,7 +159,7 @@ export const strategyData = {
         name: "Hero Lifestyle Shot",
         persona: "The IT Professional",
         visual: "Aerial drone shot of the project with the green deck visible, ITPL towers in background, golden hour lighting",
-        text: "Your office is 2 minutes away. Your home should feel like a resort. Assetz Mizumi — Premium 3 & 4 BHK from ₹1.8Cr",
+        text: "Your office is 2 minutes away. Your home should feel like a resort. Godrej Air — Premium 3 & 4 BHK from ₹1.8Cr",
       },
       {
         id: "cr-2",
@@ -172,8 +172,8 @@ export const strategyData = {
         id: "cr-3",
         name: "Social Proof Testimonial",
         persona: "The NRI Investor",
-        visual: "Video testimonial thumbnail of an existing Assetz homeowner with quote overlay",
-        text: "1200+ families chose Assetz. Here's why Rajesh from San Francisco invested in Mizumi Phase 2.",
+        visual: "Video testimonial thumbnail of an existing Godrej homeowner with quote overlay",
+        text: "1200+ families chose Godrej. Here's why Rajesh from San Francisco invested in Godrej Air Phase 2.",
       },
     ],
     videoScripts: [
@@ -191,11 +191,11 @@ export const strategyData = {
       },
     ],
     primaryTexts: [
-      "Your office is 2 mins from ITPL. Your home should feel like a Japanese retreat. Assetz Mizumi Phase 3 — Premium 3 & 4 BHK from ₹1.8Cr. Book your exclusive site visit today.",
-      "1200+ families trust Assetz. Phase 3 of Mizumi in Whitefield is now open. Japanese-inspired architecture, 3-acre zen gardens, smart homes. Starting ₹1.8Cr. Limited units.",
-      "Stop commuting 2 hours to live in a box. Assetz Mizumi is 2 mins from ITPL — premium 3BHK apartments with zen gardens, infinity pool, and co-working spaces. From ₹1.8Cr.",
-      "Phase 3 exclusive: Only 42 units at pre-launch pricing. Assetz Mizumi, Whitefield — RERA approved, IGBC Gold certified. 3 & 4 BHK from ₹1.8Cr. Register now.",
-      "Your family deserves a 3-acre garden, not a 300 sqft balcony. Upgrade to Assetz Mizumi — Whitefield's most premium address. Starting ₹1.8Cr. Possession Dec 2027.",
+      "Your office is 2 mins from ITPL. Your home should feel like a Japanese retreat. Godrej Air Phase 3 — Premium 3 & 4 BHK from ₹1.8Cr. Book your exclusive site visit today.",
+      "1200+ families trust Godrej. Phase 3 of Godrej Air in Whitefield is now open. Japanese-inspired architecture, 3-acre zen gardens, smart homes. Starting ₹1.8Cr. Limited units.",
+      "Stop commuting 2 hours to live in a box. Godrej Air is 2 mins from ITPL — premium 3BHK apartments with zen gardens, infinity pool, and co-working spaces. From ₹1.8Cr.",
+      "Phase 3 exclusive: Only 42 units at pre-launch pricing. Godrej Air, Whitefield — RERA approved, IGBC Gold certified. 3 & 4 BHK from ₹1.8Cr. Register now.",
+      "Your family deserves a 3-acre garden, not a 300 sqft balcony. Upgrade to Godrej Air — Whitefield's most premium address. Starting ₹1.8Cr. Possession Dec 2027.",
     ],
     headlines: [
       "Premium 3BHK from ₹1.8Cr",
@@ -205,7 +205,7 @@ export const strategyData = {
       "Only 42 Units Available",
     ],
     descriptions: [
-      "RERA Approved | IGBC Gold | Assetz Mizumi Whitefield",
+      "RERA Approved | IGBC Gold | Godrej Air Whitefield",
       "3-Acre Zen Gardens | Smart Homes | Book Site Visit",
       "1200+ Happy Families | Trusted Builder Since 2006",
       "Infinity Pool | Co-Working | Near ITPL & Metro",
@@ -218,7 +218,7 @@ export const strategyData = {
       name: "High Intent Lead Form",
       intent: "High",
       headline: "Book Your Exclusive Site Visit",
-      greeting: "Thank you for your interest in Assetz Mizumi! Our team will reach out within 2 hours to schedule your private site visit.",
+      greeting: "Thank you for your interest in Godrej Air! Our team will reach out within 2 hours to schedule your private site visit.",
       bullets: [
         "Get exclusive Phase 3 pricing",
         "Virtual & in-person site visits available",
@@ -235,7 +235,7 @@ export const strategyData = {
       id: "form-2",
       name: "Quick Inquiry Form",
       intent: "Medium",
-      headline: "Get Mizumi Phase 3 Brochure",
+      headline: "Get Godrej Air Phase 3 Brochure",
       greeting: "Download the detailed brochure with floor plans, pricing, and amenities.",
       bullets: [
         "Detailed floor plans for all configurations",
@@ -268,12 +268,12 @@ export const strategyData = {
 
 // Step 4 — Launch
 export const adAccounts = [
-  { id: "act-1", name: "Star Realtor — Primary (act_1234567890)" },
-  { id: "act-2", name: "Star Realtor — Backup (act_0987654321)" },
+  { id: "act-1", name: "Godrej Properties — Primary (act_1234567890)" },
+  { id: "act-2", name: "Godrej Properties — Backup (act_0987654321)" },
 ];
 
 export const facebookPages = [
-  { id: "pg-1", name: "Star Realtor Official (109284756301)" },
+  { id: "pg-1", name: "Godrej Properties Official (109284756301)" },
   { id: "pg-2", name: "Bangalore Property Deals (109284756302)" },
 ];
 

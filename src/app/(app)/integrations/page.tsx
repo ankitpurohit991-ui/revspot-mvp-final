@@ -194,7 +194,7 @@ export default function IntegrationsPage() {
   const [slackUrl, setSlackUrl] = useState("");
   const [waGroupId, setWaGroupId] = useState("");
   const [emailNotif, setEmailNotif] = useState(true);
-  const [notifEmail, setNotifEmail] = useState("ankit@starealtor.in");
+  const [notifEmail, setNotifEmail] = useState("demo@godrejproperties.com");
   const [notifTriggers, setNotifTriggers] = useState({
     syncFailures: true,
     dailySummary: true,

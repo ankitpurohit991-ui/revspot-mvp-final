@@ -1,4 +1,8 @@
 // Agent mock data — unified (voice + whatsapp)
+// NOTE: Legacy types (AgentItem, AgentChannel, etc.) kept for backward compat.
+// New types are in ./types/agent.ts — use AgentListItem and Agent for new pages.
+
+import type { AgentListItem, Agent, Objective, VoiceOption } from "./types/agent";
 
 export type AgentStatus = "active" | "draft" | "paused";
 export type AgentChannel = "voice" | "whatsapp";
@@ -90,7 +94,7 @@ export const defaultMetrics: QualificationMetric[] = [
 ];
 
 export const conversationSteps = [
-  { id: "cs-1", step: 1, name: "Greeting", script: "Hello, this is [Agent Name] from Star Realtor. Am I speaking with [Lead Name]?" },
+  { id: "cs-1", step: 1, name: "Greeting", script: "Hello, this is [Agent Name] from Godrej Properties. Am I speaking with [Lead Name]?" },
   { id: "cs-2", step: 2, name: "Interest confirmation", script: "I see you expressed interest in [Project]. Is this a good time for a quick chat?" },
   { id: "cs-3", step: 3, name: "Qualification questions", script: "Ask about: Budget range, Purchase timeline, Property type preference, Family size" },
   { id: "cs-4", step: 4, name: "Scoring", script: "Rate the lead based on qualification metrics" },
@@ -98,7 +102,7 @@ export const conversationSteps = [
   { id: "cs-6", step: 6, name: "Closing", script: "Summarize what was discussed, confirm next steps, thank them." },
 ];
 
-export const defaultSystemPrompt = `You are a professional real estate qualification agent for Star Realtor. You call leads who have expressed interest in luxury properties in Bangalore. Be warm, professional, and consultative. Your goal is to understand the caller's budget, timeline, and property preferences. Never be pushy. If the lead is qualified, offer to schedule a site visit. If not, thank them politely and note the reason.`;
+export const defaultSystemPrompt = `You are a professional real estate qualification agent for Godrej Properties. You call leads who have expressed interest in luxury properties in Bangalore. Be warm, professional, and consultative. Your goal is to understand the caller's budget, timeline, and property preferences. Never be pushy. If the lead is qualified, offer to schedule a site visit. If not, thank them politely and note the reason.`;
 
 export const defaultFAQs = [
   { question: "What is the price range?", answer: "4 & 5 BHK villas starting from ₹6.5 Crore" },
@@ -176,7 +180,7 @@ export const agentDetail = {
   ...agentsList[0],
   goal: "Qualify inbound leads for luxury real estate properties in Whitefield, Bangalore. Determine budget, timeline, configuration preference, and schedule site visits for qualified leads.",
   systemPrompt: defaultSystemPrompt,
-  knowledgeBases: ["Prestige_Lakeside_Brochure.pdf", "Assetz_Mizumi_Pricing.pdf"],
+  knowledgeBases: ["Godrej_Reflections_Brochure.pdf", "Godrej_Air_Pricing.pdf"],
   metrics: defaultMetrics,
   voice: voiceOptions[0],
   selectedLanguages: ["English", "Hindi", "Kannada"],
@@ -213,3 +217,202 @@ export const agentDetail = {
     { id: "rc-6", name: "N***** D*****", phone: "91XXX XX867", outcome: "voicemail" as const, duration: 0.5, date: "2026-03-22T12:50:00", qualification: "—" },
   ],
 };
+
+// ═══════════════════════════════════════════════════════════════════
+// NEW: Objective-based agent data (for redesigned pages)
+// ═══════════════════════════════════════════════════════════════════
+
+/** Default objectives for a real estate qualification agent */
+export const defaultObjectives: Objective[] = [
+  {
+    id: "obj-1",
+    name: "Confirm Identity",
+    description: "Verify you are speaking with the right person",
+    priority: "critical",
+    required: true,
+    extract_field: { name: "name_confirmed", type: "boolean" },
+    prompt_hint: "Greet the lead by name and confirm their identity",
+  },
+  {
+    id: "obj-2",
+    name: "Determine Budget",
+    description: "Understand the lead's budget range for the property",
+    priority: "critical",
+    required: true,
+    extract_field: { name: "budget", type: "currency", unit: "₹" },
+    prompt_hint: "Naturally ask about their budget range without being pushy",
+    qualification_rule: "budget >= {{min_budget}}",
+  },
+  {
+    id: "obj-3",
+    name: "Assess Timeline",
+    description: "Find out when the lead plans to make a purchase",
+    priority: "high",
+    required: true,
+    extract_field: { name: "timeline", type: "duration", unit: "months" },
+    prompt_hint: "Ask when they are planning to buy or move",
+    qualification_rule: "timeline <= 6",
+  },
+  {
+    id: "obj-4",
+    name: "Site Visit Interest",
+    description: "Check if the lead is willing to visit the property",
+    priority: "high",
+    required: false,
+    extract_field: { name: "site_visit_interest", type: "boolean" },
+    prompt_hint: "If they seem interested, offer to schedule a site visit",
+  },
+  {
+    id: "obj-5",
+    name: "Decision Maker Status",
+    description: "Confirm if the lead is the primary decision maker",
+    priority: "medium",
+    required: false,
+    extract_field: { name: "is_decision_maker", type: "boolean" },
+    prompt_hint: "Gently ask if they are the one making the purchase decision",
+    qualification_rule: "is_decision_maker == true",
+  },
+  {
+    id: "obj-6",
+    name: "Property Preferences",
+    description: "Understand BHK preference, location, and amenity priorities",
+    priority: "low",
+    required: false,
+    extract_field: { name: "property_preference", type: "string" },
+    prompt_hint: "Ask about their ideal configuration and must-have amenities",
+  },
+];
+
+/** New agent list (objective-based, channel-agnostic) */
+export const newAgentsList: AgentListItem[] = [
+  {
+    id: "va-1",
+    name: "Priya — Qualification Agent",
+    description: "Qualifies inbound leads for luxury real estate properties in Bangalore",
+    template: "qualifying",
+    status: "active",
+    supported_channels: ["voice", "whatsapp"],
+    languages: ["English", "Hindi", "Kannada"],
+    objectives_count: 6,
+    variables_count: 2,
+    total_calls: 1284,
+    qualification_rate: 34.2,
+    avg_duration: 3.1,
+    last_used: "2 hours ago",
+    post_call_summary: "Used in 3 active workflows",
+  },
+  {
+    id: "va-2",
+    name: "Arjun — Follow-up Agent",
+    description: "Re-engages cold leads and handles follow-up conversations",
+    template: "follow_up",
+    status: "active",
+    supported_channels: ["voice"],
+    languages: ["English", "Hindi"],
+    objectives_count: 4,
+    variables_count: 1,
+    total_calls: 856,
+    qualification_rate: 28.7,
+    avg_duration: 2.4,
+    last_used: "1 day ago",
+    post_call_summary: "Used in 1 active workflow",
+  },
+  {
+    id: "va-3",
+    name: "Neha — Survey Agent",
+    description: "Conducts satisfaction surveys and collects feedback",
+    template: "survey",
+    status: "draft",
+    supported_channels: ["voice", "whatsapp"],
+    languages: ["English"],
+    objectives_count: 0,
+    variables_count: 0,
+    total_calls: 0,
+    qualification_rate: 0,
+    avg_duration: 0,
+    last_used: "Never",
+    post_call_summary: "No workflows configured",
+  },
+];
+
+/** Full agent detail (objective-based) for Priya */
+export const newAgentDetail: Agent = {
+  id: "va-1",
+  name: "Priya — Qualification Agent",
+  description: "Qualifies inbound leads for luxury real estate properties in Bangalore",
+  status: "active",
+  template: "qualifying",
+
+  identity: {
+    persona: "Priya",
+    tone: "conversational",
+    languages: ["English", "Hindi", "Kannada"],
+    language_behavior: "match_lead",
+  },
+
+  knowledge: {
+    product_brief: "Luxury 4 & 5 BHK villas in Whitefield, Bangalore starting from ₹6.5 Crore. RERA registered with world-class amenities including clubhouse, swimming pool, and landscaped gardens.",
+    system_prompt: defaultSystemPrompt,
+    faqs: defaultFAQs,
+    objection_handling: [
+      "If they say it's too expensive: Highlight the EMI options and investment value",
+      "If they are unsure about the location: Mention proximity to IT parks and infrastructure development",
+      "If they want to think about it: Offer to send a brochure and schedule a follow-up",
+    ],
+    custom_docs: ["Godrej_Reflections_Brochure.pdf", "Godrej_Air_Pricing.pdf"],
+  },
+
+  objectives: defaultObjectives,
+
+  variables: [
+    { name: "min_budget", type: "currency", required: true, default: "1Cr", description: "Minimum budget threshold for qualification" },
+    { name: "project_name", type: "string", required: false, default: "Godrej Reflections", description: "Name of the property project" },
+  ],
+
+  voice_config: {
+    voice_id: "v-1",
+    voice_name: "Priya",
+    max_duration_min: 5,
+    silence_timeout_sec: 10,
+    interruption_handling: true,
+  },
+
+  whatsapp_config: {
+    first_message_template: "Hi {{lead_name}}, this is Priya from Godrej Properties. 🏡 I saw you were interested in {{project_name}}. Would you like to know more about our exclusive offers?",
+    quick_replies: ["Yes, tell me more", "Schedule a site visit", "Send brochure", "Not interested"],
+    reply_timeout_hours: 24,
+    rich_media: [
+      { type: "image", url: "/assets/godrej-hero.jpg", caption: "Godrej Reflections — Luxury Villas" },
+      { type: "document", url: "/assets/brochure.pdf", caption: "Download Brochure" },
+    ],
+  },
+
+  output_schema: {
+    qualification_threshold: "all critical + 1 high",
+    custom_extract_fields: [
+      { name: "budget", label: "Budget Range", type: "currency", unit: "₹" },
+      { name: "timeline", label: "Purchase Timeline", type: "duration", unit: "months" },
+      { name: "site_visit_interest", label: "Site Visit Interest", type: "boolean" },
+      { name: "is_decision_maker", label: "Decision Maker", type: "boolean" },
+      { name: "property_preference", label: "Property Preference", type: "string" },
+    ],
+  },
+
+  stats: {
+    total_calls: 1284,
+    connection_rate: 78.8,
+    qualification_rate: 34.2,
+    avg_duration_min: 3.1,
+    last_used: "2 hours ago",
+  },
+};
+
+/** Voice options with new type structure */
+export const newVoiceOptions: VoiceOption[] = [
+  { id: "v-1", name: "Priya", gender: "Female", languages: ["English", "Hindi", "Kannada"] },
+  { id: "v-2", name: "Arjun", gender: "Male", languages: ["English", "Hindi"] },
+  { id: "v-3", name: "Meera", gender: "Female", languages: ["English", "Hindi", "Tamil"] },
+  { id: "v-4", name: "Raj", gender: "Male", languages: ["English", "Hindi", "Kannada"] },
+  { id: "v-5", name: "Ananya", gender: "Female", languages: ["English", "Hindi", "Marathi"] },
+  { id: "v-6", name: "Kiran", gender: "Male", languages: ["English", "Hindi", "Telugu"] },
+];

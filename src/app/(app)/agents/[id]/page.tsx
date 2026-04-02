@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { MetricCard } from "@/components/dashboard/metric-card";
-import { agentDetail, agentPerformance } from "@/lib/voice-agent-data";
+import { agentDetail, agentPerformance, newAgentDetail } from "@/lib/voice-agent-data";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area,
@@ -95,11 +95,22 @@ export default function AgentDetailPage() {
           <div className="flex items-center gap-3 mb-1">
             <h1 className="text-page-title text-text-primary">{d.name}</h1>
             <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#F0FDF4] text-[#15803D]">Active</span>
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8]">
-              <Phone size={10} strokeWidth={2} /> Voice
-            </span>
+            {newAgentDetail.voice_config && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8]">
+                <Phone size={10} strokeWidth={2} /> Voice
+              </span>
+            )}
+            {newAgentDetail.whatsapp_config && (
+              <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#F0FDF4] text-[#15803D]">
+                <MessageSquare size={10} strokeWidth={2} /> WhatsApp
+              </span>
+            )}
           </div>
-          <div className="text-[12px] text-text-secondary">{d.languages.join(", ")} · {d.template === "qualifying" ? "Qualifying" : "Custom"} template</div>
+          <div className="text-[12px] text-text-secondary">
+            {d.languages.join(", ")} · {d.template === "qualifying" ? "Qualifying" : "Custom"} template ·{" "}
+            <span className="font-medium text-text-primary">{newAgentDetail.objectives.length}</span> objectives ·{" "}
+            <span className="font-medium text-text-primary">{newAgentDetail.variables.length}</span> variables
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button className="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">

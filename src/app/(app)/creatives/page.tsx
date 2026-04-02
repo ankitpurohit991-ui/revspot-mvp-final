@@ -31,18 +31,18 @@ interface Creative {
 }
 
 const creatives: Creative[] = [
-  { id: "cr-1", name: "Mizumi 3BHK Carousel v2", format: "carousel", dimensions: "1080×1080", campaign: "Assetz Mizumi PM R3", createdAt: "2026-03-18" },
-  { id: "cr-2", name: "Mizumi Lifestyle Video", format: "video", dimensions: "1080×1920", campaign: "Assetz Mizumi PM R3", createdAt: "2026-03-16" },
-  { id: "cr-3", name: "Mizumi Floor Plan Static", format: "image", dimensions: "1080×1080", campaign: "Assetz Mizumi PM R3", createdAt: "2026-03-14" },
-  { id: "cr-4", name: "Mizumi Amenities Carousel", format: "carousel", dimensions: "1080×1080", campaign: "Assetz Mizumi PM R3", createdAt: "2026-03-12" },
-  { id: "cr-5", name: "Prestige Hero Shot", format: "image", dimensions: "1200×628", campaign: "Prestige Lakeside Habitat", createdAt: "2026-03-10" },
-  { id: "cr-6", name: "Prestige Price Anchor", format: "image", dimensions: "1080×1080", campaign: "Prestige Lakeside Habitat", createdAt: "2026-03-08" },
-  { id: "cr-7", name: "Brigade Utopia Walkthrough", format: "video", dimensions: "1920×1080", campaign: "Brigade Utopia", createdAt: "2026-03-06" },
-  { id: "cr-8", name: "Sobha Windsor Testimonial", format: "video", dimensions: "1080×1920", campaign: "Sobha Windsor", createdAt: "2026-03-04" },
-  { id: "cr-9", name: "Godrej Splendour Brochure", format: "document", dimensions: "A4", campaign: "Godrej Splendour", createdAt: "2026-03-02" },
-  { id: "cr-10", name: "Embassy HNI Static", format: "image", dimensions: "1080×1080", campaign: "Embassy Lake Terraces", createdAt: "2026-02-28" },
-  { id: "cr-11", name: "Purva Atmosphere Reel", format: "video", dimensions: "1080×1920", campaign: "Purva Atmosphere", createdAt: "2026-02-26" },
-  { id: "cr-12", name: "Birla Tisya Carousel", format: "carousel", dimensions: "1080×1080", campaign: "Birla Tisya", createdAt: "2026-02-24" },
+  { id: "cr-1", name: "Godrej Air 3BHK Carousel v2", format: "carousel", dimensions: "1080×1080", campaign: "Godrej Air Phase 3", createdAt: "2026-03-18" },
+  { id: "cr-2", name: "Godrej Air Lifestyle Video", format: "video", dimensions: "1080×1920", campaign: "Godrej Air Phase 3", createdAt: "2026-03-16" },
+  { id: "cr-3", name: "Godrej Air Floor Plan Static", format: "image", dimensions: "1080×1080", campaign: "Godrej Air Phase 3", createdAt: "2026-03-14" },
+  { id: "cr-4", name: "Godrej Air Amenities Carousel", format: "carousel", dimensions: "1080×1080", campaign: "Godrej Air Phase 3", createdAt: "2026-03-12" },
+  { id: "cr-5", name: "Godrej Hero Shot", format: "image", dimensions: "1200×628", campaign: "Godrej Reflections Habitat", createdAt: "2026-03-10" },
+  { id: "cr-6", name: "Godrej Price Anchor", format: "image", dimensions: "1080×1080", campaign: "Godrej Reflections Habitat", createdAt: "2026-03-08" },
+  { id: "cr-7", name: "Godrej Eternity Walkthrough", format: "video", dimensions: "1920×1080", campaign: "Godrej Eternity", createdAt: "2026-03-06" },
+  { id: "cr-8", name: "Godrej Nurture Testimonial", format: "video", dimensions: "1080×1920", campaign: "Godrej Nurture", createdAt: "2026-03-04" },
+  { id: "cr-9", name: "Godrej Platinum Brochure", format: "document", dimensions: "A4", campaign: "Godrej Platinum", createdAt: "2026-03-02" },
+  { id: "cr-10", name: "Godrej HNI Static", format: "image", dimensions: "1080×1080", campaign: "Godrej Reserve", createdAt: "2026-02-28" },
+  { id: "cr-11", name: "Godrej Woodland Reel", format: "video", dimensions: "1080×1920", campaign: "Godrej Woodland", createdAt: "2026-02-26" },
+  { id: "cr-12", name: "Godrej Summit Carousel", format: "carousel", dimensions: "1080×1080", campaign: "Godrej Summit", createdAt: "2026-02-24" },
 ];
 
 const formatConfig: Record<CreativeFormat, { label: string; icon: typeof ImageIcon; cls: string }> = {

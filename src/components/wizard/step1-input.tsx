@@ -87,7 +87,7 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
 
   const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    setFiles((prev) => [...prev, "Assetz_Mizumi_Brochure.pdf"]);
+    setFiles((prev) => [...prev, "Godrej_Air_Brochure.pdf"]);
   };
 
   return (
@@ -107,14 +107,14 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
           value={objective} onChange={setObjective} required rows={3} />
 
         {/* 3. Offer */}
-        <TextField label="Offer" placeholder="e.g., Prestige Lakeside Habitat, 3BHK Launch Offer"
+        <TextField label="Offer" placeholder="e.g., Godrej Reflections Habitat, 3BHK Launch Offer"
           value={offer} onChange={setOffer} required />
 
         {/* 4. Upload Brochures */}
         <div>
           <label className="block text-[13px] font-medium text-text-primary mb-1.5">Upload Brochures</label>
           <div onDragOver={(e) => e.preventDefault()} onDrop={handleFileDrop}
-            onClick={() => setFiles((prev) => [...prev, "Assetz_Mizumi_Brochure.pdf"])}
+            onClick={() => setFiles((prev) => [...prev, "Godrej_Air_Brochure.pdf"])}
             className="border-2 border-dashed border-border rounded-input p-6 text-center cursor-pointer hover:border-border-hover hover:bg-surface-page/50 transition-all duration-150">
             <Upload size={20} strokeWidth={1.5} className="mx-auto text-text-tertiary mb-2" />
             <p className="text-[13px] text-text-secondary">Drag & drop files here, or <span className="text-accent font-medium">browse</span></p>

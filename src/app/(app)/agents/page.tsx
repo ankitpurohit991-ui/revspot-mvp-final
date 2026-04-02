@@ -3,9 +3,9 @@
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { Plus, Phone, MessageCircle, Play, Pause, Copy, Pencil } from "lucide-react";
-import { agentsList } from "@/lib/voice-agent-data";
-import type { AgentItem } from "@/lib/voice-agent-data";
+import { Plus, Phone, MessageCircle, Play, Pause, Copy, Pencil, Target, Variable, FlaskConical } from "lucide-react";
+import { newAgentsList } from "@/lib/voice-agent-data";
+import type { AgentListItem } from "@/lib/types/agent";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
@@ -17,7 +17,7 @@ const stagger: Variants = {
   show: { transition: { staggerChildren: 0.06 } },
 };
 
-function StatusBadge({ status }: { status: AgentItem["status"] }) {
+function StatusBadge({ status }: { status: AgentListItem["status"] }) {
   const cfg = {
     active: { label: "Active", cls: "bg-[#F0FDF4] text-[#15803D]" },
     draft: { label: "Draft", cls: "bg-surface-secondary text-text-secondary" },
@@ -25,6 +25,40 @@ function StatusBadge({ status }: { status: AgentItem["status"] }) {
   };
   const { label, cls } = cfg[status];
   return <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge ${cls}`}>{label}</span>;
+}
+
+function ChannelBadges({ channels }: { channels: ("voice" | "whatsapp")[] }) {
+  return (
+    <div className="flex items-center gap-1.5">
+      {channels.includes("voice") && (
+        <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8]">
+          <Phone size={10} strokeWidth={2} />
+          Voice
+        </span>
+      )}
+      {channels.includes("whatsapp") && (
+        <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#F0FDF4] text-[#15803D]">
+          <MessageCircle size={10} strokeWidth={2} />
+          WhatsApp
+        </span>
+      )}
+    </div>
+  );
+}
+
+function TemplateBadge({ template }: { template: AgentListItem["template"] }) {
+  const labels: Record<string, string> = {
+    qualifying: "Qualifying",
+    follow_up: "Follow-up",
+    survey: "Survey",
+    onboarding: "Onboarding",
+    blank: "Custom",
+  };
+  return (
+    <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge bg-surface-secondary text-text-secondary capitalize">
+      {labels[template] || template}
+    </span>
+  );
 }
 
 export default function AgentsPage() {
@@ -46,7 +80,7 @@ export default function AgentsPage() {
       </motion.div>
 
       <motion.div variants={fadeUp} className="grid grid-cols-1 gap-4">
-        {agentsList.map((agent) => (
+        {newAgentsList.map((agent) => (
           <div
             key={agent.id}
             onClick={() => router.push(`/agents/${agent.id}`)}
@@ -55,42 +89,57 @@ export default function AgentsPage() {
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 {/* Row 1: name + badges */}
-                <div className="flex items-center gap-2.5 mb-2">
+                <div className="flex items-center gap-2.5 mb-1.5">
                   <h3 className="text-[14px] font-semibold text-text-primary">{agent.name}</h3>
-                  <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8]">
-                    {agent.channel === "voice" ? <Phone size={10} strokeWidth={2} /> : <MessageCircle size={10} strokeWidth={2} />}
-                    {agent.channel === "voice" ? "Voice" : "WhatsApp"}
-                  </span>
-                  <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge bg-surface-secondary text-text-secondary capitalize">
-                    {agent.template === "qualifying" ? "Qualifying" : "Custom"}
-                  </span>
+                  <ChannelBadges channels={agent.supported_channels} />
+                  <TemplateBadge template={agent.template} />
                   <StatusBadge status={agent.status} />
                 </div>
 
-                {/* Row 2: languages */}
+                {/* Row 2: description */}
                 <div className="text-[12px] text-text-secondary mb-3">
-                  {agent.languages.join(", ")}
+                  {agent.description}
                 </div>
 
-                {/* Row 3: stats + post-call */}
-                <div className="flex items-center gap-5">
-                  {agent.status === "active" && agent.callsMade > 0 && (
-                    <span className="text-[12px] text-text-secondary">
-                      <span className="text-text-primary font-medium tabular-nums">{agent.callsMade.toLocaleString()}</span> calls
-                      <span className="mx-1.5 text-border">·</span>
-                      <span className="text-text-primary font-medium tabular-nums">{agent.qualificationRate}%</span> qualified
-                      <span className="mx-1.5 text-border">·</span>
-                      <span className="text-text-primary font-medium tabular-nums">{agent.avgDuration}</span> min avg
+                {/* Row 3: objectives + variables + languages */}
+                <div className="flex items-center gap-4 mb-3">
+                  <span className="inline-flex items-center gap-1 text-[12px] text-text-secondary">
+                    <Target size={12} strokeWidth={1.5} className="text-text-tertiary" />
+                    <span className="text-text-primary font-medium">{agent.objectives_count}</span> objectives
+                  </span>
+                  {agent.variables_count > 0 && (
+                    <span className="inline-flex items-center gap-1 text-[12px] text-text-secondary">
+                      <Variable size={12} strokeWidth={1.5} className="text-text-tertiary" />
+                      <span className="text-text-primary font-medium">{agent.variables_count}</span> variables
                     </span>
                   )}
-                  <span className="text-[11px] text-text-tertiary">{agent.postCallSummary}</span>
+                  <span className="text-[12px] text-text-secondary">
+                    {agent.languages.join(", ")}
+                  </span>
+                </div>
+
+                {/* Row 4: stats + workflows */}
+                <div className="flex items-center gap-5">
+                  {agent.status === "active" && agent.total_calls > 0 && (
+                    <span className="text-[12px] text-text-secondary">
+                      <span className="text-text-primary font-medium tabular-nums">{agent.total_calls.toLocaleString()}</span> calls
+                      <span className="mx-1.5 text-border">·</span>
+                      <span className="text-text-primary font-medium tabular-nums">{agent.qualification_rate}%</span> qualified
+                      <span className="mx-1.5 text-border">·</span>
+                      <span className="text-text-primary font-medium tabular-nums">{agent.avg_duration}</span> min avg
+                    </span>
+                  )}
+                  <span className="text-[11px] text-text-tertiary">{agent.post_call_summary}</span>
                 </div>
               </div>
 
               {/* Right: last used + actions */}
               <div className="flex flex-col items-end gap-2 ml-4">
-                <span className="text-[11px] text-text-tertiary">{agent.lastUsed}</span>
+                <span className="text-[11px] text-text-tertiary">{agent.last_used}</span>
                 <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
+                  <button className="p-1.5 rounded-button text-text-tertiary hover:text-accent hover:bg-[#EFF6FF] transition-colors" title="Test Agent">
+                    <FlaskConical size={13} strokeWidth={1.5} />
+                  </button>
                   <button className="p-1.5 rounded-button text-text-tertiary hover:text-text-primary hover:bg-surface-secondary transition-colors" title="Edit">
                     <Pencil size={13} strokeWidth={1.5} />
                   </button>

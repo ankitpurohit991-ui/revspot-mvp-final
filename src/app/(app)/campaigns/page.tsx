@@ -346,9 +346,9 @@ function ImportCampaignsModal({ onClose }: { onClose: () => void }) {
   };
 
   const platforms: { key: Platform; label: string; connected: boolean; account: string }[] = [
-    { key: "meta", label: "Meta Ads", connected: true, account: "Star Realtor Ad Account" },
-    { key: "google", label: "Google Ads", connected: true, account: "Star Realtor Google" },
-    { key: "linkedin", label: "LinkedIn Ads", connected: true, account: "Star Realtor LinkedIn" },
+    { key: "meta", label: "Meta Ads", connected: true, account: "Godrej Properties Ad Account" },
+    { key: "google", label: "Google Ads", connected: true, account: "Godrej Properties Google" },
+    { key: "linkedin", label: "LinkedIn Ads", connected: true, account: "Godrej Properties LinkedIn" },
   ];
 
   const selectStyle = {
@@ -468,7 +468,7 @@ function ImportCampaignsModal({ onClose }: { onClose: () => void }) {
                     <div className="px-4 py-3 space-y-2.5">
                       <div className="flex items-start gap-2 bg-[#EFF6FF] border border-[#3B82F6]/15 rounded-[6px] px-3 py-2">
                         <span className="text-[11px] text-[#1D4ED8] leading-relaxed">
-                          AI calling applies to <span className="font-medium">future leads only</span>. Existing {selectedLeadGen.reduce((s, c) => s + c.leads, 0).toLocaleString()} leads won&apos;t be called — use Outreach for bulk calling past leads.
+                          AI calling applies to <span className="font-medium">future leads only</span>. Existing {selectedLeadGen.reduce((s, c) => s + c.leads, 0).toLocaleString()} leads won&apos;t be called — use Workflows for bulk calling past leads.
                         </span>
                       </div>
                       <div>
@@ -497,8 +497,8 @@ function ImportCampaignsModal({ onClose }: { onClose: () => void }) {
                   {[
                     { value: "skip", label: "Skip — leave unassigned" },
                     { value: "proj-1", label: "Whitefield Luxury Villas" },
-                    { value: "proj-2", label: "Assetz Mizumi — Phase 3 Launch" },
-                    { value: "proj-3", label: "Brigade Utopia — Pre-launch" },
+                    { value: "proj-2", label: "Godrej Air — Phase 3 Launch" },
+                    { value: "proj-3", label: "Godrej Eternity — Pre-launch" },
                     { value: "__new__", label: "+ Create new project" },
                   ].map((opt) => (
                     <label key={opt.value} className={`flex items-center gap-3 p-3 border rounded-card cursor-pointer transition-all ${
@@ -559,7 +559,7 @@ function ImportCampaignsModal({ onClose }: { onClose: () => void }) {
                               <p className="text-[13px] text-text-primary font-medium">AI calling enabled for new leads</p>
                               <p className="text-[11px] text-text-tertiary mt-0.5">
                                 New leads from {selectedLeadGen.length} campaign{selectedLeadGen.length !== 1 ? "s" : ""} will be automatically called and qualified by your voice agent.
-                                Existing leads are not affected — use <span className="font-medium text-text-secondary">Outreach</span> to call past leads in bulk.
+                                Existing leads are not affected — use <span className="font-medium text-text-secondary">Workflows</span> to call past leads in bulk.
                               </p>
                             </div>
                           </div>

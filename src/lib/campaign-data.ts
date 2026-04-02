@@ -24,58 +24,58 @@ export interface CampaignListItem {
 
 export const campaignsList: CampaignListItem[] = [
   {
-    id: "camp-1", name: "Prestige Lakeside Habitat — Lead Gen", type: "Performance",
+    id: "camp-1", name: "Godrej Reflections Habitat — Lead Gen", type: "Performance",
     client: "Whitefield Luxury Villas", projectId: "proj-1",
     status: "active", spend: 185000, leads: 214, verifiedLeads: 38, qualifiedLeads: 18, cpl: 864, health: "on-track", createdAt: "2025-12-15",
   },
   {
-    id: "camp-2", name: "Brigade Utopia — Retargeting", type: "Performance",
-    client: "Brigade Utopia Pre-launch", projectId: "proj-3",
+    id: "camp-2", name: "Godrej Eternity — Retargeting", type: "Performance",
+    client: "Godrej Eternity Pre-launch", projectId: "proj-3",
     status: "active", spend: 142000, leads: 156, verifiedLeads: 22, qualifiedLeads: 11, cpl: 910, health: "needs-attention", createdAt: "2026-01-08",
   },
   {
-    id: "camp-3", name: "Sobha Windsor — Lookalike", type: "Performance",
-    client: "Sobha Windsor", projectId: null,
+    id: "camp-3", name: "Godrej Nurture — Lookalike", type: "Performance",
+    client: "Godrej Nurture", projectId: null,
     status: "active", spend: 95000, leads: 128, verifiedLeads: 24, qualifiedLeads: 14, cpl: 742, health: "on-track", createdAt: "2026-01-22",
   },
   {
-    id: "camp-4", name: "Godrej Splendour — Lead Gen", type: "Performance",
-    client: "Godrej Splendour", projectId: null,
+    id: "camp-4", name: "Godrej Platinum — Lead Gen", type: "Performance",
+    client: "Godrej Platinum", projectId: null,
     status: "active", spend: 110000, leads: 142, verifiedLeads: 18, qualifiedLeads: 8, cpl: 775, health: "underperforming", createdAt: "2026-02-03",
   },
   {
-    id: "camp-5", name: "Embassy Lake Terraces — HNI", type: "Performance",
-    client: "Embassy Lake Terraces", projectId: null,
+    id: "camp-5", name: "Godrej Reserve — HNI", type: "Performance",
+    client: "Godrej Reserve", projectId: null,
     status: "active", spend: 88000, leads: 98, verifiedLeads: 16, qualifiedLeads: 10, cpl: 898, health: "on-track", createdAt: "2026-02-14",
   },
   {
-    id: "camp-6", name: "Total Environment — Carousel", type: "Brand",
-    client: "Total Environment", projectId: null,
+    id: "camp-6", name: "Godrej Ananda — Carousel", type: "Brand",
+    client: "Godrej Ananda", projectId: null,
     status: "paused", spend: 60000, leads: 107, verifiedLeads: 9, qualifiedLeads: 7, cpl: 561, health: "on-track", createdAt: "2026-01-05",
   },
   {
-    id: "camp-7", name: "Assetz Mizumi PM R3 — Lead Gen", type: "Performance",
-    client: "Assetz Mizumi Phase 3", projectId: "proj-2",
+    id: "camp-7", name: "Godrej Air Phase 3 — Lead Gen", type: "Performance",
+    client: "Godrej Air Phase 3", projectId: "proj-2",
     status: "active", spend: 220000, leads: 186, verifiedLeads: 42, qualifiedLeads: 22, cpl: 1183, health: "on-track", createdAt: "2025-11-20",
   },
   {
-    id: "camp-8", name: "Purva Atmosphere — Brand Awareness", type: "Brand",
-    client: "Purva Atmosphere", projectId: null,
+    id: "camp-8", name: "Godrej Woodland — Brand Awareness", type: "Brand",
+    client: "Godrej Woodland", projectId: null,
     status: "active", spend: 75000, leads: 92, verifiedLeads: 11, qualifiedLeads: 5, cpl: 815, health: "needs-attention", createdAt: "2026-02-28",
   },
   {
-    id: "camp-9", name: "Birla Tisya — Lead Gen", type: "Performance",
-    client: "Birla Tisya Full Funnel", projectId: "proj-4",
+    id: "camp-9", name: "Godrej Summit — Lead Gen", type: "Performance",
+    client: "Godrej Summit Full Funnel", projectId: "proj-4",
     status: "completed", spend: 310000, leads: 340, verifiedLeads: 58, qualifiedLeads: 29, cpl: 912, health: "on-track", createdAt: "2025-09-10",
   },
   {
-    id: "camp-10", name: "Prestige City — Retargeting", type: "Performance",
+    id: "camp-10", name: "Godrej Horizon — Retargeting", type: "Performance",
     client: "Whitefield Luxury Villas", projectId: "proj-1",
     status: "paused", spend: 48000, leads: 64, verifiedLeads: 8, qualifiedLeads: 4, cpl: 750, health: "needs-attention", createdAt: "2026-01-30",
   },
 ];
 
-// ── Campaign Detail (Assetz Mizumi PM R3) ───────────────────
+// ── Campaign Detail (Godrej Air Phase 3) ───────────────────
 
 export interface CampaignDetail {
   id: string;
@@ -94,11 +94,11 @@ export interface CampaignDetail {
 
 export const campaignDetail: CampaignDetail = {
   id: "camp-7",
-  name: "Assetz Mizumi PM R3",
+  name: "Godrej Air Phase 3",
   status: "active",
   type: "Performance",
-  client: "Assetz Property",
-  owner: "ankit@starealtor.in",
+  client: "Godrej Properties",
+  owner: "demo@godrejproperties.com",
   platform: "Meta",
   platformPageId: "109284756301",
   platformCampaignId: "23851029384710",
@@ -171,7 +171,7 @@ export const campaignLeads: CampaignLead[] = [
         { date: "Mar 20, 3:12 PM", action: "Pushed to CRM (auto-sync)" },
         { date: "Mar 21, 10:34 AM", action: "Stage updated: Contacted → Site Visit Done (synced from CRM)" },
       ] },
-    campaign: "Assetz Mizumi PM R3", adset: "Whitefield HNI — 30-45", adName: "Mizumi 3BHK Carousel v2",
+    campaign: "Godrej Air Phase 3", adset: "Whitefield HNI — 30-45", adName: "Godrej Air 3BHK Carousel v2",
     formResponses: [
       { question: "Budget range?", answer: "₹1.5Cr - ₹2Cr" },
       { question: "Configuration preference?", answer: "3 BHK" },
@@ -186,7 +186,7 @@ export const campaignLeads: CampaignLead[] = [
     temperature: "lukewarm", leadStatus: "interested_not_ready", leadStage: "contacted",
     verified: false, sql: false,
     crmSync: { status: "pending" },
-    campaign: "Assetz Mizumi PM R3", adset: "Sarjapur IT Corridor", adName: "Mizumi Lifestyle Video",
+    campaign: "Godrej Air Phase 3", adset: "Sarjapur IT Corridor", adName: "Godrej Air Lifestyle Video",
     formResponses: [
       { question: "Budget range?", answer: "₹1Cr - ₹1.5Cr" },
       { question: "Configuration preference?", answer: "2 BHK" },
@@ -204,7 +204,7 @@ export const campaignLeads: CampaignLead[] = [
         { date: "Mar 19, 6:30 PM", action: "Pushed to CRM (auto-sync)" },
         { date: "Mar 20, 9:30 AM", action: "Stage updated: New → Site Visit Scheduled (synced from CRM)" },
       ] },
-    campaign: "Assetz Mizumi PM R3", adset: "Whitefield HNI — 30-45", adName: "Mizumi Floor Plan Static",
+    campaign: "Godrej Air Phase 3", adset: "Whitefield HNI — 30-45", adName: "Godrej Air Floor Plan Static",
     formResponses: [
       { question: "Budget range?", answer: "₹2Cr - ₹2.5Cr" },
       { question: "Configuration preference?", answer: "3 BHK Premium" },
@@ -219,7 +219,7 @@ export const campaignLeads: CampaignLead[] = [
     temperature: "cold", leadStatus: "not_qualified", leadStage: "new",
     verified: false, sql: false,
     crmSync: { status: "not_synced" },
-    campaign: "Assetz Mizumi PM R3", adset: "Broad Bangalore — 25-55", adName: "Mizumi 3BHK Carousel v2",
+    campaign: "Godrej Air Phase 3", adset: "Broad Bangalore — 25-55", adName: "Godrej Air 3BHK Carousel v2",
     formResponses: [
       { question: "Budget range?", answer: "Below ₹80L" },
       { question: "Configuration preference?", answer: "2 BHK" },
@@ -234,7 +234,7 @@ export const campaignLeads: CampaignLead[] = [
     verified: true, sql: false,
     crmSync: { status: "pushed", pushedAt: "2026-03-19T11:00:00", crmRecordId: "Contact #4515",
       syncHistory: [{ date: "Mar 19, 11:00 AM", action: "Pushed to CRM (auto-sync)" }] },
-    campaign: "Assetz Mizumi PM R3", adset: "Sarjapur IT Corridor", adName: "Mizumi Lifestyle Video",
+    campaign: "Godrej Air Phase 3", adset: "Sarjapur IT Corridor", adName: "Godrej Air Lifestyle Video",
     formResponses: [
       { question: "Budget range?", answer: "₹1.5Cr - ₹2Cr" },
       { question: "Configuration preference?", answer: "3 BHK" },
@@ -249,7 +249,7 @@ export const campaignLeads: CampaignLead[] = [
     temperature: "lukewarm", leadStatus: "not_qualified", leadStage: "contacted",
     verified: false, sql: false,
     crmSync: { status: "not_synced" },
-    campaign: "Assetz Mizumi PM R3", adset: "Whitefield HNI — 30-45", adName: "Mizumi Amenities Carousel",
+    campaign: "Godrej Air Phase 3", adset: "Whitefield HNI — 30-45", adName: "Godrej Air Amenities Carousel",
     formResponses: [
       { question: "Budget range?", answer: "₹1Cr - ₹1.5Cr" },
       { question: "Configuration preference?", answer: "2 BHK" },
@@ -267,7 +267,7 @@ export const campaignLeads: CampaignLead[] = [
         { date: "Mar 18, 3:20 PM", action: "Pushed to CRM (auto-sync)" },
         { date: "Mar 19, 4:40 PM", action: "Stage updated: Contacted → Negotiation (synced from CRM)" },
       ] },
-    campaign: "Assetz Mizumi PM R3", adset: "Whitefield HNI — 30-45", adName: "Mizumi 3BHK Carousel v2",
+    campaign: "Godrej Air Phase 3", adset: "Whitefield HNI — 30-45", adName: "Godrej Air 3BHK Carousel v2",
     formResponses: [
       { question: "Budget range?", answer: "₹2Cr+" },
       { question: "Configuration preference?", answer: "4 BHK" },
@@ -282,7 +282,7 @@ export const campaignLeads: CampaignLead[] = [
     temperature: "lukewarm", leadStatus: "interested_not_ready", leadStage: "new",
     verified: false, sql: false,
     crmSync: { status: "pending" },
-    campaign: "Assetz Mizumi PM R3", adset: "Broad Bangalore — 25-55", adName: "Mizumi Floor Plan Static",
+    campaign: "Godrej Air Phase 3", adset: "Broad Bangalore — 25-55", adName: "Godrej Air Floor Plan Static",
     formResponses: [
       { question: "Budget range?", answer: "₹1Cr - ₹1.5Cr" },
       { question: "Configuration preference?", answer: "3 BHK" },
@@ -299,7 +299,7 @@ export const campaignLeads: CampaignLead[] = [
         { date: "Mar 17, 8:25 PM", action: "Pushed to CRM (auto-sync)" },
         { date: "Mar 18, 2:30 PM", action: "Stage updated: Contacted → Site Visit Done (synced from CRM)" },
       ] },
-    campaign: "Assetz Mizumi PM R3", adset: "Sarjapur IT Corridor", adName: "Mizumi Amenities Carousel",
+    campaign: "Godrej Air Phase 3", adset: "Sarjapur IT Corridor", adName: "Godrej Air Amenities Carousel",
     formResponses: [
       { question: "Budget range?", answer: "₹1.5Cr - ₹2Cr" },
       { question: "Configuration preference?", answer: "3 BHK" },
@@ -314,7 +314,7 @@ export const campaignLeads: CampaignLead[] = [
     temperature: "cold", leadStatus: "duplicate", leadStage: "new",
     verified: false, sql: false,
     crmSync: { status: "failed", failReason: "Duplicate phone number found in CRM" },
-    campaign: "Assetz Mizumi PM R3", adset: "Broad Bangalore — 25-55", adName: "Mizumi Lifestyle Video",
+    campaign: "Godrej Air Phase 3", adset: "Broad Bangalore — 25-55", adName: "Godrej Air Lifestyle Video",
     formResponses: [
       { question: "Budget range?", answer: "Not specified" },
       { question: "Configuration preference?", answer: "Any" },
@@ -331,7 +331,7 @@ export const campaignLeads: CampaignLead[] = [
         { date: "Mar 17, 11:35 AM", action: "Pushed to CRM (auto-sync)" },
         { date: "Mar 18, 10:00 AM", action: "Stage updated: Negotiation → Won (synced from CRM)" },
       ] },
-    campaign: "Assetz Mizumi PM R3", adset: "Whitefield HNI — 30-45", adName: "Mizumi 3BHK Carousel v2",
+    campaign: "Godrej Air Phase 3", adset: "Whitefield HNI — 30-45", adName: "Godrej Air 3BHK Carousel v2",
     formResponses: [
       { question: "Budget range?", answer: "₹2Cr - ₹3Cr" },
       { question: "Configuration preference?", answer: "4 BHK Penthouse" },
@@ -346,7 +346,7 @@ export const campaignLeads: CampaignLead[] = [
     temperature: "cold", leadStatus: "invalid", leadStage: "lost",
     verified: false, sql: false,
     crmSync: { status: "not_synced" },
-    campaign: "Assetz Mizumi PM R3", adset: "Broad Bangalore — 25-55", adName: "Mizumi Floor Plan Static",
+    campaign: "Godrej Air Phase 3", adset: "Broad Bangalore — 25-55", adName: "Godrej Air Floor Plan Static",
     formResponses: [
       { question: "Budget range?", answer: "Below ₹70L" },
       { question: "Timeline to purchase?", answer: ">12 months" },
@@ -612,7 +612,7 @@ export const projectsList: ProjectItem[] = [
   {
     id: "proj-1",
     name: "Whitefield Luxury Villas",
-    client: "Prestige Group",
+    client: "Godrej Properties",
     category: "Real Estate",
     status: "active",
     campaignIds: ["camp-1", "camp-10"],
@@ -625,8 +625,8 @@ export const projectsList: ProjectItem[] = [
   },
   {
     id: "proj-2",
-    name: "Assetz Mizumi — Phase 3 Launch",
-    client: "Assetz Property",
+    name: "Godrej Air — Phase 3 Launch",
+    client: "Godrej Properties",
     category: "Real Estate",
     status: "active",
     campaignIds: ["camp-7"],
@@ -639,8 +639,8 @@ export const projectsList: ProjectItem[] = [
   },
   {
     id: "proj-3",
-    name: "Brigade Utopia — Pre-launch",
-    client: "Brigade Group",
+    name: "Godrej Eternity — Pre-launch",
+    client: "Godrej Properties",
     category: "Real Estate",
     status: "active",
     campaignIds: ["camp-2"],
@@ -653,8 +653,8 @@ export const projectsList: ProjectItem[] = [
   },
   {
     id: "proj-4",
-    name: "Birla Tisya — Full Funnel",
-    client: "Birla Estates",
+    name: "Godrej Summit — Full Funnel",
+    client: "Godrej Properties",
     category: "Real Estate",
     status: "completed",
     campaignIds: ["camp-9"],

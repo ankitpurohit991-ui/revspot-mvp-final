@@ -38,17 +38,17 @@ interface Audience {
 const audiences: Audience[] = [
   {
     id: "aud-1", name: "HNI Whitefield 30-55", source: "revspot_db",
-    size: 8420, createdAt: "2026-03-10", usedIn: ["Prestige Lakeside", "Sobha Windsor"],
+    size: 8420, createdAt: "2026-03-10", usedIn: ["Godrej Reflections", "Godrej Nurture"],
     status: "active", description: "High net-worth individuals in Whitefield, aged 30-55, income ₹25L+",
   },
   {
     id: "aud-2", name: "IT Corridor — Sarjapur", source: "revspot_db",
-    size: 14200, createdAt: "2026-03-05", usedIn: ["Assetz Mizumi PM R3"],
+    size: 14200, createdAt: "2026-03-05", usedIn: ["Godrej Air Phase 3"],
     status: "active", description: "IT professionals along Sarjapur Road corridor, aged 28-45",
   },
   {
     id: "aud-3", name: "Website Visitors — Last 30d", source: "website_visitors",
-    size: 3850, createdAt: "2026-03-15", usedIn: ["Brigade Utopia"],
+    size: 3850, createdAt: "2026-03-15", usedIn: ["Godrej Eternity"],
     status: "active", description: "Users who visited property pages in the last 30 days",
   },
   {
@@ -58,7 +58,7 @@ const audiences: Audience[] = [
   },
   {
     id: "aud-5", name: "NRI Investors — UAE+US", source: "csv_upload",
-    size: 1240, createdAt: "2026-03-18", usedIn: ["Embassy Lake Terraces"],
+    size: 1240, createdAt: "2026-03-18", usedIn: ["Godrej Reserve"],
     status: "active", description: "NRI investors based in UAE and US, uploaded from broker network CSV",
   },
 ];

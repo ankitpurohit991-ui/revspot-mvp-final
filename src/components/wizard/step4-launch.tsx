@@ -37,8 +37,8 @@ function Toggle({ enabled, onToggle, label, helper }: {
 
 // Mock creatives for the library
 const mockCreatives = [
-  { id: "cr-1", name: "Mizumi 3BHK Carousel", format: "Carousel", thumb: "🏠" },
-  { id: "cr-2", name: "Mizumi Lifestyle Video", format: "Video", thumb: "🎬" },
+  { id: "cr-1", name: "Godrej Air 3BHK Carousel", format: "Carousel", thumb: "🏠" },
+  { id: "cr-2", name: "Godrej Air Lifestyle Video", format: "Video", thumb: "🎬" },
   { id: "cr-3", name: "Floor Plan Static", format: "Image", thumb: "📐" },
   { id: "cr-4", name: "Amenities Showcase", format: "Carousel", thumb: "🏊" },
 ];

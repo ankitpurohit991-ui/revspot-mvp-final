@@ -86,7 +86,7 @@ export default function CreateOutreachPage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="e.g., Prestige Lakeside — Lead Qualification"
+                placeholder="e.g., Godrej Reflections — Lead Qualification"
                 className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
               />
             </div>
@@ -157,7 +157,7 @@ export default function CreateOutreachPage() {
                 <div className="flex items-center gap-2">
                   <FileSpreadsheet size={16} strokeWidth={1.5} className="text-text-secondary" />
                   <span className="text-[13px] text-text-primary font-medium">
-                    prestige_lakeside_leads.csv
+                    godrej_reflections_leads.csv
                   </span>
                 </div>
                 <button

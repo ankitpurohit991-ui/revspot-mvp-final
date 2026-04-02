@@ -6,7 +6,7 @@ import {
   LayoutGrid,
   FolderKanban,
   Monitor,
-  Activity,
+  Workflow,
   Image,
   Bot,
   FileText,
@@ -24,7 +24,7 @@ const navSections = [
     items: [
       { name: "Projects", href: "/projects", icon: FolderKanban },
       { name: "Campaigns", href: "/campaigns", icon: Monitor },
-      { name: "Outreach", href: "/outreach", icon: Activity },
+      { name: "Workflows", href: "/workflows", icon: Workflow },
     ],
   },
   {
@@ -122,11 +122,11 @@ export function Sidebar() {
       <div className="border-t border-border px-3 py-3">
         <div className="flex items-center gap-2.5">
           <div className="w-[30px] h-[30px] rounded-full bg-surface-secondary flex items-center justify-center flex-shrink-0">
-            <span className="text-[12px] font-medium text-text-secondary">AN</span>
+            <span className="text-[12px] font-medium text-text-secondary">GP</span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[13px] font-medium text-text-primary">Star Realtor</div>
-            <div className="text-[11px] text-text-tertiary truncate">ankit@starrealtor.in</div>
+            <div className="text-[13px] font-medium text-text-primary">Godrej Properties</div>
+            <div className="text-[11px] text-text-tertiary truncate">demo@godrejproperties.com</div>
           </div>
           <button className="p-1 text-text-tertiary hover:text-text-secondary transition-colors">
             <Settings size={15} strokeWidth={1.5} />
