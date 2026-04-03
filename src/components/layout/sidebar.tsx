@@ -40,7 +40,7 @@ const navSections = [
     items: [
       { name: "Creatives", href: "/creatives", icon: Image },
       { name: "Agents", href: "/agents", icon: Bot },
-      { name: "Workflows", href: "/workflows", icon: Workflow },
+      { name: "Sequences", href: "/workflows", icon: Workflow },
       { name: "Audiences", href: "/audiences", icon: Globe },
       { name: "Integrations", href: "/integrations", icon: Plug },
     ],

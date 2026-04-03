@@ -19,13 +19,11 @@ import {
 } from "lucide-react";
 import {
   triggerTypes,
-  availableActions,
   csvPreviewHeaders,
   csvPreviewRows,
 } from "@/lib/workflow-data";
 import { newAgentsList } from "@/lib/voice-agent-data";
-import type { TriggerType, PostActionType } from "@/lib/types/workflow";
-import type { ChannelType } from "@/lib/types/common";
+import type { TriggerType, FollowUpRule } from "@/lib/types/workflow";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
@@ -35,12 +33,32 @@ const fadeUp: Variants = {
 const STEPS = [
   { num: 1, label: "Trigger" },
   { num: 2, label: "Routing" },
-  { num: 3, label: "Agent + Channel" },
-  { num: 4, label: "After the Call" },
-  { num: 5, label: "Schedule + Review" },
+  { num: 3, label: "Agent Selection" },
+  { num: 4, label: "Cadence & Schedule" },
+  { num: 5, label: "Review" },
 ];
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+const OUTCOME_OPTIONS = [
+  "No answer",
+  "Voicemail",
+  "Partially qualified",
+  "Callback requested",
+  "Not interested",
+  "Qualified",
+  "Wrong number",
+];
+
+const ACTION_OPTIONS: FollowUpRule["action"][] = ["retry", "follow_up", "stop"];
+
+const DEFAULT_FOLLOW_UP_RULES: FollowUpRule[] = [
+  { id: "fur-1", outcome: "No answer", action: "retry", delay_hours: 4, description: "Retry in 4 hours" },
+  { id: "fur-2", outcome: "Partially qualified", action: "follow_up", delay_hours: 48, description: "Follow up in 48 hours" },
+  { id: "fur-3", outcome: "Callback requested", action: "follow_up", delay_hours: 24, description: "Follow up in 24 hours" },
+  { id: "fur-4", outcome: "Voicemail", action: "retry", delay_hours: 6, description: "Retry in 6 hours" },
+  { id: "fur-5", outcome: "Not interested", action: "stop", delay_hours: 0, description: "Stop" },
+];
 
 const selectStyle = {
   backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9B9B' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
@@ -58,8 +76,6 @@ interface Branch {
   id: string;
   label: string;
   agentId: string;
-  channel: ChannelType;
-  overrides: { key: string; value: string }[];
   rules: RoutingRule[];
 }
 
@@ -77,33 +93,13 @@ export default function CreateWorkflowPage() {
   const [routingMode, setRoutingMode] = useState<"rules" | "ai">("rules");
   const [aiRoutingPrompt, setAiRoutingPrompt] = useState("");
   const [branches, setBranches] = useState<Branch[]>([
-    { id: "br-1", label: "Branch 1", agentId: "", channel: "voice", overrides: [], rules: [{ field: "", operator: "equals", value: "" }] },
+    { id: "br-1", label: "Branch 1", agentId: "", rules: [{ field: "", operator: "equals", value: "" }] },
   ]);
 
-  // Step 3 — Agent + Channel (single, when no routing)
+  // Step 3 — Agent Selection (single, when no routing)
   const [singleAgentId, setSingleAgentId] = useState("");
-  const [singleChannel, setSingleChannel] = useState<ChannelType>("voice");
-  const [singleOverrides, setSingleOverrides] = useState<{ key: string; value: string }[]>([]);
 
-  // Step 4 — After the Call
-  const [postActionMode, setPostActionMode] = useState<"rules" | "ai">("ai");
-  const [postActionPrompt, setPostActionPrompt] = useState(
-    "Push qualified leads to CRM immediately. If the lead is interested, send project details and brochure via WhatsApp. If the lead requested a callback, notify the sales team. If no answer after 2 retries, archive."
-  );
-  const [enabledActions, setEnabledActions] = useState<Set<PostActionType>>(
-    new Set(["push_to_crm", "send_whatsapp", "notify_sales", "schedule_callback"])
-  );
-  const [fallbackAction, setFallbackAction] = useState<PostActionType>("notify_sales");
-
-  // WhatsApp template config (shown when send_whatsapp is enabled)
-  const [waTemplateMessage, setWaTemplateMessage] = useState(
-    "Hi {{lead_name}}, thanks for speaking with us! Here are the details for {{project_name}}. Feel free to reach out if you have questions."
-  );
-  const [waIncludeBrochure, setWaIncludeBrochure] = useState(true);
-  const [waIncludeImages, setWaIncludeImages] = useState(true);
-  const [waSendTiming, setWaSendTiming] = useState<"immediate" | "5min" | "1hr">("immediate");
-
-  // Step 5 — Schedule
+  // Step 4 — Cadence & Schedule
   const [dailyLimit, setDailyLimit] = useState("200");
   const [startTime, setStartTime] = useState("10:00");
   const [endTime, setEndTime] = useState("19:00");
@@ -111,20 +107,12 @@ export default function CreateWorkflowPage() {
   const [retryEnabled, setRetryEnabled] = useState(true);
   const [maxRetries, setMaxRetries] = useState("2");
   const [retryInterval, setRetryInterval] = useState("4");
+  const [followUpRules, setFollowUpRules] = useState<FollowUpRule[]>(DEFAULT_FOLLOW_UP_RULES);
 
   const toggleDay = (day: string) => {
     setActiveDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
-  };
-
-  const toggleAction = (type: PostActionType) => {
-    setEnabledActions((prev) => {
-      const next = new Set(prev);
-      if (next.has(type)) next.delete(type);
-      else next.add(type);
-      return next;
-    });
   };
 
   const addBranch = () => {
@@ -135,8 +123,6 @@ export default function CreateWorkflowPage() {
         id: `br-${prev.length + 1}`,
         label: `Branch ${prev.length + 1}`,
         agentId: "",
-        channel: "voice",
-        overrides: [],
         rules: [{ field: "", operator: "equals", value: "" }],
       },
     ]);
@@ -161,12 +147,30 @@ export default function CreateWorkflowPage() {
     );
   };
 
+  const addFollowUpRule = () => {
+    setFollowUpRules((prev) => [
+      ...prev,
+      { id: `fur-${Date.now()}`, outcome: "No answer", action: "retry", delay_hours: 4, description: "" },
+    ]);
+  };
+
+  const removeFollowUpRule = (id: string) => {
+    setFollowUpRules((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  const updateFollowUpRule = (id: string, updates: Partial<FollowUpRule>) => {
+    setFollowUpRules((prev) => prev.map((r) => (r.id === id ? { ...r, ...updates } : r)));
+  };
+
   const canNext = () => {
     if (step === 1) return triggerType !== "";
     return true;
   };
 
   const triggerLabel = triggerTypes.find((t) => t.type === triggerType)?.label ?? triggerType;
+
+  /** Find the selected agent's data from newAgentsList */
+  const getAgentInfo = (agentId: string) => newAgentsList.find((a) => a.id === agentId);
 
   return (
     <motion.div initial="hidden" animate="show" variants={fadeUp}>
@@ -179,14 +183,14 @@ export default function CreateWorkflowPage() {
           <ArrowLeft size={16} strokeWidth={1.5} />
         </button>
         <span className="text-meta text-text-secondary">
-          Lead Generation &rsaquo; Workflows &rsaquo; Create
+          Lead Generation &rsaquo; Sequences &rsaquo; Create
         </span>
       </div>
 
       <div className="max-w-[720px]">
-        <h1 className="text-page-title text-text-primary mb-1">Create Workflow</h1>
+        <h1 className="text-page-title text-text-primary mb-1">Create Sequence</h1>
         <p className="text-meta text-text-secondary mb-8">
-          Build an automated workflow to process leads end-to-end
+          Build an automated sequence to process leads end-to-end
         </p>
 
         {/* Step Indicator */}
@@ -345,7 +349,7 @@ export default function CreateWorkflowPage() {
                   <option value="camp-4">Godrej Platinum — Lead Gen</option>
                   <option value="camp-7">Godrej Air Phase 3 — Lead Gen</option>
                 </select>
-                <p className="text-[11px] text-text-tertiary mt-1.5">New leads from this campaign will automatically enter the workflow.</p>
+                <p className="text-[11px] text-text-tertiary mt-1.5">New leads from this campaign will automatically enter the sequence.</p>
               </div>
             )}
 
@@ -355,16 +359,16 @@ export default function CreateWorkflowPage() {
                 <label className="block text-[13px] font-medium text-text-primary mb-1.5">API Endpoint</label>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 bg-surface-page border border-border rounded-input px-3 py-2.5 font-mono text-[12px] text-text-primary select-all">
-                    POST https://api.revspot.io/v1/workflows/<span className="text-accent">&#123;workflow_id&#125;</span>/trigger
+                    POST https://api.revspot.io/v1/sequences/<span className="text-accent">&#123;sequence_id&#125;</span>/trigger
                   </div>
                   <button
-                    onClick={() => navigator.clipboard?.writeText("https://api.revspot.io/v1/workflows/{workflow_id}/trigger")}
+                    onClick={() => navigator.clipboard?.writeText("https://api.revspot.io/v1/sequences/{sequence_id}/trigger")}
                     className="h-10 px-3 border border-border rounded-input bg-white text-text-secondary hover:text-text-primary hover:bg-surface-page transition-colors text-[12px] font-medium"
                   >
                     Copy
                   </button>
                 </div>
-                <p className="text-[11px] text-text-tertiary mt-1.5">Send a POST request with lead data in the body to trigger this workflow programmatically.</p>
+                <p className="text-[11px] text-text-tertiary mt-1.5">Send a POST request with lead data in the body to trigger this sequence programmatically.</p>
 
                 <div className="mt-3 bg-surface-page border border-border-subtle rounded-[6px] p-3">
                   <div className="text-[11px] font-medium text-text-secondary mb-1.5">Example payload</div>
@@ -526,109 +530,60 @@ export default function CreateWorkflowPage() {
           </div>
         )}
 
-        {/* ──────────── Step 3: Agent + Channel ──────────── */}
+        {/* ──────────── Step 3: Agent Selection ──────────── */}
         {step === 3 && (
           <div className="space-y-5">
             {routingEnabled ? (
-              branches.map((br) => (
-                <div key={br.id} className="bg-white border border-border rounded-card p-6">
-                  <h2 className="text-card-title text-text-primary mb-4">{br.label}</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-[13px] font-medium text-text-primary mb-1.5">
-                        Agent <span className="text-status-error">*</span>
-                      </label>
-                      <select
-                        value={br.agentId}
-                        onChange={(e) => updateBranch(br.id, { agentId: e.target.value })}
-                        className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer"
-                        style={selectStyle}
-                      >
-                        <option value="">Select agent...</option>
-                        {newAgentsList.map((a) => (
-                          <option key={a.id} value={a.id}>{a.name}</option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-[13px] font-medium text-text-primary mb-2">Channel</label>
-                      <div className="flex items-center gap-2">
-                        {(["voice", "whatsapp"] as const).map((ch) => (
-                          <button
-                            key={ch}
-                            onClick={() => updateBranch(br.id, { channel: ch })}
-                            className={`px-4 py-2 text-[12px] font-medium rounded-[6px] border transition-colors duration-150 capitalize ${
-                              br.channel === ch
-                                ? "border-accent bg-[#EFF6FF]/50 text-accent"
-                                : "border-border text-text-secondary hover:border-border-hover"
-                            }`}
-                          >
-                            {ch === "whatsapp" ? "WhatsApp" : "Voice"}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    {/* Variable overrides */}
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <label className="text-[13px] font-medium text-text-primary">Variable Overrides</label>
-                        <button
-                          onClick={() =>
-                            updateBranch(br.id, {
-                              overrides: [...br.overrides, { key: "", value: "" }],
-                            })
-                          }
-                          className="inline-flex items-center gap-1 text-[12px] font-medium text-accent hover:text-accent-hover transition-colors duration-150"
+              branches.map((br) => {
+                const branchAgent = getAgentInfo(br.agentId);
+                return (
+                  <div key={br.id} className="bg-white border border-border rounded-card p-6">
+                    <h2 className="text-card-title text-text-primary mb-4">{br.label}</h2>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-[13px] font-medium text-text-primary mb-1.5">
+                          Agent <span className="text-status-error">*</span>
+                        </label>
+                        <select
+                          value={br.agentId}
+                          onChange={(e) => updateBranch(br.id, { agentId: e.target.value })}
+                          className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer"
+                          style={selectStyle}
                         >
-                          <Plus size={13} strokeWidth={2} />
-                          Add
-                        </button>
+                          <option value="">Select agent...</option>
+                          {newAgentsList.map((a) => (
+                            <option key={a.id} value={a.id}>{a.name}</option>
+                          ))}
+                        </select>
                       </div>
-                      {br.overrides.length === 0 && (
-                        <div className="text-[12px] text-text-tertiary">No overrides</div>
-                      )}
-                      {br.overrides.map((ov, oi) => (
-                        <div key={oi} className="grid grid-cols-[1fr_1fr_auto] gap-2 mb-2">
-                          <input
-                            type="text"
-                            value={ov.key}
-                            onChange={(e) => {
-                              const overrides = [...br.overrides];
-                              overrides[oi] = { ...overrides[oi], key: e.target.value };
-                              updateBranch(br.id, { overrides });
-                            }}
-                            placeholder="Key"
-                            className="h-9 px-3 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
-                          />
-                          <input
-                            type="text"
-                            value={ov.value}
-                            onChange={(e) => {
-                              const overrides = [...br.overrides];
-                              overrides[oi] = { ...overrides[oi], value: e.target.value };
-                              updateBranch(br.id, { overrides });
-                            }}
-                            placeholder="Value"
-                            className="h-9 px-3 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
-                          />
-                          <button
-                            onClick={() => {
-                              const overrides = br.overrides.filter((_, idx) => idx !== oi);
-                              updateBranch(br.id, { overrides });
-                            }}
-                            className="p-1 text-text-tertiary hover:text-status-error transition-colors duration-150"
-                          >
-                            <X size={13} strokeWidth={1.5} />
-                          </button>
+
+                      {/* Agent info card */}
+                      {branchAgent && (
+                        <div className="bg-surface-page border border-border-subtle rounded-[8px] p-4 space-y-2">
+                          <p className="text-[12px] text-text-secondary">{branchAgent.description}</p>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-[11px] text-text-tertiary">Channels:</span>
+                            {branchAgent.supported_channels.map((ch) => (
+                              <span
+                                key={ch}
+                                className="px-2 py-0.5 text-[11px] font-medium rounded-badge bg-surface-secondary text-text-secondary capitalize"
+                              >
+                                {ch === "whatsapp" ? "WhatsApp" : "Voice"}
+                              </span>
+                            ))}
+                            <span className="text-[11px] text-text-tertiary ml-2">
+                              {branchAgent.objectives_count} objectives
+                            </span>
+                          </div>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="bg-white border border-border rounded-card p-6">
-                <h2 className="text-card-title text-text-primary mb-4">Agent + Channel</h2>
+                <h2 className="text-card-title text-text-primary mb-4">Agent Selection</h2>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-[13px] font-medium text-text-primary mb-1.5">
@@ -646,230 +601,43 @@ export default function CreateWorkflowPage() {
                       ))}
                     </select>
                   </div>
-                  <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-2">Channel</label>
-                    <div className="flex items-center gap-2">
-                      {(["voice", "whatsapp"] as const).map((ch) => (
-                        <button
-                          key={ch}
-                          onClick={() => setSingleChannel(ch)}
-                          className={`px-4 py-2 text-[12px] font-medium rounded-[6px] border transition-colors duration-150 ${
-                            singleChannel === ch
-                              ? "border-accent bg-[#EFF6FF]/50 text-accent"
-                              : "border-border text-text-secondary hover:border-border-hover"
-                          }`}
-                        >
-                          {ch === "whatsapp" ? "WhatsApp" : "Voice"}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  {/* Variable overrides */}
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-[13px] font-medium text-text-primary">Variable Overrides</label>
-                      <button
-                        onClick={() => setSingleOverrides((prev) => [...prev, { key: "", value: "" }])}
-                        className="inline-flex items-center gap-1 text-[12px] font-medium text-accent hover:text-accent-hover transition-colors duration-150"
-                      >
-                        <Plus size={13} strokeWidth={2} />
-                        Add
-                      </button>
-                    </div>
-                    {singleOverrides.length === 0 && (
-                      <div className="text-[12px] text-text-tertiary">No overrides configured</div>
-                    )}
-                    {singleOverrides.map((ov, oi) => (
-                      <div key={oi} className="grid grid-cols-[1fr_1fr_auto] gap-2 mb-2">
-                        <input
-                          type="text"
-                          value={ov.key}
-                          onChange={(e) => {
-                            const next = [...singleOverrides];
-                            next[oi] = { ...next[oi], key: e.target.value };
-                            setSingleOverrides(next);
-                          }}
-                          placeholder="Key"
-                          className="h-9 px-3 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
-                        />
-                        <input
-                          type="text"
-                          value={ov.value}
-                          onChange={(e) => {
-                            const next = [...singleOverrides];
-                            next[oi] = { ...next[oi], value: e.target.value };
-                            setSingleOverrides(next);
-                          }}
-                          placeholder="Value"
-                          className="h-9 px-3 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
-                        />
-                        <button
-                          onClick={() => setSingleOverrides((prev) => prev.filter((_, idx) => idx !== oi))}
-                          className="p-1 text-text-tertiary hover:text-status-error transition-colors duration-150"
-                        >
-                          <X size={13} strokeWidth={1.5} />
-                        </button>
+
+                  {/* Agent info card */}
+                  {(() => {
+                    const selectedAgent = getAgentInfo(singleAgentId);
+                    if (!selectedAgent) return null;
+                    return (
+                      <div className="bg-surface-page border border-border-subtle rounded-[8px] p-4 space-y-2">
+                        <p className="text-[12px] text-text-secondary">{selectedAgent.description}</p>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[11px] text-text-tertiary">Channels:</span>
+                          {selectedAgent.supported_channels.map((ch) => (
+                            <span
+                              key={ch}
+                              className="px-2 py-0.5 text-[11px] font-medium rounded-badge bg-surface-secondary text-text-secondary capitalize"
+                            >
+                              {ch === "whatsapp" ? "WhatsApp" : "Voice"}
+                            </span>
+                          ))}
+                          <span className="text-[11px] text-text-tertiary ml-2">
+                            {selectedAgent.objectives_count} objectives
+                          </span>
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* ──────────── Step 4: After the Call ──────────── */}
+        {/* ──────────── Step 4: Cadence & Schedule ──────────── */}
         {step === 4 && (
-          <div className="bg-white border border-border rounded-card p-6 mb-5">
-            <h2 className="text-card-title text-text-primary mb-4">After the Call</h2>
-            <div className="space-y-5">
-              {/* Mode Toggle */}
-              <div>
-                <label className="block text-[13px] font-medium text-text-primary mb-2">Decision Mode</label>
-                <div className="flex items-center gap-0.5 bg-surface-secondary rounded-input p-0.5 w-fit">
-                  {(["rules", "ai"] as const).map((m) => (
-                    <button
-                      key={m}
-                      onClick={() => setPostActionMode(m)}
-                      className={`px-4 py-1.5 text-[12px] font-medium rounded-[6px] transition-colors duration-150 ${
-                        postActionMode === m
-                          ? "bg-white text-text-primary shadow-sm"
-                          : "text-text-secondary hover:text-text-primary"
-                      }`}
-                    >
-                      {m === "rules" ? "Simple rules" : "AI decides"}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {postActionMode === "ai" && (
-                <>
-                  {/* Prompt */}
-                  <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1.5">
-                      Business Rules Prompt
-                    </label>
-                    <textarea
-                      value={postActionPrompt}
-                      onChange={(e) => setPostActionPrompt(e.target.value)}
-                      rows={4}
-                      className="w-full px-3 py-2 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary resize-none"
-                    />
-                  </div>
-
-                  {/* Available Actions */}
-                  <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-3">
-                      Available Actions
-                    </label>
-                    <div className="space-y-2">
-                      {availableActions.map((a) => (
-                        <label
-                          key={a.type}
-                          className="flex items-start gap-3 px-3 py-2.5 rounded-[6px] border border-border hover:bg-surface-page/50 transition-colors duration-150 cursor-pointer"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={enabledActions.has(a.type)}
-                            onChange={() => toggleAction(a.type)}
-                            className="mt-0.5 w-4 h-4 rounded border-border text-accent focus:ring-accent/20"
-                          />
-                          <div>
-                            <div className="text-[13px] font-medium text-text-primary">{a.label}</div>
-                            <div className="text-[11px] text-text-secondary mt-0.5">{a.description}</div>
-                          </div>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* WhatsApp Template Config — shown when send_whatsapp is enabled */}
-                  {enabledActions.has("send_whatsapp") && (
-                    <div className="bg-[#F0FDF4] border border-[#15803D]/15 rounded-[8px] p-4 space-y-3">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[13px] font-medium text-[#15803D]">WhatsApp Message Template</span>
-                        <span className="text-[11px] text-text-tertiary">Sent when AI decides to send WhatsApp</span>
-                      </div>
-                      <div>
-                        <label className="block text-[11px] text-text-secondary mb-1">Message</label>
-                        <textarea
-                          value={waTemplateMessage}
-                          onChange={(e) => setWaTemplateMessage(e.target.value)}
-                          rows={3}
-                          placeholder="Hi {{lead_name}}, thanks for your interest..."
-                          className="w-full px-3 py-2 text-[12px] border border-[#15803D]/20 rounded-input bg-white text-text-primary focus:outline-none focus:border-[#15803D] transition-colors duration-150 placeholder:text-text-tertiary resize-none leading-relaxed"
-                        />
-                        <div className="text-[10px] text-text-tertiary mt-1">
-                          Use {"{{lead_name}}"}, {"{{project_name}}"}, {"{{agent_name}}"} for dynamic values
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-6">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input type="checkbox" checked={waIncludeBrochure} onChange={() => setWaIncludeBrochure(!waIncludeBrochure)}
-                            className="w-3.5 h-3.5 rounded border-border text-[#15803D] focus:ring-[#15803D]/20" />
-                          <span className="text-[12px] text-text-primary">Attach brochure PDF</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input type="checkbox" checked={waIncludeImages} onChange={() => setWaIncludeImages(!waIncludeImages)}
-                            className="w-3.5 h-3.5 rounded border-border text-[#15803D] focus:ring-[#15803D]/20" />
-                          <span className="text-[12px] text-text-primary">Include project images</span>
-                        </label>
-                      </div>
-                      <div>
-                        <label className="block text-[11px] text-text-secondary mb-1">Send timing</label>
-                        <div className="flex gap-2">
-                          {([
-                            { value: "immediate" as const, label: "Immediately after call" },
-                            { value: "5min" as const, label: "5 min after" },
-                            { value: "1hr" as const, label: "1 hour after" },
-                          ]).map((opt) => (
-                            <button key={opt.value} onClick={() => setWaSendTiming(opt.value)}
-                              className={`px-3 py-1.5 text-[11px] font-medium rounded-badge transition-colors ${
-                                waSendTiming === opt.value ? "bg-[#15803D] text-white" : "bg-white text-text-secondary hover:text-text-primary border border-[#15803D]/20"
-                              }`}>
-                              {opt.label}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Fallback */}
-                  <div>
-                    <label className="block text-[13px] font-medium text-text-primary mb-1.5">
-                      Fallback Action (if AI is uncertain)
-                    </label>
-                    <select
-                      value={fallbackAction}
-                      onChange={(e) => setFallbackAction(e.target.value as PostActionType)}
-                      className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer"
-                      style={selectStyle}
-                    >
-                      {availableActions.map((a) => (
-                        <option key={a.type} value={a.type}>{a.label}</option>
-                      ))}
-                    </select>
-                  </div>
-                </>
-              )}
-
-              {postActionMode === "rules" && (
-                <div className="bg-surface-page rounded-[8px] px-4 py-3 text-[12px] text-text-secondary">
-                  Simple rules mode: configure condition-based rules (e.g., if outcome = qualified, push to CRM). Full rules builder coming soon.
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ──────────── Step 5: Schedule + Review ──────────── */}
-        {step === 5 && (
           <div className="space-y-5">
             {/* Schedule */}
             <div className="bg-white border border-border rounded-card p-6">
-              <h2 className="text-card-title text-text-primary mb-4">Schedule</h2>
+              <h2 className="text-card-title text-text-primary mb-4">Cadence & Schedule</h2>
               <div className="space-y-5">
                 {/* Daily limit */}
                 <div>
@@ -965,6 +733,91 @@ export default function CreateWorkflowPage() {
               </div>
             </div>
 
+            {/* Follow-up Rules */}
+            <div className="bg-white border border-border rounded-card p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-card-title text-text-primary">Follow-up Rules</h2>
+                <button
+                  onClick={addFollowUpRule}
+                  className="inline-flex items-center gap-1 text-[12px] font-medium text-accent hover:text-accent-hover transition-colors duration-150"
+                >
+                  <Plus size={13} strokeWidth={2} />
+                  Add Rule
+                </button>
+              </div>
+              <p className="text-[12px] text-text-secondary mb-4">
+                Define what the sequence does after each call based on the agent outcome.
+              </p>
+              <div className="space-y-2">
+                {followUpRules.map((rule) => (
+                  <div
+                    key={rule.id}
+                    className="flex items-center gap-2 px-3 py-2.5 rounded-[6px] border border-border"
+                  >
+                    {/* Outcome dropdown */}
+                    <select
+                      value={rule.outcome}
+                      onChange={(e) => updateFollowUpRule(rule.id, { outcome: e.target.value })}
+                      className="h-9 px-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer flex-1"
+                      style={selectStyle}
+                    >
+                      {OUTCOME_OPTIONS.map((o) => (
+                        <option key={o} value={o}>{o}</option>
+                      ))}
+                    </select>
+
+                    <span className="text-[12px] text-text-tertiary flex-shrink-0">&rarr;</span>
+
+                    {/* Action dropdown */}
+                    <select
+                      value={rule.action}
+                      onChange={(e) => updateFollowUpRule(rule.id, { action: e.target.value as FollowUpRule["action"] })}
+                      className="h-9 px-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer w-[120px]"
+                      style={selectStyle}
+                    >
+                      {ACTION_OPTIONS.map((a) => (
+                        <option key={a} value={a}>
+                          {a === "retry" ? "Retry" : a === "follow_up" ? "Follow up" : "Stop"}
+                        </option>
+                      ))}
+                    </select>
+
+                    {/* Delay (hidden for "stop") */}
+                    {rule.action !== "stop" ? (
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        <span className="text-[12px] text-text-tertiary">in</span>
+                        <input
+                          type="number"
+                          value={rule.delay_hours}
+                          onChange={(e) => updateFollowUpRule(rule.id, { delay_hours: Number(e.target.value) })}
+                          className="w-[64px] h-9 px-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 tabular-nums text-center"
+                        />
+                        <span className="text-[12px] text-text-tertiary">hrs</span>
+                      </div>
+                    ) : (
+                      <div className="w-[120px]" />
+                    )}
+
+                    {/* Remove */}
+                    <button
+                      onClick={() => removeFollowUpRule(rule.id)}
+                      className="p-1 text-text-tertiary hover:text-status-error transition-colors duration-150 flex-shrink-0"
+                    >
+                      <Trash2 size={13} strokeWidth={1.5} />
+                    </button>
+                  </div>
+                ))}
+                {followUpRules.length === 0 && (
+                  <div className="text-[12px] text-text-tertiary py-2">No follow-up rules configured</div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ──────────── Step 5: Review ──────────── */}
+        {step === 5 && (
+          <div className="space-y-5">
             {/* Review Summary */}
             <div className="bg-white border border-border rounded-card p-6">
               <h2 className="text-card-title text-text-primary mb-4">Review Summary</h2>
@@ -988,20 +841,6 @@ export default function CreateWorkflowPage() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-border-subtle">
-                  <span className="text-[12px] text-text-secondary">Channel</span>
-                  <span className="text-[13px] font-medium text-text-primary capitalize">
-                    {routingEnabled
-                      ? [...new Set(branches.map((b) => b.channel === "whatsapp" ? "WhatsApp" : "Voice"))].join(", ")
-                      : singleChannel === "whatsapp" ? "WhatsApp" : "Voice"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-border-subtle">
-                  <span className="text-[12px] text-text-secondary">Post-Action</span>
-                  <span className="text-[13px] font-medium text-text-primary">
-                    {postActionMode === "ai" ? "AI decides" : "Simple rules"} ({enabledActions.size} actions)
-                  </span>
-                </div>
-                <div className="flex items-center justify-between py-2 border-b border-border-subtle">
                   <span className="text-[12px] text-text-secondary">Daily Limit</span>
                   <span className="text-[13px] font-medium text-text-primary tabular-nums">{dailyLimit}/day</span>
                 </div>
@@ -1009,11 +848,66 @@ export default function CreateWorkflowPage() {
                   <span className="text-[12px] text-text-secondary">Calling Hours</span>
                   <span className="text-[13px] font-medium text-text-primary tabular-nums">{startTime} &ndash; {endTime}</span>
                 </div>
-                <div className="flex items-center justify-between py-2">
+                <div className="flex items-center justify-between py-2 border-b border-border-subtle">
                   <span className="text-[12px] text-text-secondary">Active Days</span>
                   <span className="text-[13px] font-medium text-text-primary">{activeDays.join(", ")}</span>
                 </div>
+                <div className="flex items-center justify-between py-2 border-b border-border-subtle">
+                  <span className="text-[12px] text-text-secondary">Retry Policy</span>
+                  <span className="text-[13px] font-medium text-text-primary">
+                    {retryEnabled ? `Up to ${maxRetries} retries, every ${retryInterval}h` : "Disabled"}
+                  </span>
+                </div>
               </div>
+            </div>
+
+            {/* Follow-up Rules Summary */}
+            <div className="bg-white border border-border rounded-card p-6">
+              <h2 className="text-card-title text-text-primary mb-4">Follow-up Rules</h2>
+              {followUpRules.length > 0 ? (
+                <div className="border border-border-subtle rounded-[6px] overflow-hidden">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-surface-page border-b border-border-subtle">
+                        <th className="px-3 py-2 text-[10px] font-medium text-text-tertiary uppercase tracking-[0.5px] text-left">
+                          Outcome
+                        </th>
+                        <th className="px-3 py-2 text-[10px] font-medium text-text-tertiary uppercase tracking-[0.5px] text-left">
+                          Action
+                        </th>
+                        <th className="px-3 py-2 text-[10px] font-medium text-text-tertiary uppercase tracking-[0.5px] text-left">
+                          Delay
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {followUpRules.map((rule) => (
+                        <tr key={rule.id} className="border-b border-border-subtle last:border-0">
+                          <td className="px-3 py-2 text-[12px] text-text-primary">{rule.outcome}</td>
+                          <td className="px-3 py-2">
+                            <span
+                              className={`inline-block px-2 py-0.5 text-[11px] font-medium rounded-badge ${
+                                rule.action === "retry"
+                                  ? "bg-[#EFF6FF] text-accent"
+                                  : rule.action === "follow_up"
+                                  ? "bg-[#FFF7ED] text-[#C2410C]"
+                                  : "bg-surface-secondary text-text-secondary"
+                              }`}
+                            >
+                              {rule.action === "retry" ? "Retry" : rule.action === "follow_up" ? "Follow up" : "Stop"}
+                            </span>
+                          </td>
+                          <td className="px-3 py-2 text-[12px] text-text-secondary tabular-nums">
+                            {rule.action !== "stop" ? `${rule.delay_hours}h` : "\u2014"}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-[12px] text-text-tertiary">No follow-up rules configured</div>
+              )}
             </div>
           </div>
         )}
@@ -1043,7 +937,7 @@ export default function CreateWorkflowPage() {
               className="inline-flex items-center gap-2 h-10 px-6 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150"
             >
               <Rocket size={15} strokeWidth={1.5} />
-              Launch Workflow
+              Create Sequence
             </button>
           )}
         </div>

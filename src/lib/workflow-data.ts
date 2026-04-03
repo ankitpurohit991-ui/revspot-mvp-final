@@ -1,15 +1,38 @@
-// Workflow mock data — orchestrator layer
+// Sequence mock data — cadence engine layer
 
 import type {
   Workflow,
   WorkflowListItem,
-  WorkflowSchedule,
-  AIDecisionLogEntry,
-  ActionDef,
+  SequenceLogEntry,
+  FollowUpRule,
 } from "./types/workflow";
-import type { WorkflowContact, ContactOutcome } from "./types/common";
+import type { WorkflowContact } from "./types/common";
 
-// ─── Workflow List ──────────────────────────────────────────────────
+// ─── Default Follow-Up Rules ────────────────────────────────────────
+
+export const defaultFollowUpRules: FollowUpRule[] = [
+  { id: "fr-1", outcome: "no_answer", action: "retry", delay_hours: 4, description: "No answer → Retry in 4 hours" },
+  { id: "fr-2", outcome: "partially_qualified", action: "follow_up", delay_hours: 48, description: "Partially qualified → Follow up in 2 days" },
+  { id: "fr-3", outcome: "callback", action: "follow_up", delay_hours: 24, description: "Callback requested → Follow up in 24 hours" },
+  { id: "fr-4", outcome: "voicemail", action: "retry", delay_hours: 6, description: "Voicemail → Retry in 6 hours" },
+  { id: "fr-5", outcome: "not_interested", action: "stop", delay_hours: 0, description: "Not interested → Stop sequence" },
+];
+
+// ─── Outcome Options (for follow-up rule builder) ───────────────────
+
+export const outcomeOptions = [
+  "No answer",
+  "Voicemail",
+  "Partially qualified",
+  "Callback requested",
+  "Not interested",
+  "Qualified",
+  "Wrong number",
+];
+
+export const actionOptions: FollowUpRule["action"][] = ["retry", "follow_up", "stop"];
+
+// ─── Sequence List ──────────────────────────────────────────────────
 
 export const workflowsList: WorkflowListItem[] = [
   {
@@ -18,17 +41,11 @@ export const workflowsList: WorkflowListItem[] = [
     description: "Qualify inbound leads from Godrej Reflections campaign via voice calls",
     trigger_type: "csv_upload",
     agent_names: ["Priya — Qualification Agent"],
-    channels: ["voice"],
     status: "active",
     progress: 70.2,
     stats: {
-      totalContacts: 487,
-      called: 342,
-      connected: 268,
-      qualified: 89,
-      notQualified: 142,
-      callback: 37,
-      noAnswer: 74,
+      totalContacts: 487, called: 342, connected: 268,
+      qualified: 89, notQualified: 142, callback: 37, noAnswer: 74,
     },
     createdAt: "2026-03-18",
   },
@@ -38,17 +55,11 @@ export const workflowsList: WorkflowListItem[] = [
     description: "Re-engage cold leads from Godrej Eternity campaign",
     trigger_type: "csv_upload",
     agent_names: ["Arjun — Follow-up Agent"],
-    channels: ["voice"],
     status: "completed",
     progress: 100,
     stats: {
-      totalContacts: 215,
-      called: 215,
-      connected: 178,
-      qualified: 52,
-      notQualified: 98,
-      callback: 28,
-      noAnswer: 37,
+      totalContacts: 215, called: 215, connected: 178,
+      qualified: 52, notQualified: 98, callback: 28, noAnswer: 37,
     },
     createdAt: "2026-03-10",
   },
@@ -58,17 +69,11 @@ export const workflowsList: WorkflowListItem[] = [
     description: "Follow up with leads who showed interest in site visits",
     trigger_type: "csv_upload",
     agent_names: ["Priya — Qualification Agent"],
-    channels: ["voice"],
     status: "scheduled",
     progress: 0,
     stats: {
-      totalContacts: 64,
-      called: 0,
-      connected: 0,
-      qualified: 0,
-      notQualified: 0,
-      callback: 0,
-      noAnswer: 0,
+      totalContacts: 64, called: 0, connected: 0,
+      qualified: 0, notQualified: 0, callback: 0, noAnswer: 0,
     },
     createdAt: "2026-03-22",
   },
@@ -78,23 +83,17 @@ export const workflowsList: WorkflowListItem[] = [
     description: "Route high-quality leads to humans, others to AI agent for onboarding",
     trigger_type: "crm_webhook",
     agent_names: ["Priya — Qualification Agent", "Arjun — Follow-up Agent"],
-    channels: ["voice", "whatsapp"],
     status: "active",
     progress: 45.5,
     stats: {
-      totalContacts: 320,
-      called: 146,
-      connected: 112,
-      qualified: 48,
-      notQualified: 39,
-      callback: 15,
-      noAnswer: 34,
+      totalContacts: 320, called: 146, connected: 112,
+      qualified: 48, notQualified: 39, callback: 15, noAnswer: 34,
     },
     createdAt: "2026-03-20",
   },
 ];
 
-// ─── Full Workflow Detail (for wf-1) ────────────────────────────────
+// ─── Full Sequence Detail (for wf-1) ────────────────────────────────
 
 export const workflowDetail: Workflow = {
   id: "wf-1",
@@ -107,80 +106,23 @@ export const workflowDetail: Workflow = {
   },
   default_step: {
     agent_id: "va-1",
-    channel: "voice",
-  },
-  post_action: {
-    mode: "ai",
-    ai_config: {
-      prompt:
-        "Push qualified leads to CRM immediately. If the lead requested a callback, notify the sales team on WhatsApp with the lead details. If no answer after 2 retries, archive. If the lead expressed interest but didn't fully qualify, schedule a callback in 2 days.",
-      available_actions: [
-        {
-          type: "push_to_crm",
-          label: "Push to CRM",
-          description: "Auto-sync qualified leads to GoHighLevel",
-          enabled: true,
-          config: { crm_status: "qualified" },
-        },
-        {
-          type: "send_whatsapp",
-          label: "Send WhatsApp to Lead",
-          description: "Send a follow-up message to the lead",
-          enabled: true,
-          config: { message_template: "Thanks for your interest in Godrej Reflections!" },
-        },
-        {
-          type: "notify_sales",
-          label: "Notify Sales Team",
-          description: "Alert sales rep via WhatsApp",
-          enabled: true,
-          config: { notification_channel: "whatsapp" },
-        },
-        {
-          type: "schedule_callback",
-          label: "Schedule Callback",
-          description: "Schedule a follow-up call",
-          enabled: true,
-          config: { callback_delay_hours: 48 },
-        },
-        {
-          type: "retry_call",
-          label: "Retry Call",
-          description: "Retry unanswered calls",
-          enabled: false,
-          config: {},
-        },
-        {
-          type: "archive",
-          label: "Archive",
-          description: "Mark as archived / no further action",
-          enabled: true,
-          config: {},
-        },
-      ],
-      fallback_action: "notify_sales",
-    },
   },
   schedule: {
     daily_limit: 200,
     active_hours: { start: "10:00", end: "19:00" },
     active_days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     retry: { enabled: true, max_retries: 2, interval_hours: 4 },
+    follow_up_rules: defaultFollowUpRules,
   },
   stats: {
-    totalContacts: 487,
-    called: 342,
-    connected: 268,
-    qualified: 89,
-    notQualified: 142,
-    callback: 37,
-    noAnswer: 74,
+    totalContacts: 487, called: 342, connected: 268,
+    qualified: 89, notQualified: 142, callback: 37, noAnswer: 74,
   },
   progress: 70.2,
   createdAt: "2026-03-18",
 };
 
-// ─── Workflow with Routing (for wf-4 — Scripbox pattern) ────────────
+// ─── Sequence with Routing (for wf-4) ──────────────────────────────
 
 export const workflowWithRouting: Workflow = {
   id: "wf-4",
@@ -194,278 +136,176 @@ export const workflowWithRouting: Workflow = {
   routing: {
     mode: "ai",
     ai_prompt:
-      "Route leads based on their quality score. If the lead has a quality score of 80 or above, assign to a human sales rep (Path A). If the score is between 50-79, route to Priya qualification agent on voice (Path B). If below 50, route to Arjun follow-up agent on WhatsApp (Path C).",
+      "Route leads based on their quality score. If the lead has a quality score of 80 or above, assign to a human sales rep. If the score is between 50-79, route to Priya qualification agent. If below 50, route to Arjun follow-up agent.",
     branches: [
-      {
-        id: "br-1",
-        label: "High Quality (80+) → Human",
-        agent_id: "human",
-        channel: "voice",
-      },
-      {
-        id: "br-2",
-        label: "Medium Quality (50-79) → AI Voice",
-        agent_id: "va-1",
-        channel: "voice",
-        variable_overrides: { min_budget: "50L" },
-      },
-      {
-        id: "br-3",
-        label: "Low Quality (<50) → AI WhatsApp",
-        agent_id: "va-2",
-        channel: "whatsapp",
-      },
+      { id: "br-1", label: "High Quality (80+) → Human", agent_id: "human" },
+      { id: "br-2", label: "Medium Quality (50-79) → AI", agent_id: "va-1" },
+      { id: "br-3", label: "Low Quality (<50) → AI", agent_id: "va-2" },
     ],
   },
-  post_action: {
-    mode: "ai",
-    ai_config: {
-      prompt:
-        "If qualified, push to CRM and send a WhatsApp confirmation to the lead. If assigned to human and they completed the call, notify the manager. For WhatsApp leads that don't respond within 24 hours, schedule a voice callback.",
-      available_actions: [
-        {
-          type: "push_to_crm",
-          label: "Push to CRM",
-          description: "Sync to CRM",
-          enabled: true,
-          config: {},
-        },
-        {
-          type: "send_whatsapp",
-          label: "Send WhatsApp",
-          description: "Send WhatsApp to lead",
-          enabled: true,
-          config: {},
-        },
-        {
-          type: "notify_sales",
-          label: "Notify Manager",
-          description: "Alert manager",
-          enabled: true,
-          config: { notification_channel: "slack" },
-        },
-        {
-          type: "schedule_callback",
-          label: "Schedule Callback",
-          description: "Schedule voice callback",
-          enabled: true,
-          config: { callback_delay_hours: 24 },
-        },
-        {
-          type: "assign_to_human",
-          label: "Assign to Human",
-          description: "Route to human agent",
-          enabled: true,
-          config: {},
-        },
-        {
-          type: "archive",
-          label: "Archive",
-          description: "No further action",
-          enabled: true,
-          config: {},
-        },
-      ],
-      fallback_action: "notify_sales",
-    },
+  schedule: {
+    daily_limit: 150,
+    active_hours: { start: "09:00", end: "18:00" },
+    active_days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+    retry: { enabled: true, max_retries: 3, interval_hours: 4 },
+    follow_up_rules: [
+      ...defaultFollowUpRules,
+      { id: "fr-6", outcome: "qualified", action: "stop", delay_hours: 0, description: "Qualified → Stop sequence (push to CRM handled by agent)" },
+    ],
   },
   stats: {
-    totalContacts: 320,
-    called: 146,
-    connected: 112,
-    qualified: 48,
-    notQualified: 39,
-    callback: 15,
-    noAnswer: 34,
+    totalContacts: 320, called: 146, connected: 112,
+    qualified: 48, notQualified: 39, callback: 15, noAnswer: 34,
   },
   progress: 45.5,
   createdAt: "2026-03-20",
 };
 
-// ─── Contacts (reused from outreach, same data) ─────────────────────
+// ─── Contacts ───────────────────────────────────────────────────────
 
 export const workflowContacts: WorkflowContact[] = [
   {
-    id: "wc-1",
-    name: "Ramesh K*****",
-    phone: "98XXX XX123",
-    outcome: "qualified",
-    duration: "4:12",
-    qualification: "qualified",
-    verified: true,
-    keyNotes: "Budget ₹1.8Cr, wants 3BHK, can visit this weekend",
+    id: "wc-1", name: "Ramesh K*****", phone: "98XXX XX123",
+    outcome: "qualified", duration: "4:12", qualification: "qualified",
+    verified: true, keyNotes: "Budget ₹1.8Cr, wants 3BHK, can visit this weekend",
     calledAt: "2026-03-21T14:32:00",
-    aiDecision: {
-      actions_taken: ["push_to_crm", "send_whatsapp"],
-      reasoning:
-        "Lead is qualified with budget ₹1.8Cr (above ₹1Cr threshold) and timeline of 3 months. Pushing to CRM and sending WhatsApp with site visit link.",
-      confidence: 0.94,
-    },
   },
   {
-    id: "wc-2",
-    name: "Sunita P*****",
-    phone: "90XXX XX456",
-    outcome: "qualified",
-    duration: "3:32",
-    qualification: "qualified",
-    verified: true,
-    keyNotes: "NRI investor, budget ₹2Cr+, interested in rental yield",
+    id: "wc-2", name: "Sunita P*****", phone: "90XXX XX456",
+    outcome: "qualified", duration: "3:32", qualification: "qualified",
+    verified: true, keyNotes: "NRI investor, budget ₹2Cr+, interested in rental yield",
     calledAt: "2026-03-21T14:18:00",
-    aiDecision: {
-      actions_taken: ["push_to_crm", "notify_sales"],
-      reasoning:
-        "High-value NRI lead with ₹2Cr+ budget. Pushing to CRM and notifying sales team — NRI leads need personalized follow-up for documentation.",
-      confidence: 0.97,
-    },
   },
   {
-    id: "wc-3",
-    name: "Vikram S*****",
-    phone: "87XXX XX789",
-    outcome: "not_qualified",
-    duration: "2:06",
-    qualification: "not_qualified",
-    verified: false,
-    keyNotes: "Budget below ₹80L, looking for 1BHK",
+    id: "wc-3", name: "Vikram S*****", phone: "87XXX XX789",
+    outcome: "not_qualified", duration: "2:06", qualification: "not_qualified",
+    verified: false, keyNotes: "Budget below ₹80L, looking for 1BHK",
     calledAt: "2026-03-21T13:55:00",
-    aiDecision: {
-      actions_taken: ["archive"],
-      reasoning:
-        "Lead budget (₹80L) is significantly below the ₹1Cr minimum threshold. Looking for 1BHK which is not in our luxury portfolio. Archiving.",
-      confidence: 0.92,
-    },
   },
   {
-    id: "wc-4",
-    name: "Ananya R*****",
-    phone: "91XXX XX234",
-    outcome: "callback",
-    duration: "0:48",
-    qualification: undefined,
-    verified: false,
-    keyNotes: "Asked to call back after 5 PM",
+    id: "wc-4", name: "Ananya R*****", phone: "91XXX XX234",
+    outcome: "callback", duration: "0:48", qualification: undefined,
+    verified: false, keyNotes: "Asked to call back after 5 PM",
     calledAt: "2026-03-21T13:40:00",
-    aiDecision: {
-      actions_taken: ["schedule_callback"],
-      reasoning:
-        "Lead requested callback after 5 PM. Scheduling callback for today at 5:15 PM to respect their preferred time.",
-      confidence: 0.99,
-    },
   },
   {
-    id: "wc-5",
-    name: "Deepak M*****",
-    phone: "80XXX XX567",
-    outcome: "no_answer",
-    duration: undefined,
-    qualification: undefined,
-    verified: false,
-    keyNotes: "",
+    id: "wc-5", name: "Deepak M*****", phone: "80XXX XX567",
+    outcome: "no_answer", duration: undefined, qualification: undefined,
+    verified: false, keyNotes: "",
     calledAt: "2026-03-21T13:22:00",
-    aiDecision: {
-      actions_taken: ["retry_call"],
-      reasoning: "No answer on first attempt. Scheduling retry in 4 hours as per workflow policy.",
-      confidence: 0.88,
-    },
   },
   {
-    id: "wc-6",
-    name: "Kavitha L*****",
-    phone: "99XXX XX890",
-    outcome: "qualified",
-    duration: "5:06",
-    qualification: "qualified",
-    verified: true,
-    keyNotes: "Family of 4, upgrading from 2BHK, timeline 3 months",
+    id: "wc-6", name: "Kavitha L*****", phone: "99XXX XX890",
+    outcome: "qualified", duration: "5:06", qualification: "qualified",
+    verified: true, keyNotes: "Family of 4, upgrading from 2BHK, timeline 3 months",
     calledAt: "2026-03-21T12:50:00",
-    aiDecision: {
-      actions_taken: ["push_to_crm", "send_whatsapp", "notify_sales"],
-      reasoning:
-        "Strong qualified lead — family upgrading with clear 3-month timeline. Pushing to CRM, sending site visit details via WhatsApp, and notifying sales for priority follow-up.",
-      confidence: 0.96,
-    },
   },
   {
-    id: "wc-7",
-    name: "Prashant G*****",
-    phone: "96XXX XX345",
-    outcome: "not_qualified",
-    duration: "1:48",
-    qualification: "not_qualified",
-    verified: false,
-    keyNotes: "Timeline > 2 years, just browsing",
+    id: "wc-7", name: "Prashant G*****", phone: "96XXX XX345",
+    outcome: "not_qualified", duration: "1:48", qualification: "not_qualified",
+    verified: false, keyNotes: "Timeline > 2 years, just browsing",
     calledAt: "2026-03-21T12:35:00",
-    aiDecision: {
-      actions_taken: ["send_whatsapp"],
-      reasoning:
-        "Lead has a long timeline (2+ years) and is just browsing. Not qualified for immediate follow-up, but sending a WhatsApp with project brochure to keep them warm.",
-      confidence: 0.85,
-    },
   },
   {
-    id: "wc-8",
-    name: "Meera T*****",
-    phone: "88XXX XX678",
-    outcome: "not_qualified",
-    duration: "2:24",
-    qualification: "not_qualified",
-    verified: false,
-    keyNotes: "Not decision maker, will check with spouse",
+    id: "wc-8", name: "Meera T*****", phone: "88XXX XX678",
+    outcome: "not_qualified", duration: "2:24", qualification: "not_qualified",
+    verified: false, keyNotes: "Not decision maker, will check with spouse",
     calledAt: "2026-03-21T12:10:00",
-    aiDecision: {
-      actions_taken: ["schedule_callback"],
-      reasoning:
-        "Lead isn't the primary decision maker but showed interest. Scheduling callback in 2 days to allow time for spousal discussion.",
-      confidence: 0.78,
-    },
   },
   {
-    id: "wc-9",
-    name: "Arun V*****",
-    phone: "70XXX XX901",
-    outcome: "wrong_number",
-    duration: "0:18",
-    qualification: undefined,
-    verified: false,
-    keyNotes: "Wrong number",
+    id: "wc-9", name: "Arun V*****", phone: "70XXX XX901",
+    outcome: "wrong_number", duration: "0:18", qualification: undefined,
+    verified: false, keyNotes: "Wrong number",
     calledAt: "2026-03-21T11:55:00",
-    aiDecision: {
-      actions_taken: ["archive"],
-      reasoning: "Wrong number confirmed. Archiving contact — no further action needed.",
-      confidence: 0.99,
-    },
   },
   {
-    id: "wc-10",
-    name: "Lakshmi N*****",
-    phone: "85XXX XX012",
-    outcome: "not_called",
-    duration: undefined,
-    qualification: undefined,
-    verified: false,
-    keyNotes: "",
+    id: "wc-10", name: "Lakshmi N*****", phone: "85XXX XX012",
+    outcome: "not_called", duration: undefined, qualification: undefined,
+    verified: false, keyNotes: "",
     calledAt: undefined,
   },
 ];
 
-// ─── AI Decision Log ────────────────────────────────────────────────
+// ─── Sequence Log (replaces AI Decision Log) ────────────────────────
 
-export const aiDecisionLog: AIDecisionLogEntry[] = workflowContacts
-  .filter((c) => c.aiDecision)
-  .map((c) => ({
-    id: `log-${c.id}`,
-    contact_id: c.id,
-    contact_name: c.name,
-    timestamp: c.calledAt || "",
-    agent_output_summary: c.keyNotes || c.outcome,
-    actions_taken: c.aiDecision!.actions_taken.map((type) => ({
-      type: type as any,
-      detail: "",
-    })),
-    reasoning: c.aiDecision!.reasoning,
-    confidence: c.aiDecision!.confidence,
-  }));
+export const sequenceLog: SequenceLogEntry[] = [
+  {
+    id: "sl-1", contact_name: "Ramesh K*****", timestamp: "2026-03-21T14:32:00",
+    agent_outcome: "Qualified",
+    agent_suggested_next: "No further calls needed",
+    agent_reasoning: "Budget ₹1.8Cr (above threshold), 3-month timeline, wants site visit. Sent brochure via WhatsApp and pushed to CRM during call.",
+    sequence_decision: "Stopped",
+    sequence_reasoning: "Agent marked as qualified → stop rule applied. No further sequence triggers.",
+  },
+  {
+    id: "sl-2", contact_name: "Sunita P*****", timestamp: "2026-03-21T14:18:00",
+    agent_outcome: "Qualified",
+    agent_suggested_next: "No further calls needed",
+    agent_reasoning: "NRI investor, ₹2Cr+ budget. Sent project details and rental yield calculator via WhatsApp. Pushed to CRM with HNI tag.",
+    sequence_decision: "Stopped",
+    sequence_reasoning: "Agent marked as qualified → stop rule applied.",
+  },
+  {
+    id: "sl-3", contact_name: "Vikram S*****", timestamp: "2026-03-21T13:55:00",
+    agent_outcome: "Not qualified",
+    agent_suggested_next: "No follow-up needed",
+    agent_reasoning: "Budget ₹80L — significantly below ₹1Cr threshold. Looking for 1BHK, not in portfolio.",
+    sequence_decision: "Stopped",
+    sequence_reasoning: "Not interested → stop rule applied. Lead archived.",
+  },
+  {
+    id: "sl-4", contact_name: "Ananya R*****", timestamp: "2026-03-21T13:40:00",
+    agent_outcome: "Callback requested",
+    agent_suggested_next: "Call back after 5 PM today",
+    agent_reasoning: "Lead was busy, asked to be called back after 5 PM. Seemed interested based on initial response.",
+    sequence_decision: "Follow up scheduled",
+    sequence_reasoning: "Callback requested → follow up in 24 hours. Scheduled for Mar 22, 10:15 AM.",
+    next_trigger_at: "2026-03-22T10:15:00",
+  },
+  {
+    id: "sl-5", contact_name: "Deepak M*****", timestamp: "2026-03-21T13:22:00",
+    agent_outcome: "No answer",
+    agent_suggested_next: "Retry later",
+    agent_reasoning: "Call not answered. No voicemail left.",
+    sequence_decision: "Retry scheduled",
+    sequence_reasoning: "No answer → retry in 4 hours. Attempt 1 of 2.",
+    next_trigger_at: "2026-03-21T17:22:00",
+  },
+  {
+    id: "sl-6", contact_name: "Kavitha L*****", timestamp: "2026-03-21T12:50:00",
+    agent_outcome: "Qualified",
+    agent_suggested_next: "Schedule site visit",
+    agent_reasoning: "Family of 4 upgrading from 2BHK, 3-month timeline. Sent site visit details via WhatsApp. Pushed to CRM.",
+    sequence_decision: "Stopped",
+    sequence_reasoning: "Agent marked as qualified → stop rule applied.",
+  },
+  {
+    id: "sl-7", contact_name: "Prashant G*****", timestamp: "2026-03-21T12:35:00",
+    agent_outcome: "Partially qualified",
+    agent_suggested_next: "Follow up in a few months",
+    agent_reasoning: "Budget OK but timeline > 2 years. Interested but not ready. Sent project updates link via WhatsApp.",
+    sequence_decision: "Follow up scheduled",
+    sequence_reasoning: "Partially qualified → follow up in 48 hours. Will re-assess interest.",
+    next_trigger_at: "2026-03-23T12:35:00",
+  },
+  {
+    id: "sl-8", contact_name: "Meera T*****", timestamp: "2026-03-21T12:10:00",
+    agent_outcome: "Partially qualified",
+    agent_suggested_next: "Call back after spousal discussion",
+    agent_reasoning: "Not the primary decision maker but showed genuine interest. Needs to consult spouse.",
+    sequence_decision: "Follow up scheduled",
+    sequence_reasoning: "Partially qualified → follow up in 48 hours. Scheduled for Mar 23.",
+    next_trigger_at: "2026-03-23T12:10:00",
+  },
+  {
+    id: "sl-9", contact_name: "Arun V*****", timestamp: "2026-03-21T11:55:00",
+    agent_outcome: "Wrong number",
+    agent_suggested_next: "Remove from list",
+    agent_reasoning: "Confirmed wrong number.",
+    sequence_decision: "Stopped",
+    sequence_reasoning: "Wrong number → stop. Contact archived.",
+  },
+];
 
 // ─── Disqualification Reasons ───────────────────────────────────────
 
@@ -477,7 +317,7 @@ export const disqualReasons = [
   { reason: "Not interested", percentage: 7 },
 ];
 
-// ─── Workflow Purposes ──────────────────────────────────────────────
+// ─── Sequence Purposes ──────────────────────────────────────────────
 
 export const workflowPurposes = [
   "Lead Qualification",
@@ -498,7 +338,7 @@ export const csvPreviewRows = [
   ["Deepak Menon", "8012345679", "deepak@gmail.com", "Meta Lead", "₹1.2Cr"],
 ];
 
-// ─── Available Trigger Types ────────────────────────────────────────
+// ─── Trigger Types ──────────────────────────────────────────────────
 
 export const triggerTypes = [
   { type: "csv_upload" as const, label: "CSV Upload", description: "Upload a contact list", comingSoon: false },
@@ -511,80 +351,19 @@ export const triggerTypes = [
   {
     type: "campaign_lead" as const,
     label: "Campaign Lead",
-    description: "Select a campaign to trigger this workflow when a new lead arrives",
+    description: "Select a campaign to trigger this sequence when a new lead arrives",
     comingSoon: false,
   },
   {
     type: "manual" as const,
     label: "Manually (API)",
-    description: "Get an API endpoint to trigger this workflow programmatically",
+    description: "Get an API endpoint to trigger this sequence programmatically",
     comingSoon: false,
   },
   {
     type: "workflow_trigger" as const,
-    label: "From Another Workflow",
-    description: "Triggered by another workflow's post-action",
+    label: "From Another Sequence",
+    description: "Triggered by another sequence's completion",
     comingSoon: true,
-  },
-];
-
-// ─── Available Post-Actions ─────────────────────────────────────────
-
-export const availableActions: ActionDef[] = [
-  {
-    type: "push_to_crm",
-    label: "Push to CRM",
-    description: "Auto-sync leads to your connected CRM",
-    enabled: true,
-    config: {},
-  },
-  {
-    type: "send_whatsapp",
-    label: "Send WhatsApp",
-    description: "Send a WhatsApp message to the lead",
-    enabled: true,
-    config: {},
-  },
-  {
-    type: "notify_sales",
-    label: "Notify Sales Team",
-    description: "Alert your sales team via Slack or WhatsApp",
-    enabled: true,
-    config: {},
-  },
-  {
-    type: "schedule_callback",
-    label: "Schedule Callback",
-    description: "Schedule a follow-up call",
-    enabled: true,
-    config: {},
-  },
-  {
-    type: "trigger_workflow",
-    label: "Trigger Another Workflow",
-    description: "Start another workflow for this lead",
-    enabled: false,
-    config: {},
-  },
-  {
-    type: "retry_call",
-    label: "Retry Call",
-    description: "Retry unanswered calls",
-    enabled: false,
-    config: {},
-  },
-  {
-    type: "assign_to_human",
-    label: "Assign to Human",
-    description: "Route to a human agent",
-    enabled: false,
-    config: {},
-  },
-  {
-    type: "archive",
-    label: "Archive",
-    description: "No further action needed",
-    enabled: false,
-    config: {},
   },
 ];

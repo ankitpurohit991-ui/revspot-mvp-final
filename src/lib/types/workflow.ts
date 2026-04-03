@@ -1,8 +1,6 @@
-// Workflow types — orchestrator layer connecting triggers → routing → agents → channels → post-actions
+// Sequence types — cadence engine connecting triggers → routing → agents → follow-up rules
 
-import { ChannelType, ContactOutcome, WorkflowContact } from "./common";
-
-// ─── Workflow Status ────────────────────────────────────────────────
+// ─── Sequence Status ──────────────────────────────────────────────
 
 export type WorkflowStatus = "active" | "paused" | "draft" | "completed" | "scheduled";
 
@@ -30,24 +28,22 @@ export type RoutingMode = "none" | "rules" | "ai";
 
 export interface RoutingRule {
   id: string;
-  field: string; // e.g., "lead.geo", "lead.score"
+  field: string;
   operator: "equals" | "not_equals" | "greater_than" | "less_than" | "contains" | "in";
   value: string;
-  branch_id: string; // which branch to route to
+  branch_id: string;
 }
 
 export interface WorkflowBranch {
   id: string;
   label: string;
   agent_id: string;
-  channel: ChannelType;
-  variable_overrides?: Record<string, string>; // e.g., { min_budget: "50L" }
 }
 
 export interface WorkflowRouting {
   mode: RoutingMode;
   rules?: RoutingRule[];
-  ai_prompt?: string; // natural language routing instructions
+  ai_prompt?: string;
   branches: WorkflowBranch[];
 }
 
@@ -55,78 +51,37 @@ export interface WorkflowRouting {
 
 export interface WorkflowDefaultStep {
   agent_id: string;
-  channel: ChannelType;
-  variable_overrides?: Record<string, string>;
 }
 
-// ─── Post-Action ────────────────────────────────────────────────────
+// ─── Follow-Up Rules ────────────────────────────────────────────────
 
-export type PostActionMode = "rules" | "ai";
-
-export type PostActionType =
-  | "push_to_crm"
-  | "send_whatsapp"
-  | "notify_sales"
-  | "schedule_callback"
-  | "trigger_workflow"
-  | "retry_call"
-  | "assign_to_human"
-  | "archive";
-
-export interface ActionDef {
-  type: PostActionType;
-  label: string;
-  description: string;
-  enabled: boolean;
-  config: {
-    /** For trigger_workflow: target workflow ID */
-    target_workflow_id?: string;
-    /** For send_whatsapp: template */
-    message_template?: string;
-    /** For notify_sales: channel */
-    notification_channel?: "slack" | "whatsapp" | "email";
-    /** For schedule_callback: delay */
-    callback_delay_hours?: number;
-    /** For push_to_crm: status to set */
-    crm_status?: string;
-  };
-}
-
-export interface PostActionRule {
+export interface FollowUpRule {
   id: string;
-  condition: {
-    field: string; // e.g., "outcome", "qualification", "extracted.budget"
-    operator: "equals" | "not_equals" | "greater_than" | "less_than";
-    value: string;
-  };
-  action_type: PostActionType;
-  action_config: Record<string, string>;
+  /** Agent outcome that triggers this rule */
+  outcome: string; // "no_answer", "partially_qualified", "callback", "voicemail", "not_interested"
+  /** What the sequence does */
+  action: "retry" | "follow_up" | "stop";
+  /** How long to wait before re-triggering (hours) */
+  delay_hours: number;
+  /** Human-readable description */
+  description: string;
 }
 
-export interface WorkflowPostAction {
-  mode: PostActionMode;
-  rules?: PostActionRule[];
-  ai_config?: {
-    prompt: string; // natural language business rules
-    available_actions: ActionDef[];
-    fallback_action: PostActionType; // if AI fails or is uncertain
-  };
-}
-
-// ─── Schedule ───────────────────────────────────────────────────────
+// ─── Schedule & Cadence ─────────────────────────────────────────────
 
 export interface WorkflowSchedule {
   daily_limit: number;
-  active_hours: { start: string; end: string }; // "10:00" - "19:00"
-  active_days: string[]; // ["Mon", "Tue", ...]
+  active_hours: { start: string; end: string };
+  active_days: string[];
   retry: {
     enabled: boolean;
     max_retries: number;
     interval_hours: number;
   };
+  follow_up_rules: FollowUpRule[];
 }
 
-// ─── Workflow Stats ─────────────────────────────────────────────────
+// ─── Sequence Stats ─────────────────────────────────────────────────
 
 export interface WorkflowStats {
   totalContacts: number;
@@ -138,20 +93,21 @@ export interface WorkflowStats {
   noAnswer: number;
 }
 
-// ─── AI Decision Log Entry ──────────────────────────────────────────
+// ─── Sequence Log Entry ─────────────────────────────────────────────
 
-export interface AIDecisionLogEntry {
+export interface SequenceLogEntry {
   id: string;
-  contact_id: string;
   contact_name: string;
   timestamp: string;
-  agent_output_summary: string;
-  actions_taken: { type: PostActionType; detail: string }[];
-  reasoning: string;
-  confidence: number;
+  agent_outcome: string;
+  agent_suggested_next: string;
+  agent_reasoning: string;
+  sequence_decision: string;
+  sequence_reasoning: string;
+  next_trigger_at?: string;
 }
 
-// ─── Full Workflow Type ─────────────────────────────────────────────
+// ─── Full Sequence Type ─────────────────────────────────────────────
 
 export interface Workflow {
   id: string;
@@ -164,10 +120,8 @@ export interface Workflow {
   /** Optional routing — if absent, use default_step */
   routing?: WorkflowRouting;
 
-  /** Single agent step (used when routing.mode === 'none' or routing is absent) */
+  /** Single agent step (used when routing is absent) */
   default_step?: WorkflowDefaultStep;
-
-  post_action: WorkflowPostAction;
 
   schedule?: WorkflowSchedule;
 
@@ -180,15 +134,14 @@ export interface Workflow {
   createdAt: string;
 }
 
-// ─── Workflow List Item (for list views) ────────────────────────────
+// ─── Sequence List Item (for list views) ────────────────────────────
 
 export interface WorkflowListItem {
   id: string;
   name: string;
   description: string;
   trigger_type: TriggerType;
-  agent_names: string[]; // agents used in this workflow
-  channels: ChannelType[];
+  agent_names: string[];
   status: WorkflowStatus;
   progress: number;
   stats: WorkflowStats;

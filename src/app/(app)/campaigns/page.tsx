@@ -468,7 +468,7 @@ function ImportCampaignsModal({ onClose }: { onClose: () => void }) {
                     <div className="px-4 py-3 space-y-2.5">
                       <div className="flex items-start gap-2 bg-[#EFF6FF] border border-[#3B82F6]/15 rounded-[6px] px-3 py-2">
                         <span className="text-[11px] text-[#1D4ED8] leading-relaxed">
-                          AI calling applies to <span className="font-medium">future leads only</span>. Existing {selectedLeadGen.reduce((s, c) => s + c.leads, 0).toLocaleString()} leads won&apos;t be called — use Workflows for bulk calling past leads.
+                          AI calling applies to <span className="font-medium">future leads only</span>. Existing {selectedLeadGen.reduce((s, c) => s + c.leads, 0).toLocaleString()} leads won&apos;t be called — use Sequences for bulk calling past leads.
                         </span>
                       </div>
                       <div>
@@ -559,7 +559,7 @@ function ImportCampaignsModal({ onClose }: { onClose: () => void }) {
                               <p className="text-[13px] text-text-primary font-medium">AI calling enabled for new leads</p>
                               <p className="text-[11px] text-text-tertiary mt-0.5">
                                 New leads from {selectedLeadGen.length} campaign{selectedLeadGen.length !== 1 ? "s" : ""} will be automatically called and qualified by your voice agent.
-                                Existing leads are not affected — use <span className="font-medium text-text-secondary">Workflows</span> to call past leads in bulk.
+                                Existing leads are not affected — use <span className="font-medium text-text-secondary">Sequences</span> to call past leads in bulk.
                               </p>
                             </div>
                           </div>

@@ -60,29 +60,15 @@ export interface VoiceAgent {
   createdAt: string;
 }
 
-export interface Sequence {
-  id: string;
-  name: string;
-  steps: number;
-  enrolledContacts: number;
-  status: "active" | "paused" | "draft";
-  createdAt: string;
-}
-
 interface AppState {
   connectedAccounts: ConnectedAccount[];
   campaigns: Campaign[];
   projects: Project[];
   leads: Lead[];
   contacts: Contact[];
-
-  // New types
   agents: AgentListItem[];
-  workflows: WorkflowListItem[];
-
-  // Legacy (kept for backward compat with existing pages)
+  sequences: WorkflowListItem[];
   voiceAgents: VoiceAgent[];
-  sequences: Sequence[];
 
   setConnectedAccounts: (accounts: ConnectedAccount[]) => void;
   setCampaigns: (campaigns: Campaign[]) => void;
@@ -90,9 +76,8 @@ interface AppState {
   setLeads: (leads: Lead[]) => void;
   setContacts: (contacts: Contact[]) => void;
   setAgents: (agents: AgentListItem[]) => void;
-  setWorkflows: (workflows: WorkflowListItem[]) => void;
+  setSequences: (sequences: WorkflowListItem[]) => void;
   setVoiceAgents: (agents: VoiceAgent[]) => void;
-  setSequences: (sequences: Sequence[]) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -102,9 +87,8 @@ export const useAppStore = create<AppState>((set) => ({
   leads: [],
   contacts: [],
   agents: [],
-  workflows: [],
-  voiceAgents: [],
   sequences: [],
+  voiceAgents: [],
 
   setConnectedAccounts: (accounts) => set({ connectedAccounts: accounts }),
   setCampaigns: (campaigns) => set({ campaigns }),
@@ -112,7 +96,6 @@ export const useAppStore = create<AppState>((set) => ({
   setLeads: (leads) => set({ leads }),
   setContacts: (contacts) => set({ contacts }),
   setAgents: (agents) => set({ agents }),
-  setWorkflows: (workflows) => set({ workflows }),
-  setVoiceAgents: (agents) => set({ voiceAgents: agents }),
   setSequences: (sequences) => set({ sequences }),
+  setVoiceAgents: (agents) => set({ voiceAgents: agents }),
 }));

@@ -6,7 +6,6 @@ import type { Variants } from "framer-motion";
 import { Plus } from "lucide-react";
 import { workflowsList } from "@/lib/workflow-data";
 import type { WorkflowStatus } from "@/lib/types/workflow";
-import type { ChannelType } from "@/lib/types/common";
 
 const stagger: Variants = {
   hidden: {},
@@ -52,19 +51,6 @@ function TriggerBadge({ type }: { type: string }) {
   );
 }
 
-function ChannelBadge({ channel }: { channel: ChannelType }) {
-  const config: Record<ChannelType, { label: string; cls: string }> = {
-    voice: { label: "Voice", cls: "bg-[#EFF6FF] text-[#1D4ED8]" },
-    whatsapp: { label: "WhatsApp", cls: "bg-[#F0FDF4] text-[#15803D]" },
-  };
-  const { label, cls } = config[channel];
-  return (
-    <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge ${cls}`}>
-      {label}
-    </span>
-  );
-}
-
 export default function WorkflowsPage() {
   const router = useRouter();
 
@@ -73,15 +59,15 @@ export default function WorkflowsPage() {
       {/* Header */}
       <motion.div variants={fadeUp} className="flex items-center justify-between mb-6">
         <div>
-          <div className="text-meta text-text-secondary mb-1">Lead Generation</div>
-          <h1 className="text-page-title text-text-primary">Workflows</h1>
+          <div className="text-meta text-text-secondary mb-1">Tools</div>
+          <h1 className="text-page-title text-text-primary">Sequences</h1>
         </div>
         <button
           onClick={() => router.push("/workflows/create")}
           className="inline-flex items-center gap-1.5 h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150"
         >
           <Plus size={15} strokeWidth={2} />
-          Create Workflow
+          Create Sequence
         </button>
       </motion.div>
 
@@ -95,7 +81,6 @@ export default function WorkflowsPage() {
                   { label: "Name", align: "left" },
                   { label: "Trigger", align: "left" },
                   { label: "Agent(s)", align: "left" },
-                  { label: "Channel(s)", align: "left" },
                   { label: "Status", align: "left" },
                   { label: "Progress", align: "left" },
                   { label: "Created", align: "left" },
@@ -128,13 +113,6 @@ export default function WorkflowsPage() {
                     <div className="flex flex-col gap-0.5">
                       {w.agent_names.map((a) => (
                         <span key={a} className="truncate">{a}</span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-1">
-                      {w.channels.map((ch) => (
-                        <ChannelBadge key={ch} channel={ch} />
                       ))}
                     </div>
                   </td>

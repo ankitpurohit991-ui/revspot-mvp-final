@@ -18,10 +18,10 @@ import { MetricCard } from "@/components/dashboard/metric-card";
 import {
   workflowDetail,
   workflowContacts,
-  aiDecisionLog,
+  sequenceLog,
 } from "@/lib/workflow-data";
 import type { ContactOutcome } from "@/lib/types/common";
-import type { PostActionType } from "@/lib/types/workflow";
+import type { SequenceLogEntry } from "@/lib/types/workflow";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
@@ -46,26 +46,8 @@ function OutcomeBadge({ outcome }: { outcome: ContactOutcome }) {
   );
 }
 
-function ActionBadge({ type }: { type: PostActionType }) {
-  const labels: Record<PostActionType, string> = {
-    push_to_crm: "Push to CRM",
-    send_whatsapp: "Send WhatsApp",
-    notify_sales: "Notify Sales",
-    schedule_callback: "Schedule Callback",
-    trigger_workflow: "Trigger Workflow",
-    retry_call: "Retry Call",
-    assign_to_human: "Assign to Human",
-    archive: "Archive",
-  };
-  return (
-    <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8]">
-      {labels[type] || type}
-    </span>
-  );
-}
-
 const PAGE_SIZE = 8;
-type TabKey = "contacts" | "ai_decisions" | "schedule";
+type TabKey = "contacts" | "sequence_log" | "schedule";
 
 export default function WorkflowDetailPage() {
   const router = useRouter();
@@ -90,9 +72,6 @@ export default function WorkflowDetailPage() {
     ? d.routing.branches.map((b) => b.label).join(", ")
     : "Priya \u2014 Qualification Agent";
 
-  const postActionLabel =
-    d.post_action.mode === "ai" ? "AI Post-Action" : "Rule-Based Post-Action";
-
   // Contacts filtering + pagination
   const filtered = useMemo(() => {
     if (!search) return workflowContacts;
@@ -107,7 +86,7 @@ export default function WorkflowDetailPage() {
 
   const tabs: { key: TabKey; label: string }[] = [
     { key: "contacts", label: "Contacts" },
-    { key: "ai_decisions", label: "AI Decisions" },
+    { key: "sequence_log", label: "Sequence Log" },
     { key: "schedule", label: "Schedule" },
   ];
 
@@ -122,7 +101,7 @@ export default function WorkflowDetailPage() {
           <ArrowLeft size={16} strokeWidth={1.5} />
         </button>
         <span className="text-meta text-text-secondary">
-          Workflows &rsaquo; {d.name}
+          Sequences &rsaquo; {d.name}
         </span>
       </div>
 
@@ -163,7 +142,7 @@ export default function WorkflowDetailPage() {
 
       {/* Flowchart Summary */}
       <div className="bg-white border border-border rounded-card p-5 mb-5">
-        <h3 className="text-card-title text-text-primary mb-4">Workflow Flow</h3>
+        <h3 className="text-card-title text-text-primary mb-4">Sequence Flow</h3>
         <div className="flex items-center gap-0">
           {/* Trigger */}
           <div className="flex-shrink-0 bg-[#FDF4FF] border border-[#E9D5FF] rounded-[8px] px-4 py-3 text-center min-w-[140px]">
@@ -178,15 +157,6 @@ export default function WorkflowDetailPage() {
           <div className="flex-shrink-0 bg-[#EFF6FF] border border-[#BFDBFE] rounded-[8px] px-4 py-3 text-center min-w-[140px]">
             <div className="text-[10px] font-medium text-[#1D4ED8] uppercase tracking-[0.5px] mb-1">Agent</div>
             <div className="text-[12px] font-medium text-text-primary truncate max-w-[180px]">{agentLabel}</div>
-          </div>
-          {/* Arrow */}
-          <div className="flex items-center text-text-tertiary px-2">
-            <ArrowRight size={16} strokeWidth={1.5} />
-          </div>
-          {/* Post-Action */}
-          <div className="flex-shrink-0 bg-[#F0FDF4] border border-[#BBF7D0] rounded-[8px] px-4 py-3 text-center min-w-[140px]">
-            <div className="text-[10px] font-medium text-[#15803D] uppercase tracking-[0.5px] mb-1">Post-Action</div>
-            <div className="text-[12px] font-medium text-text-primary">{postActionLabel}</div>
           </div>
         </div>
       </div>
@@ -339,10 +309,10 @@ export default function WorkflowDetailPage() {
         </div>
       )}
 
-      {activeTab === "ai_decisions" && (
+      {activeTab === "sequence_log" && (
         <div className="bg-white border border-border rounded-card overflow-hidden">
           <div className="px-5 py-4 border-b border-border-subtle">
-            <h3 className="text-section-header text-text-primary">AI Decision Log</h3>
+            <h3 className="text-section-header text-text-primary">Sequence Log</h3>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -350,10 +320,10 @@ export default function WorkflowDetailPage() {
                 <tr className="border-b border-border-subtle">
                   {[
                     { label: "Contact", align: "left" },
-                    { label: "Outcome", align: "left" },
-                    { label: "Actions Taken", align: "left" },
-                    { label: "Reasoning", align: "left" },
-                    { label: "Confidence", align: "right" },
+                    { label: "Agent Outcome", align: "left" },
+                    { label: "Agent Suggested", align: "left" },
+                    { label: "Sequence Decision", align: "left" },
+                    { label: "Next Trigger", align: "left" },
                   ].map((h) => (
                     <th
                       key={h.label}
@@ -365,7 +335,7 @@ export default function WorkflowDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {aiDecisionLog.map((entry, i) => (
+                {sequenceLog.map((entry: SequenceLogEntry, i: number) => (
                   <tr
                     key={entry.id}
                     className={`border-b border-border-subtle last:border-b-0 ${
@@ -376,20 +346,18 @@ export default function WorkflowDetailPage() {
                       {entry.contact_name}
                     </td>
                     <td className="px-4 py-2.5 text-[12px] text-text-secondary">
-                      {entry.agent_output_summary}
+                      {entry.agent_outcome}
                     </td>
-                    <td className="px-4 py-2.5">
-                      <div className="flex flex-wrap gap-1">
-                        {entry.actions_taken.map((a, idx) => (
-                          <ActionBadge key={idx} type={a.type} />
-                        ))}
-                      </div>
+                    <td className="px-4 py-2.5 text-[12px] text-text-secondary max-w-[200px]">
+                      <span className="line-clamp-2">{entry.agent_suggested_next}</span>
                     </td>
-                    <td className="px-4 py-2.5 text-[12px] text-text-secondary max-w-[300px]">
-                      <span className="line-clamp-2">{entry.reasoning}</span>
+                    <td className="px-4 py-2.5 text-[12px] text-text-secondary max-w-[200px]">
+                      <span className="line-clamp-2">{entry.sequence_decision}</span>
                     </td>
-                    <td className="px-4 py-2.5 text-[13px] text-text-primary text-right tabular-nums font-medium">
-                      {Math.round(entry.confidence * 100)}%
+                    <td className="px-4 py-2.5 text-[12px] text-text-secondary whitespace-nowrap">
+                      {entry.next_trigger_at
+                        ? format(new Date(entry.next_trigger_at), "dd MMM, HH:mm")
+                        : "\u2014"}
                     </td>
                   </tr>
                 ))}
