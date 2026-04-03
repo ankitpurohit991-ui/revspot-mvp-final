@@ -1,0 +1,563 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import {
+  X,
+  ArrowLeft,
+  ArrowRight,
+  Upload,
+  Check,
+  RefreshCw,
+  Download,
+  Image as ImageIcon,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+/* ------------------------------------------------------------------ */
+/*  Types                                                              */
+/* ------------------------------------------------------------------ */
+
+export interface GeneratedCreative {
+  id: string;
+  size: string;
+  label: string;
+  postText: string;
+}
+
+interface CreativeGeneratorModalProps {
+  open: boolean;
+  onClose: () => void;
+  onComplete: (creatives: GeneratedCreative[]) => void;
+  angleName: string;
+  personaName: string;
+  hook: string;
+  cta: string;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Data                                                               */
+/* ------------------------------------------------------------------ */
+
+const OPTION_DESCRIPTIONS = [
+  "Bold typography with lifestyle imagery",
+  "Minimalist with price anchor",
+  "Testimonial-style with social proof",
+  "Premium dark theme with gold accents",
+];
+
+const ALT_DESCRIPTIONS = [
+  "Clean layout with gradient background",
+  "Photo-centric with text overlay",
+  "Split-screen comparison style",
+  "Aspirational lifestyle with soft tones",
+];
+
+interface SizeOption {
+  id: string;
+  dimensions: string;
+  label: string;
+  aspectW: number;
+  aspectH: number;
+}
+
+const SIZE_OPTIONS: SizeOption[] = [
+  { id: "sq-feed", dimensions: "1080\u00d71080", label: "Square \u2014 Feed", aspectW: 1, aspectH: 1 },
+  { id: "story", dimensions: "1080\u00d71920", label: "Story / Reel", aspectW: 9, aspectH: 16 },
+  { id: "landscape", dimensions: "1200\u00d7628", label: "Landscape \u2014 Feed", aspectW: 1200, aspectH: 628 },
+  { id: "portrait", dimensions: "1080\u00d71350", label: "Portrait \u2014 Feed", aspectW: 4, aspectH: 5 },
+  { id: "sq-carousel", dimensions: "1080\u00d71080", label: "Square \u2014 Carousel", aspectW: 1, aspectH: 1 },
+];
+
+/* ------------------------------------------------------------------ */
+/*  Steps config                                                       */
+/* ------------------------------------------------------------------ */
+
+const STEP_LABELS = ["Reference", "Options", "Sizes", "Preview"] as const;
+
+/* ------------------------------------------------------------------ */
+/*  Animation variants                                                 */
+/* ------------------------------------------------------------------ */
+
+const overlayVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+  exit: { opacity: 0 },
+};
+
+const modalVariants = {
+  hidden: { opacity: 0, scale: 0.96 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.2, ease: "easeOut" as const } },
+  exit: { opacity: 0, scale: 0.96, transition: { duration: 0.15 } },
+};
+
+const fadeVariants = {
+  hidden: { opacity: 0, y: 8 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: "easeOut" as const } },
+  exit: { opacity: 0, y: -8, transition: { duration: 0.15 } },
+};
+
+/* ------------------------------------------------------------------ */
+/*  Component                                                          */
+/* ------------------------------------------------------------------ */
+
+export function CreativeGeneratorModal({
+  open,
+  onClose,
+  onComplete,
+  angleName,
+  personaName,
+  hook,
+  cta,
+}: CreativeGeneratorModalProps) {
+  const [modalStep, setModalStep] = useState(1);
+  const [refUploaded, setRefUploaded] = useState(false);
+  const [baseUploaded, setBaseUploaded] = useState(false);
+  const [selectedOption, setSelectedOption] = useState<number | null>(null);
+  const [feedback, setFeedback] = useState("");
+  const [selectedSizes, setSelectedSizes] = useState<string[]>([
+    SIZE_OPTIONS[0].id,
+    SIZE_OPTIONS[1].id,
+  ]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedCreatives, setGeneratedCreatives] = useState<GeneratedCreative[]>([]);
+  const [descriptions, setDescriptions] = useState(OPTION_DESCRIPTIONS);
+
+  /* Reset when modal opens */
+  useEffect(() => {
+    if (open) {
+      setModalStep(1);
+      setRefUploaded(false);
+      setBaseUploaded(false);
+      setSelectedOption(null);
+      setFeedback("");
+      setSelectedSizes([SIZE_OPTIONS[0].id, SIZE_OPTIONS[1].id]);
+      setIsGenerating(false);
+      setGeneratedCreatives([]);
+      setDescriptions(OPTION_DESCRIPTIONS);
+    }
+  }, [open]);
+
+  /* Trigger loading states for step 2 and 4 */
+  useEffect(() => {
+    if (modalStep === 2 && selectedOption === null) {
+      setIsGenerating(true);
+      const t = setTimeout(() => setIsGenerating(false), 2000);
+      return () => clearTimeout(t);
+    }
+    if (modalStep === 4 && generatedCreatives.length === 0) {
+      setIsGenerating(true);
+      const t = setTimeout(() => {
+        const creatives: GeneratedCreative[] = selectedSizes.map((sId) => {
+          const so = SIZE_OPTIONS.find((s) => s.id === sId)!;
+          return {
+            id: `creative-${sId}-${Date.now()}`,
+            size: so.dimensions,
+            label: so.label,
+            postText: `${hook}\n\nDiscover what sets this apart. ${cta}`,
+          };
+        });
+        setGeneratedCreatives(creatives);
+        setIsGenerating(false);
+      }, 2000);
+      return () => clearTimeout(t);
+    }
+  }, [modalStep, selectedOption, generatedCreatives.length, selectedSizes, hook, cta]);
+
+  const toggleSize = useCallback((id: string) => {
+    setSelectedSizes((prev) =>
+      prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]
+    );
+  }, []);
+
+  const handleRegenerate = useCallback(() => {
+    setIsGenerating(true);
+    setSelectedOption(null);
+    setTimeout(() => {
+      setDescriptions((prev) => (prev === OPTION_DESCRIPTIONS ? ALT_DESCRIPTIONS : OPTION_DESCRIPTIONS));
+      setIsGenerating(false);
+    }, 2000);
+  }, []);
+
+  const canContinue = (): boolean => {
+    if (modalStep === 2) return selectedOption !== null;
+    if (modalStep === 3) return selectedSizes.length > 0;
+    return true;
+  };
+
+  const handleNext = () => {
+    if (modalStep < 4) {
+      setModalStep((s) => s + 1);
+    }
+  };
+
+  const handleBack = () => {
+    if (modalStep > 1) {
+      if (modalStep === 4) setGeneratedCreatives([]);
+      setModalStep((s) => s - 1);
+    }
+  };
+
+  const handleConfirm = () => {
+    onComplete(generatedCreatives);
+    onClose();
+  };
+
+  /* ---------------------------------------------------------------- */
+  /*  Sub-renders                                                      */
+  /* ---------------------------------------------------------------- */
+
+  const renderUploadArea = (
+    label: string,
+    uploaded: boolean,
+    fileName: string,
+    onUpload: () => void
+  ) => (
+    <button
+      type="button"
+      onClick={onUpload}
+      className="w-full border-2 border-dashed border-border rounded-card p-6 flex flex-col items-center justify-center gap-2 hover:border-accent/40 hover:bg-accent/[0.02] transition-colors duration-150 cursor-pointer"
+    >
+      {uploaded ? (
+        <>
+          <div className="h-9 w-9 rounded-full bg-green-50 flex items-center justify-center">
+            <Check size={16} strokeWidth={2} className="text-green-600" />
+          </div>
+          <span className="text-[13px] font-medium text-text-primary">{fileName}</span>
+          <span className="text-[11px] text-text-tertiary">Click to replace</span>
+        </>
+      ) : (
+        <>
+          <Upload size={20} strokeWidth={1.5} className="text-text-tertiary" />
+          <span className="text-[13px] font-medium text-text-secondary">{label}</span>
+          <span className="text-[11px] text-text-tertiary">Click or drag & drop</span>
+        </>
+      )}
+    </button>
+  );
+
+  const renderStep1 = () => (
+    <motion.div key="step1" variants={fadeVariants} initial="hidden" animate="visible" exit="exit" className="space-y-5">
+      <div className="grid grid-cols-2 gap-4">
+        {renderUploadArea(
+          "Reference ad (style inspiration)",
+          refUploaded,
+          "reference_ad.jpg",
+          () => setRefUploaded(true)
+        )}
+        {renderUploadArea(
+          "Product/base image",
+          baseUploaded,
+          "godrej_air_hero.jpg",
+          () => setBaseUploaded(true)
+        )}
+      </div>
+      <p className="text-[11px] text-text-tertiary">Both uploads are optional but recommended.</p>
+      <div className="bg-surface-page border border-border-subtle rounded-card px-4 py-3">
+        <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px]">Generating for</span>
+        <p className="text-[13px] text-text-primary font-medium mt-0.5">
+          {personaName} &mdash; {angleName}
+        </p>
+      </div>
+    </motion.div>
+  );
+
+  const renderStep2 = () => (
+    <motion.div key="step2" variants={fadeVariants} initial="hidden" animate="visible" exit="exit" className="space-y-5">
+      {isGenerating ? (
+        <>
+          <p className="text-[13px] text-text-secondary flex items-center gap-2">
+            <span className="h-4 w-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+            Generating 4 creative options...
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="bg-white border border-border rounded-card p-4 space-y-3">
+                <div className="aspect-square bg-surface-secondary rounded-[8px] animate-pulse" />
+                <div className="h-3 w-3/4 bg-surface-secondary rounded-[8px] animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-4">
+            {[1, 2, 3, 4].map((n) => {
+              const selected = selectedOption === n;
+              return (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setSelectedOption(n)}
+                  className={`text-left bg-white border rounded-card p-4 transition-all duration-150 ${
+                    selected
+                      ? "border-accent ring-2 ring-accent/20"
+                      : "border-border hover:border-accent/40"
+                  }`}
+                >
+                  <div className="aspect-square bg-surface-secondary rounded-[8px] flex items-center justify-center mb-3">
+                    <span className="text-[13px] font-medium text-text-tertiary">Option {n}</span>
+                  </div>
+                  <p className="text-[12px] text-text-secondary leading-relaxed">{descriptions[n - 1]}</p>
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="Suggest changes (e.g., make it more premium)..."
+              className="flex-1 h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
+            />
+            <button
+              type="button"
+              onClick={handleRegenerate}
+              className="inline-flex items-center gap-1.5 h-9 px-3 text-[12px] font-medium text-accent border border-accent/30 rounded-button hover:bg-accent/5 transition-colors duration-150"
+            >
+              <RefreshCw size={13} strokeWidth={1.5} />
+              Regenerate
+            </button>
+          </div>
+        </>
+      )}
+    </motion.div>
+  );
+
+  const renderStep3 = () => (
+    <motion.div key="step3" variants={fadeVariants} initial="hidden" animate="visible" exit="exit" className="space-y-5">
+      <h3 className="text-[14px] font-semibold text-text-primary">Select form factors</h3>
+      <div className="space-y-2">
+        {SIZE_OPTIONS.map((opt) => {
+          const selected = selectedSizes.includes(opt.id);
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => toggleSize(opt.id)}
+              className={`w-full flex items-center justify-between px-4 py-3 border rounded-card transition-all duration-150 text-left ${
+                selected
+                  ? "border-accent bg-accent/5"
+                  : "border-border bg-white hover:border-accent/40"
+              }`}
+            >
+              <span className="font-mono text-[13px] text-text-primary">{opt.dimensions}</span>
+              <span className="text-[13px] text-text-secondary">{opt.label}</span>
+            </button>
+          );
+        })}
+      </div>
+      <p className="text-[11px] text-text-tertiary">AI will also generate post text for each size.</p>
+    </motion.div>
+  );
+
+  const renderStep4 = () => (
+    <motion.div key="step4" variants={fadeVariants} initial="hidden" animate="visible" exit="exit" className="space-y-5">
+      {isGenerating ? (
+        <>
+          <p className="text-[13px] text-text-secondary flex items-center gap-2">
+            <span className="h-4 w-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+            Adapting creative to {selectedSizes.length} sizes...
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            {selectedSizes.map((sId) => (
+              <div key={sId} className="bg-white border border-border rounded-card p-4 space-y-3">
+                <div className="h-4 w-1/2 bg-surface-secondary rounded-[8px] animate-pulse" />
+                <div className="aspect-square bg-surface-secondary rounded-[8px] animate-pulse" />
+                <div className="h-3 w-full bg-surface-secondary rounded-[8px] animate-pulse" />
+                <div className="h-3 w-3/4 bg-surface-secondary rounded-[8px] animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 gap-4">
+            {generatedCreatives.map((creative) => {
+              const sizeOpt = SIZE_OPTIONS.find(
+                (s) => s.id === selectedSizes.find((sid) => SIZE_OPTIONS.find((so) => so.id === sid)?.dimensions === creative.size && SIZE_OPTIONS.find((so) => so.id === sid)?.label === creative.label)
+              );
+              const aspect = sizeOpt
+                ? `${sizeOpt.aspectW}/${sizeOpt.aspectH}`
+                : "1/1";
+              return (
+                <div key={creative.id} className="bg-white border border-border rounded-card overflow-hidden">
+                  {/* Size label */}
+                  <div className="px-4 py-2 border-b border-border-subtle bg-surface-page">
+                    <span className="text-[12px] font-medium text-text-primary">
+                      {creative.size} &mdash; {creative.label}
+                    </span>
+                  </div>
+                  {/* Meta ad frame */}
+                  <div className="p-4 space-y-3">
+                    {/* Header */}
+                    <div className="flex items-center gap-2">
+                      <div className="h-8 w-8 rounded-full bg-surface-secondary flex items-center justify-center">
+                        <ImageIcon size={14} className="text-text-tertiary" />
+                      </div>
+                      <div>
+                        <p className="text-[12px] font-medium text-text-primary leading-none">Godrej Properties</p>
+                        <p className="text-[10px] text-text-tertiary mt-0.5">Sponsored</p>
+                      </div>
+                    </div>
+                    {/* Image placeholder */}
+                    <div
+                      className="bg-surface-secondary rounded-[8px] flex items-center justify-center"
+                      style={{ aspectRatio: aspect }}
+                    >
+                      <ImageIcon size={24} className="text-text-tertiary" />
+                    </div>
+                    {/* Post text */}
+                    <p className="text-[12px] text-text-secondary leading-relaxed whitespace-pre-line">
+                      {creative.postText}
+                    </p>
+                    {/* CTA */}
+                    <div className="flex items-center justify-between border-t border-border-subtle pt-2">
+                      <span className="text-[11px] text-text-tertiary">godrejproperties.com</span>
+                      <span className="text-[11px] font-medium text-accent">Learn More</span>
+                    </div>
+                  </div>
+                  {/* Download */}
+                  <div className="px-4 py-2 border-t border-border-subtle">
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1.5 text-[11px] font-medium text-text-secondary hover:text-accent transition-colors duration-150"
+                    >
+                      <Download size={12} strokeWidth={1.5} />
+                      Download
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </motion.div>
+  );
+
+  /* ---------------------------------------------------------------- */
+  /*  Render                                                           */
+  /* ---------------------------------------------------------------- */
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          variants={overlayVariants}
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          transition={{ duration: 0.15 }}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+        >
+          {/* Backdrop click */}
+          <div className="absolute inset-0" onClick={onClose} />
+
+          {/* Modal */}
+          <motion.div
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            className="relative w-full max-w-[720px] max-h-[85vh] overflow-y-auto bg-white rounded-card border border-border shadow-xl"
+          >
+            {/* Header */}
+            <div className="sticky top-0 z-10 bg-white border-b border-border px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-[18px] font-semibold text-text-primary">Generate Creative</h2>
+                  <span className="text-[12px] text-text-tertiary">Step {modalStep} of 4</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="p-1.5 text-text-tertiary hover:text-text-primary hover:bg-surface-secondary rounded-button transition-colors"
+                >
+                  <X size={16} strokeWidth={1.5} />
+                </button>
+              </div>
+
+              {/* Progress dots */}
+              <div className="flex items-center gap-6 mt-3">
+                {STEP_LABELS.map((label, i) => {
+                  const stepNum = i + 1;
+                  const isActive = stepNum === modalStep;
+                  const isDone = stepNum < modalStep;
+                  return (
+                    <div key={label} className="flex items-center gap-1.5">
+                      <div
+                        className={`h-2 w-2 rounded-full transition-colors duration-150 ${
+                          isActive
+                            ? "bg-accent"
+                            : isDone
+                            ? "bg-accent/40"
+                            : "bg-border"
+                        }`}
+                      />
+                      <span
+                        className={`text-[11px] font-medium transition-colors duration-150 ${
+                          isActive ? "text-accent" : isDone ? "text-text-secondary" : "text-text-tertiary"
+                        }`}
+                      >
+                        {label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Content */}
+            <div className="px-6 py-5">
+              <AnimatePresence mode="wait">
+                {modalStep === 1 && renderStep1()}
+                {modalStep === 2 && renderStep2()}
+                {modalStep === 3 && renderStep3()}
+                {modalStep === 4 && renderStep4()}
+              </AnimatePresence>
+            </div>
+
+            {/* Footer */}
+            <div className="sticky bottom-0 bg-white border-t border-border px-6 py-3 flex items-center justify-between">
+              {modalStep > 1 ? (
+                <button
+                  type="button"
+                  onClick={handleBack}
+                  className="inline-flex items-center gap-1.5 h-10 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150"
+                >
+                  <ArrowLeft size={15} strokeWidth={1.5} />
+                  Back
+                </button>
+              ) : (
+                <div />
+              )}
+
+              {modalStep < 4 ? (
+                <button
+                  type="button"
+                  onClick={handleNext}
+                  disabled={!canContinue() || isGenerating}
+                  className="inline-flex items-center gap-2 h-10 px-6 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Continue
+                  <ArrowRight size={15} strokeWidth={2} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  disabled={isGenerating || generatedCreatives.length === 0}
+                  className="inline-flex items-center gap-2 h-10 px-6 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Confirm & Add to Campaign
+                  <Check size={15} strokeWidth={2} />
+                </button>
+              )}
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}

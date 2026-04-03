@@ -86,7 +86,8 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [businessDetails, setBusinessDetails] = useState("");
   const [files, setFiles] = useState<string[]>([]);
-  const [city, setCity] = useState("Bangalore");
+  const [selectedLocations, setSelectedLocations] = useState<string[]>(["Bangalore"]);
+  const [locationInput, setLocationInput] = useState("");
   const [budgetCeiling, setBudgetCeiling] = useState("");
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["English"]);
 
@@ -98,6 +99,21 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
       setProject(v);
       setIsNewProject(false);
     }
+  };
+
+  const locationSuggestions = ["All India", ...cities, "Dubai", "Singapore", "San Francisco", "London", "New York"].filter(
+    (l) => !selectedLocations.includes(l) && l.toLowerCase().includes(locationInput.toLowerCase())
+  );
+
+  const addLocation = (loc: string) => {
+    if (!selectedLocations.includes(loc)) {
+      setSelectedLocations((prev) => [...prev, loc]);
+    }
+    setLocationInput("");
+  };
+
+  const removeLocation = (loc: string) => {
+    setSelectedLocations((prev) => prev.filter((l) => l !== loc));
   };
 
   const toggleLanguage = (lang: string) => {
@@ -248,13 +264,46 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
       {/* Targeting & Budget */}
       <div className="bg-white border border-border rounded-card p-6 space-y-5">
         <h3 className="text-[14px] font-semibold text-text-primary">Targeting & Budget</h3>
-        <div className="grid grid-cols-2 gap-4">
-          {/* 7. Primary City */}
-          <SelectField label="Primary City" options={cities} placeholder="Select city..." value={city} onChange={setCity} />
-
-          {/* 8. Budget Ceiling */}
-          <TextField label="Budget Ceiling" placeholder="e.g., 250000" value={budgetCeiling} onChange={setBudgetCeiling} type="number" prefix="₹" />
+        {/* 7. Target Locations */}
+        <div>
+          <label className="block text-[13px] font-medium text-text-primary mb-1.5">Target Locations</label>
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {selectedLocations.map((loc) => (
+              <span key={loc} className="inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium rounded-badge bg-accent text-white">
+                {loc}
+                <button onClick={() => removeLocation(loc)} className="hover:opacity-70"><X size={10} strokeWidth={2} /></button>
+              </span>
+            ))}
+          </div>
+          <div className="relative">
+            <input
+              type="text"
+              value={locationInput}
+              onChange={(e) => setLocationInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && locationInput.trim()) {
+                  e.preventDefault();
+                  addLocation(locationInput.trim());
+                }
+              }}
+              placeholder="Type a city, country, or region..."
+              className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
+            />
+            {locationInput.length > 0 && locationSuggestions.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-border rounded-[8px] shadow-lg z-10 max-h-[180px] overflow-y-auto">
+                {locationSuggestions.slice(0, 6).map((loc) => (
+                  <button key={loc} onClick={() => addLocation(loc)}
+                    className="w-full text-left px-3 py-2 text-[13px] text-text-primary hover:bg-surface-page transition-colors duration-150 first:rounded-t-[8px] last:rounded-b-[8px]">
+                    {loc}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
+        {/* 8. Budget Ceiling */}
+        <TextField label="Budget Ceiling" placeholder="e.g., 250000" value={budgetCeiling} onChange={setBudgetCeiling} type="number" prefix="₹" />
 
         {/* 9. Targeted Language(s) */}
         <div>
