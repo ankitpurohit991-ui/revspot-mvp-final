@@ -324,25 +324,61 @@ export function CreativeGeneratorModal({
     </motion.div>
   );
 
+  const allSelected = SIZE_OPTIONS.every((opt) => selectedSizes.includes(opt.id));
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelectedSizes([]);
+    } else {
+      setSelectedSizes(SIZE_OPTIONS.map((opt) => opt.id));
+    }
+  };
+
   const renderStep3 = () => (
     <motion.div key="step3" variants={fadeVariants} initial="hidden" animate="visible" exit="exit" className="space-y-5">
-      <h3 className="text-[14px] font-semibold text-text-primary">Select form factors</h3>
-      <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <h3 className="text-[14px] font-semibold text-text-primary">Select form factors</h3>
+        <button onClick={toggleAll} className="text-[12px] font-medium text-accent hover:text-accent-hover transition-colors">
+          {allSelected ? "Deselect all" : "Select all"}
+        </button>
+      </div>
+      <div className="grid grid-cols-5 gap-3">
         {SIZE_OPTIONS.map((opt) => {
           const selected = selectedSizes.includes(opt.id);
+          // Calculate visual shape height relative to width
+          const maxH = 120;
+          const w = 80;
+          const ratio = opt.aspectH / opt.aspectW;
+          const shapeH = Math.min(Math.round(w * ratio), maxH);
+          const shapeW = ratio > 1 ? Math.round(shapeH / ratio) : w;
           return (
             <button
               key={opt.id}
               type="button"
               onClick={() => toggleSize(opt.id)}
-              className={`w-full flex items-center justify-between px-4 py-3 border rounded-card transition-all duration-150 text-left ${
+              className={`flex flex-col items-center gap-2 p-3 border rounded-card transition-all duration-150 ${
                 selected
-                  ? "border-accent bg-accent/5"
+                  ? "border-accent bg-accent/5 ring-1 ring-accent/20"
                   : "border-border bg-white hover:border-accent/40"
               }`}
             >
-              <span className="font-mono text-[13px] text-text-primary">{opt.dimensions}</span>
-              <span className="text-[13px] text-text-secondary">{opt.label}</span>
+              {/* Visual shape */}
+              <div className="flex items-center justify-center" style={{ height: `${maxH}px` }}>
+                <div
+                  className={`rounded-[4px] flex items-center justify-center transition-colors ${
+                    selected ? "bg-accent/15 border border-accent/30" : "bg-surface-secondary border border-border"
+                  }`}
+                  style={{ width: `${shapeW}px`, height: `${shapeH}px` }}
+                >
+                  <span className="text-[9px] font-mono text-text-tertiary">{opt.dimensions}</span>
+                </div>
+              </div>
+              {/* Label */}
+              <div className="text-center">
+                <div className="text-[11px] font-medium text-text-primary leading-tight">{opt.label.split(" — ")[0]}</div>
+                {opt.label.includes(" — ") && (
+                  <div className="text-[10px] text-text-tertiary">{opt.label.split(" — ")[1]}</div>
+                )}
+              </div>
             </button>
           );
         })}
