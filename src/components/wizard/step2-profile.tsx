@@ -10,7 +10,7 @@ import {
   Send,
   X,
   MessageCircle,
-  User,
+  Plus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { extractedProfile, strategyData } from "@/lib/wizard-data";
@@ -45,7 +45,7 @@ const fadeUp = {
 export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
   const [isGenerating, setIsGenerating] = useState(true);
   const [personas, setPersonas] = useState<Persona[]>([]);
-  const [editingPersona, setEditingPersona] = useState<string | null>(null);
+  const [chatOpen, setChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState("");
   const [isAiTyping, setIsAiTyping] = useState(false);
@@ -63,62 +63,81 @@ export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [chatMessages]);
 
-  const openEditor = (personaId: string) => {
-    const p = personas.find((x) => x.id === personaId);
-    if (!p) return;
-    setEditingPersona(personaId);
-    setChatMessages([
-      {
-        role: "ai",
-        text: `You're editing **${p.name}, ${p.age} (${p.role})**. Tell me what you'd like to change — e.g., "Make them younger", "Change the budget to ₹1.5Cr", "Add a bullet about wanting a home office".`,
-      },
-    ]);
-    setChatInput("");
+  const openChat = () => {
+    setChatOpen(true);
+    if (chatMessages.length === 0) {
+      setChatMessages([
+        {
+          role: "ai",
+          text: `You have ${personas.length} personas. You can add, remove, or modify any of them.\n\nTry:\n• "Add a persona for first-time homebuyers"\n• "Remove Suresh"\n• "Make Meera younger"\n• "Focus more on investment buyers"`,
+        },
+      ]);
+    }
   };
 
-  const closeEditor = () => {
-    setEditingPersona(null);
-    setChatMessages([]);
+  const closeChat = () => {
+    setChatOpen(false);
     setChatInput("");
   };
 
   const sendChat = () => {
-    if (!chatInput.trim() || !editingPersona) return;
+    if (!chatInput.trim()) return;
     const userMsg = chatInput.trim();
     setChatMessages((prev) => [...prev, { role: "user", text: userMsg }]);
     setChatInput("");
     setIsAiTyping(true);
 
-    // Simulate AI response
     setTimeout(() => {
-      const p = personas.find((x) => x.id === editingPersona);
-      if (!p) return;
+      const lower = userMsg.toLowerCase();
+      let responseText = "";
 
-      // Simulate a persona update based on common edit patterns
-      const updated = { ...p };
-      if (userMsg.toLowerCase().includes("younger")) {
-        updated.age = Math.max(25, p.age - 5);
-      }
-      if (userMsg.toLowerCase().includes("older")) {
-        updated.age = p.age + 5;
-      }
-      if (userMsg.toLowerCase().includes("home office") || userMsg.toLowerCase().includes("work from home")) {
-        updated.bullets = [...p.bullets.slice(0, 2), "Needs a dedicated home office space for remote work — this is non-negotiable."];
+      if (lower.includes("add") || lower.includes("new persona")) {
+        const newPersona: Persona = {
+          id: `p-${Date.now()}`,
+          name: "Priya",
+          age: 29,
+          role: "First-Time Homebuyer, Recently Married",
+          bullets: [
+            "Just married and looking for their first own home — currently living with parents.",
+            "Budget-conscious but wants a reputed builder for peace of mind.",
+            "Prefers 2BHK with option to upgrade later — close to metro and shopping.",
+          ],
+        };
+        setPersonas((prev) => [...prev, newPersona]);
+        responseText = `Added a new persona:\n\n**${newPersona.name}, ${newPersona.age} (${newPersona.role})**\n${newPersona.bullets.map((b) => `• ${b}`).join("\n")}\n\nAnything else?`;
+      } else if (lower.includes("remove")) {
+        const nameToRemove = personas.find((p) => lower.includes(p.name.toLowerCase()));
+        if (nameToRemove) {
+          setPersonas((prev) => prev.filter((p) => p.id !== nameToRemove.id));
+          responseText = `Removed **${nameToRemove.name}** from the personas. You now have ${personas.length - 1} personas.\n\nAnything else?`;
+        } else {
+          responseText = `I couldn't find that persona. Current personas: ${personas.map((p) => p.name).join(", ")}. Which one would you like to remove?`;
+        }
+      } else {
+        // Generic edit — simulate an update to the first matching persona
+        const matchedPersona = personas.find((p) => lower.includes(p.name.toLowerCase()));
+        if (matchedPersona) {
+          const updated = { ...matchedPersona };
+          if (lower.includes("younger")) updated.age = Math.max(22, updated.age - 5);
+          if (lower.includes("older")) updated.age = updated.age + 5;
+          if (lower.includes("budget") && lower.includes("lower")) {
+            updated.bullets = updated.bullets.map((b) =>
+              b.includes("budget") || b.includes("Budget") || b.includes("₹")
+                ? b.replace(/₹[\d.]+Cr/g, "₹1.2Cr")
+                : b
+            );
+          }
+          setPersonas((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+          responseText = `Updated **${updated.name}**:\n\n**${updated.name}, ${updated.age} (${updated.role})**\n${updated.bullets.map((b) => `• ${b}`).join("\n")}\n\nAnything else?`;
+        } else {
+          responseText = `I'll adjust the personas based on your feedback. Could you be more specific? Current personas: ${personas.map((p) => `${p.name} (${p.age})`).join(", ")}.`;
+        }
       }
 
-      setPersonas((prev) => prev.map((x) => (x.id === editingPersona ? updated : x)));
-      setChatMessages((prev) => [
-        ...prev,
-        {
-          role: "ai",
-          text: `Done! I've updated **${updated.name}**. Here's the revised persona:\n\n**${updated.name}, ${updated.age} (${updated.role})**\n${updated.bullets.map((b) => `• ${b}`).join("\n")}\n\nAnything else you'd like to change?`,
-        },
-      ]);
+      setChatMessages((prev) => [...prev, { role: "ai", text: responseText }]);
       setIsAiTyping(false);
     }, 1500);
   };
-
-  const editingPersonaData = personas.find((x) => x.id === editingPersona);
 
   return (
     <div className="space-y-6">
@@ -169,10 +188,19 @@ export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
 
       {/* Section 2: AI Persona Generation */}
       <div>
-        <div className="flex items-center gap-2 mb-4">
-          <Sparkles size={16} strokeWidth={1.5} className="text-accent" />
-          <h3 className="text-[16px] font-semibold text-text-primary">AI-Generated Personas</h3>
-          {isGenerating && <span className="inline-block h-2 w-2 rounded-full bg-accent animate-pulse" />}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Sparkles size={16} strokeWidth={1.5} className="text-accent" />
+            <h3 className="text-[16px] font-semibold text-text-primary">AI-Generated Personas</h3>
+            {isGenerating && <span className="inline-block h-2 w-2 rounded-full bg-accent animate-pulse" />}
+          </div>
+          {!isGenerating && (
+            <button onClick={openChat}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium text-accent border border-accent/30 rounded-button hover:bg-accent/5 transition-colors duration-150">
+              <MessageCircle size={13} strokeWidth={1.5} />
+              Edit Personas
+            </button>
+          )}
         </div>
 
         {isGenerating ? (
@@ -183,14 +211,11 @@ export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
                 <span className="text-[13px] text-text-secondary">Generating personas based on your business profile...</span>
               </div>
             </div>
-            <div className="space-y-3">
+            <div className="grid grid-cols-3 gap-4">
               {[0, 1, 2].map((i) => (
                 <div key={i} className="bg-white border border-border rounded-card p-5 space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="h-5 w-32 bg-surface-secondary rounded-[8px] animate-pulse" />
-                    <div className="h-4 w-20 bg-surface-secondary rounded-[8px] animate-pulse" />
-                  </div>
-                  <div className="h-3 w-2/3 bg-surface-secondary rounded-[8px] animate-pulse" />
+                  <div className="h-5 w-3/4 bg-surface-secondary rounded-[8px] animate-pulse" />
+                  <div className="h-3 w-full bg-surface-secondary rounded-[8px] animate-pulse" />
                   <div className="space-y-2 pt-1">
                     <div className="h-3 w-full bg-surface-secondary rounded-[8px] animate-pulse" />
                     <div className="h-3 w-5/6 bg-surface-secondary rounded-[8px] animate-pulse" />
@@ -201,59 +226,45 @@ export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
             </div>
           </div>
         ) : (
-          <div className="space-y-3">
-            {personas.map((persona, i) => (
-              <motion.div
-                key={persona.id}
-                custom={i}
-                initial="hidden"
-                animate="visible"
-                variants={fadeUp}
-                className="bg-white border border-border rounded-card p-5 hover:shadow-card-hover transition-all duration-150"
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    {/* Name + Age + Role */}
-                    <div className="flex items-baseline gap-2 mb-1">
-                      <h4 className="text-[14px] font-semibold text-text-primary">
-                        {persona.name}, {persona.age}
-                      </h4>
-                      <span className="text-[12px] text-text-secondary">
-                        ({persona.role})
-                      </span>
-                    </div>
-                    {/* Bullet points */}
-                    <ul className="mt-2.5 space-y-1.5">
-                      {persona.bullets.map((bullet, j) => (
-                        <li key={j} className="flex items-start gap-2 text-[13px] text-text-secondary leading-relaxed">
-                          <span className="text-text-tertiary mt-[3px] shrink-0">•</span>
-                          <span>{bullet}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                  {/* Edit button */}
-                  <button
-                    onClick={() => openEditor(persona.id)}
-                    className="inline-flex items-center gap-1 px-2.5 py-1.5 text-[11px] font-medium text-text-secondary hover:text-accent border border-border rounded-button hover:border-accent/30 transition-colors duration-150 shrink-0 ml-4"
-                  >
-                    <MessageCircle size={11} strokeWidth={1.5} />
-                    Edit
-                  </button>
-                </div>
-              </motion.div>
-            ))}
+          <div className="space-y-4">
+            <div className="grid grid-cols-3 gap-4">
+              {personas.map((persona, i) => (
+                <motion.div
+                  key={persona.id}
+                  custom={i}
+                  initial="hidden"
+                  animate="visible"
+                  variants={fadeUp}
+                  className="bg-white border border-border rounded-card p-5"
+                >
+                  <h4 className="text-[14px] font-semibold text-text-primary mb-0.5">
+                    {persona.name}, {persona.age}
+                  </h4>
+                  <p className="text-[11px] text-text-tertiary mb-3">
+                    {persona.role}
+                  </p>
+                  <ul className="space-y-2">
+                    {persona.bullets.map((bullet, j) => (
+                      <li key={j} className="flex items-start gap-2 text-[12px] text-text-secondary leading-relaxed">
+                        <span className="text-text-tertiary mt-[3px] shrink-0">•</span>
+                        <span>{bullet}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </motion.div>
+              ))}
+            </div>
 
-            <p className="text-[12px] text-text-tertiary mt-2">
-              These personas will be used to generate ad sets, creatives, and targeting strategy. Click &quot;Edit&quot; on any persona to tweak it.
+            <p className="text-[12px] text-text-tertiary">
+              These personas will be used to generate ad sets, creatives, and targeting strategy.
             </p>
           </div>
         )}
       </div>
 
-      {/* Chat-based Persona Editor (Slide-over panel) */}
+      {/* Global Chat Editor (Slide-over panel) */}
       <AnimatePresence>
-        {editingPersona && editingPersonaData && (
+        {chatOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -261,67 +272,49 @@ export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
             transition={{ duration: 0.15 }}
             className="fixed inset-0 z-50 flex justify-end"
           >
-            {/* Backdrop */}
-            <div className="absolute inset-0 bg-black/20" onClick={closeEditor} />
+            <div className="absolute inset-0 bg-black/20" onClick={closeChat} />
 
-            {/* Panel */}
             <motion.div
-              initial={{ x: 420 }}
+              initial={{ x: 440 }}
               animate={{ x: 0 }}
-              exit={{ x: 420 }}
+              exit={{ x: 440 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="relative w-[420px] h-full bg-white border-l border-border flex flex-col shadow-xl"
+              className="relative w-[440px] h-full bg-white border-l border-border flex flex-col shadow-xl"
             >
               {/* Header */}
               <div className="flex items-center justify-between px-5 py-4 border-b border-border">
                 <div>
-                  <div className="text-[14px] font-semibold text-text-primary">
-                    Edit Persona
-                  </div>
-                  <div className="text-[12px] text-text-secondary mt-0.5">
-                    {editingPersonaData.name}, {editingPersonaData.age}
-                  </div>
+                  <div className="text-[14px] font-semibold text-text-primary">Edit Personas</div>
+                  <div className="text-[12px] text-text-secondary mt-0.5">{personas.length} personas defined</div>
                 </div>
-                <button onClick={closeEditor} className="p-1.5 text-text-tertiary hover:text-text-primary hover:bg-surface-secondary rounded-button transition-colors">
+                <button onClick={closeChat} className="p-1.5 text-text-tertiary hover:text-text-primary hover:bg-surface-secondary rounded-button transition-colors">
                   <X size={16} strokeWidth={1.5} />
                 </button>
               </div>
 
-              {/* Current Persona Preview */}
-              <div className="px-5 py-3 bg-surface-page border-b border-border-subtle">
-                <div className="text-[12px] font-medium text-text-primary mb-1.5">
-                  {editingPersonaData.name}, {editingPersonaData.age} ({editingPersonaData.role})
-                </div>
-                <ul className="space-y-1">
-                  {editingPersonaData.bullets.map((b, j) => (
-                    <li key={j} className="text-[11px] text-text-secondary leading-relaxed flex items-start gap-1.5">
-                      <span className="text-text-tertiary mt-[1px]">•</span>
-                      <span>{b}</span>
-                    </li>
+              {/* Current Personas Preview */}
+              <div className="px-5 py-3 bg-surface-page border-b border-border-subtle max-h-[200px] overflow-y-auto">
+                <div className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">Current Personas</div>
+                <div className="space-y-2">
+                  {personas.map((p) => (
+                    <div key={p.id} className="text-[11px]">
+                      <span className="font-medium text-text-primary">{p.name}, {p.age}</span>
+                      <span className="text-text-tertiary"> — {p.role}</span>
+                    </div>
                   ))}
-                </ul>
+                </div>
               </div>
 
               {/* Chat Messages */}
               <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
                 {chatMessages.map((msg, i) => (
                   <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[85%] px-3 py-2 rounded-[10px] text-[13px] leading-relaxed ${
+                    <div className={`max-w-[85%] px-3 py-2 rounded-[10px] text-[13px] leading-relaxed whitespace-pre-line ${
                       msg.role === "user"
                         ? "bg-accent text-white rounded-br-[4px]"
                         : "bg-surface-page text-text-primary border border-border-subtle rounded-bl-[4px]"
                     }`}>
-                      {msg.text.split("\n").map((line, k) => (
-                        <span key={k}>
-                          {line.startsWith("**") && line.endsWith("**")
-                            ? <strong>{line.replace(/\*\*/g, "")}</strong>
-                            : line.startsWith("• ")
-                              ? <span className="block ml-1">{line}</span>
-                              : line
-                          }
-                          {k < msg.text.split("\n").length - 1 && <br />}
-                        </span>
-                      ))}
+                      {msg.text}
                     </div>
                   </div>
                 ))}
@@ -347,7 +340,7 @@ export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
-                    placeholder="e.g., Make them younger, change budget..."
+                    placeholder='e.g., "Add a first-time homebuyer persona"'
                     className="flex-1 h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
                   />
                   <button

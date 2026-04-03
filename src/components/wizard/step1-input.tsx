@@ -14,16 +14,6 @@ const selectStyle = {
   backgroundPosition: "right 12px center",
 };
 
-const projectCategories = [
-  "Real Estate",
-  "EdTech",
-  "FinTech",
-  "Healthcare",
-  "SaaS",
-  "E-commerce",
-  "Other",
-];
-
 
 function SelectField({ label, options, placeholder, value, onChange, required }: {
   label: string; options: (string | { value: string; label: string })[]; placeholder: string; value: string; onChange: (v: string) => void; required?: boolean;
@@ -85,9 +75,8 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
   const [project, setProject] = useState("");
   const [isNewProject, setIsNewProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
-  const [newProjectClient, setNewProjectClient] = useState("");
-  const [newProjectCategory, setNewProjectCategory] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
+  const [projectFiles, setProjectFiles] = useState<string[]>([]);
 
   const [objectiveType, setObjectiveType] = useState<"leads" | "verified_leads" | "qualified_leads">("leads");
   const [targetCount, setTargetCount] = useState("");
@@ -139,12 +128,39 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
             <div className="mt-3 ml-2 bg-surface-page border border-border-subtle rounded-[8px] p-4 space-y-4">
               <TextField label="Project Name" placeholder="e.g., Godrej Air Launch"
                 value={newProjectName} onChange={setNewProjectName} required />
-              <TextField label="Client Name" placeholder="e.g., Godrej Properties"
-                value={newProjectClient} onChange={setNewProjectClient} />
-              <SelectField label="Category" options={projectCategories}
-                placeholder="Select category..." value={newProjectCategory} onChange={setNewProjectCategory} />
               <TextAreaField label="Description" placeholder="Brief project description (optional)"
                 value={newProjectDescription} onChange={setNewProjectDescription} rows={2} />
+
+              {/* Project Knowledge Base */}
+              <div>
+                <label className="block text-[13px] font-medium text-text-primary mb-1.5">Project Knowledge Base <span className="text-text-tertiary font-normal">(optional)</span></label>
+                <div
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => { e.preventDefault(); setProjectFiles((prev) => [...prev, "Project_Brochure.pdf"]); }}
+                  onClick={() => setProjectFiles((prev) => [...prev, "Project_Brochure.pdf"])}
+                  className="border-2 border-dashed border-border rounded-input p-4 text-center cursor-pointer hover:border-border-hover hover:bg-white/50 transition-all duration-150"
+                >
+                  <Upload size={16} strokeWidth={1.5} className="mx-auto text-text-tertiary mb-1.5" />
+                  <p className="text-[12px] text-text-secondary">Upload brochures, images, or documents</p>
+                  <p className="text-[10px] text-text-tertiary mt-0.5">PDF, PPT, DOCX, JPG, PNG up to 25MB</p>
+                </div>
+                {projectFiles.length > 0 && (
+                  <div className="mt-2 space-y-1">
+                    {projectFiles.map((f, i) => (
+                      <div key={i} className="flex items-center justify-between bg-white rounded-[5px] px-2.5 py-1.5 border border-border-subtle">
+                        <div className="flex items-center gap-1.5">
+                          <FileText size={12} strokeWidth={1.5} className="text-text-tertiary" />
+                          <span className="text-[11px] text-text-primary">{f}</span>
+                        </div>
+                        <button onClick={(e) => { e.stopPropagation(); setProjectFiles((prev) => prev.filter((_, j) => j !== i)); }}
+                          className="text-text-tertiary hover:text-text-primary transition-colors duration-150">
+                          <X size={11} strokeWidth={1.5} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
