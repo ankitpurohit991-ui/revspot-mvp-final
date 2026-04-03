@@ -106,13 +106,13 @@ export const workflowDetail: Workflow = {
   },
   default_step: {
     agent_id: "va-1",
-  },
-  schedule: {
-    daily_limit: 200,
-    active_hours: { start: "10:00", end: "19:00" },
-    active_days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-    retry: { enabled: true, max_retries: 2, interval_hours: 4 },
-    follow_up_rules: defaultFollowUpRules,
+    schedule: {
+      daily_limit: 200,
+      active_hours: { start: "10:00", end: "19:00" },
+      active_days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+      retry: { enabled: true, max_retries: 2, interval_hours: 4 },
+      follow_up_rules: defaultFollowUpRules,
+    },
   },
   stats: {
     totalContacts: 487, called: 342, connected: 268,
@@ -138,19 +138,51 @@ export const workflowWithRouting: Workflow = {
     ai_prompt:
       "Route leads based on their quality score. If the lead has a quality score of 80 or above, assign to a human sales rep. If the score is between 50-79, route to Priya qualification agent. If below 50, route to Arjun follow-up agent.",
     branches: [
-      { id: "br-1", label: "High Quality (80+) → Human", agent_id: "human" },
-      { id: "br-2", label: "Medium Quality (50-79) → AI", agent_id: "va-1" },
-      { id: "br-3", label: "Low Quality (<50) → AI", agent_id: "va-2" },
-    ],
-  },
-  schedule: {
-    daily_limit: 150,
-    active_hours: { start: "09:00", end: "18:00" },
-    active_days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-    retry: { enabled: true, max_retries: 3, interval_hours: 4 },
-    follow_up_rules: [
-      ...defaultFollowUpRules,
-      { id: "fr-6", outcome: "qualified", action: "stop", delay_hours: 0, description: "Qualified → Stop sequence (push to CRM handled by agent)" },
+      {
+        id: "br-1",
+        label: "High Quality (80+) → Human",
+        agent_id: "human",
+        schedule: {
+          daily_limit: 50,
+          active_hours: { start: "09:00", end: "18:00" },
+          active_days: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+          retry: { enabled: false, max_retries: 0, interval_hours: 0 },
+          follow_up_rules: [
+            { id: "fr-h1", outcome: "no_response_24h", action: "follow_up", delay_hours: 24, description: "No response in 24h → Escalate to manager" },
+          ],
+        },
+      },
+      {
+        id: "br-2",
+        label: "Medium Quality (50-79) → AI",
+        agent_id: "va-1",
+        schedule: {
+          daily_limit: 150,
+          active_hours: { start: "10:00", end: "19:00" },
+          active_days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+          retry: { enabled: true, max_retries: 3, interval_hours: 4 },
+          follow_up_rules: [
+            ...defaultFollowUpRules,
+            { id: "fr-m1", outcome: "qualified", action: "stop", delay_hours: 0, description: "Qualified → Stop (CRM push handled by agent)" },
+          ],
+        },
+      },
+      {
+        id: "br-3",
+        label: "Low Quality (<50) → AI",
+        agent_id: "va-2",
+        schedule: {
+          daily_limit: 200,
+          active_hours: { start: "09:00", end: "21:00" },
+          active_days: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+          retry: { enabled: false, max_retries: 0, interval_hours: 0 },
+          follow_up_rules: [
+            { id: "fr-l1", outcome: "no_reply_24h", action: "follow_up", delay_hours: 24, description: "No reply 24h → Send reminder" },
+            { id: "fr-l2", outcome: "no_reply_72h", action: "stop", delay_hours: 0, description: "No reply 72h → Stop sequence" },
+            { id: "fr-l3", outcome: "not_interested", action: "stop", delay_hours: 0, description: "Not interested → Stop" },
+          ],
+        },
+      },
     ],
   },
   stats: {

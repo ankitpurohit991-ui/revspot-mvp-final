@@ -58,7 +58,7 @@ export default function WorkflowDetailPage() {
 
   const d = workflowDetail;
   const stats = d.stats!;
-  const schedule = d.schedule!;
+  const schedule = d.default_step?.schedule ?? d.routing?.branches[0]?.schedule;
   const progressPercent = d.progress ?? 0;
 
   const triggerLabel =
@@ -367,7 +367,7 @@ export default function WorkflowDetailPage() {
         </div>
       )}
 
-      {activeTab === "schedule" && (
+      {activeTab === "schedule" && schedule && (
         <div className="bg-white border border-border rounded-card p-6">
           <h3 className="text-card-title text-text-primary mb-5">Schedule Configuration</h3>
           <div className="grid grid-cols-2 gap-6">

@@ -38,6 +38,8 @@ export interface WorkflowBranch {
   id: string;
   label: string;
   agent_id: string;
+  /** Per-branch cadence — each branch can have its own schedule & follow-up rules */
+  schedule?: WorkflowSchedule;
 }
 
 export interface WorkflowRouting {
@@ -51,6 +53,8 @@ export interface WorkflowRouting {
 
 export interface WorkflowDefaultStep {
   agent_id: string;
+  /** Cadence for the single-agent path */
+  schedule?: WorkflowSchedule;
 }
 
 // ─── Follow-Up Rules ────────────────────────────────────────────────
@@ -120,10 +124,8 @@ export interface Workflow {
   /** Optional routing — if absent, use default_step */
   routing?: WorkflowRouting;
 
-  /** Single agent step (used when routing is absent) */
+  /** Single agent step (used when routing is absent) — includes its own cadence */
   default_step?: WorkflowDefaultStep;
-
-  schedule?: WorkflowSchedule;
 
   /** Runtime stats */
   stats?: WorkflowStats;

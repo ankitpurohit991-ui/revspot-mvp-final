@@ -79,6 +79,28 @@ interface Branch {
   rules: RoutingRule[];
 }
 
+interface CadenceState {
+  dailyLimit: string;
+  startTime: string;
+  endTime: string;
+  activeDays: string[];
+  retryEnabled: boolean;
+  maxRetries: string;
+  retryInterval: string;
+  followUpRules: FollowUpRule[];
+}
+
+const DEFAULT_CADENCE: CadenceState = {
+  dailyLimit: "200",
+  startTime: "10:00",
+  endTime: "19:00",
+  activeDays: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+  retryEnabled: true,
+  maxRetries: "2",
+  retryInterval: "4",
+  followUpRules: DEFAULT_FOLLOW_UP_RULES,
+};
+
 export default function CreateWorkflowPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -99,7 +121,7 @@ export default function CreateWorkflowPage() {
   // Step 3 — Agent Selection (single, when no routing)
   const [singleAgentId, setSingleAgentId] = useState("");
 
-  // Step 4 — Cadence & Schedule
+  // Step 4 — Cadence & Schedule (single-agent / default_step)
   const [dailyLimit, setDailyLimit] = useState("200");
   const [startTime, setStartTime] = useState("10:00");
   const [endTime, setEndTime] = useState("19:00");
@@ -109,27 +131,97 @@ export default function CreateWorkflowPage() {
   const [retryInterval, setRetryInterval] = useState("4");
   const [followUpRules, setFollowUpRules] = useState<FollowUpRule[]>(DEFAULT_FOLLOW_UP_RULES);
 
+  // Step 4 — Per-branch cadence (when routing is enabled)
+  const [branchCadences, setBranchCadences] = useState<Record<string, CadenceState>>({
+    "br-1": { ...DEFAULT_CADENCE, followUpRules: DEFAULT_FOLLOW_UP_RULES.map((r) => ({ ...r })) },
+  });
+
   const toggleDay = (day: string) => {
     setActiveDays((prev) =>
       prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
     );
   };
 
+  const updateBranchCadence = (branchId: string, updates: Partial<CadenceState>) => {
+    setBranchCadences((prev) => ({
+      ...prev,
+      [branchId]: { ...prev[branchId], ...updates },
+    }));
+  };
+
+  const toggleBranchDay = (branchId: string, day: string) => {
+    setBranchCadences((prev) => {
+      const cadence = prev[branchId];
+      return {
+        ...prev,
+        [branchId]: {
+          ...cadence,
+          activeDays: cadence.activeDays.includes(day)
+            ? cadence.activeDays.filter((d) => d !== day)
+            : [...cadence.activeDays, day],
+        },
+      };
+    });
+  };
+
+  const addBranchFollowUpRule = (branchId: string) => {
+    setBranchCadences((prev) => ({
+      ...prev,
+      [branchId]: {
+        ...prev[branchId],
+        followUpRules: [
+          ...prev[branchId].followUpRules,
+          { id: `fur-${Date.now()}`, outcome: "No answer", action: "retry" as const, delay_hours: 4, description: "" },
+        ],
+      },
+    }));
+  };
+
+  const removeBranchFollowUpRule = (branchId: string, ruleId: string) => {
+    setBranchCadences((prev) => ({
+      ...prev,
+      [branchId]: {
+        ...prev[branchId],
+        followUpRules: prev[branchId].followUpRules.filter((r) => r.id !== ruleId),
+      },
+    }));
+  };
+
+  const updateBranchFollowUpRule = (branchId: string, ruleId: string, updates: Partial<FollowUpRule>) => {
+    setBranchCadences((prev) => ({
+      ...prev,
+      [branchId]: {
+        ...prev[branchId],
+        followUpRules: prev[branchId].followUpRules.map((r) => (r.id === ruleId ? { ...r, ...updates } : r)),
+      },
+    }));
+  };
+
   const addBranch = () => {
     if (branches.length >= 3) return;
+    const newId = `br-${Date.now()}`;
     setBranches((prev) => [
       ...prev,
       {
-        id: `br-${prev.length + 1}`,
+        id: newId,
         label: `Branch ${prev.length + 1}`,
         agentId: "",
         rules: [{ field: "", operator: "equals", value: "" }],
       },
     ]);
+    setBranchCadences((prev) => ({
+      ...prev,
+      [newId]: { ...DEFAULT_CADENCE, followUpRules: DEFAULT_FOLLOW_UP_RULES.map((r) => ({ ...r })) },
+    }));
   };
 
   const removeBranch = (id: string) => {
     setBranches((prev) => prev.filter((b) => b.id !== id));
+    setBranchCadences((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
   };
 
   const updateBranch = (id: string, updates: Partial<Branch>) => {
