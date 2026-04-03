@@ -727,183 +727,371 @@ export default function CreateWorkflowPage() {
         {/* ──────────── Step 4: Cadence & Schedule ──────────── */}
         {step === 4 && (
           <div className="space-y-5">
-            {/* Schedule */}
-            <div className="bg-white border border-border rounded-card p-6">
-              <h2 className="text-card-title text-text-primary mb-4">Cadence & Schedule</h2>
-              <div className="space-y-5">
-                {/* Daily limit */}
-                <div>
-                  <label className="block text-[13px] font-medium text-text-primary mb-1.5">Daily Limit</label>
-                  <input
-                    type="number"
-                    value={dailyLimit}
-                    onChange={(e) => setDailyLimit(e.target.value)}
-                    className="w-[120px] h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 tabular-nums"
-                  />
-                </div>
-
-                {/* Calling hours */}
-                <div>
-                  <label className="block text-[13px] font-medium text-text-primary mb-1.5">Calling Hours</label>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="time"
-                      value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
-                      className="h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150"
-                    />
-                    <span className="text-[12px] text-text-tertiary">to</span>
-                    <input
-                      type="time"
-                      value={endTime}
-                      onChange={(e) => setEndTime(e.target.value)}
-                      className="h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150"
-                    />
-                  </div>
-                </div>
-
-                {/* Active days */}
-                <div>
-                  <label className="block text-[13px] font-medium text-text-primary mb-2">Active Days</label>
-                  <div className="flex items-center gap-1.5">
-                    {DAYS.map((day) => (
-                      <button
-                        key={day}
-                        onClick={() => toggleDay(day)}
-                        className={`w-10 h-9 text-[12px] font-medium rounded-[6px] transition-colors duration-150 ${
-                          activeDays.includes(day)
-                            ? "bg-accent text-white"
-                            : "bg-surface-secondary text-text-secondary hover:text-text-primary"
-                        }`}
-                      >
-                        {day}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Retry */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[13px] text-text-primary">Retry unanswered calls</span>
-                    <button
-                      onClick={() => setRetryEnabled(!retryEnabled)}
-                      className={`relative w-9 h-5 rounded-full transition-colors duration-150 ${
-                        retryEnabled ? "bg-accent" : "bg-silver-light"
-                      }`}
-                    >
-                      <span
-                        className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-150 ${
-                          retryEnabled ? "translate-x-4" : "translate-x-0"
-                        }`}
-                      />
-                    </button>
-                  </div>
-                  {retryEnabled && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-[12px] text-text-secondary mb-1">Max retries</label>
-                        <input
-                          type="number"
-                          value={maxRetries}
-                          onChange={(e) => setMaxRetries(e.target.value)}
-                          className="w-full h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 tabular-nums"
-                        />
+            {routingEnabled ? (
+              /* ── Per-branch cadence cards ── */
+              branches.map((br) => {
+                const cadence = branchCadences[br.id] ?? DEFAULT_CADENCE;
+                const branchAgent = getAgentInfo(br.agentId);
+                const branchHeader = `${br.label}${branchAgent ? ` \u2192 ${branchAgent.name}` : ""}`;
+                return (
+                  <div key={br.id}>
+                    {/* Combined cadence card for this branch */}
+                    <div className="bg-white border border-border rounded-card p-6">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="px-2 py-0.5 text-[11px] font-medium rounded-badge bg-[#EFF6FF] text-accent">{branchHeader}</span>
                       </div>
-                      <div>
-                        <label className="block text-[12px] text-text-secondary mb-1">Retry interval (hours)</label>
+                      <h2 className="text-card-title text-text-primary mb-4">Cadence & Schedule</h2>
+                      <div className="space-y-5">
+                        {/* Daily limit */}
+                        <div>
+                          <label className="block text-[13px] font-medium text-text-primary mb-1.5">Daily Limit</label>
+                          <input
+                            type="number"
+                            value={cadence.dailyLimit}
+                            onChange={(e) => updateBranchCadence(br.id, { dailyLimit: e.target.value })}
+                            className="w-[120px] h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 tabular-nums"
+                          />
+                        </div>
+
+                        {/* Calling hours */}
+                        <div>
+                          <label className="block text-[13px] font-medium text-text-primary mb-1.5">Calling Hours</label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="time"
+                              value={cadence.startTime}
+                              onChange={(e) => updateBranchCadence(br.id, { startTime: e.target.value })}
+                              className="h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150"
+                            />
+                            <span className="text-[12px] text-text-tertiary">to</span>
+                            <input
+                              type="time"
+                              value={cadence.endTime}
+                              onChange={(e) => updateBranchCadence(br.id, { endTime: e.target.value })}
+                              className="h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Active days */}
+                        <div>
+                          <label className="block text-[13px] font-medium text-text-primary mb-2">Active Days</label>
+                          <div className="flex items-center gap-1.5">
+                            {DAYS.map((day) => (
+                              <button
+                                key={day}
+                                onClick={() => toggleBranchDay(br.id, day)}
+                                className={`w-10 h-9 text-[12px] font-medium rounded-[6px] transition-colors duration-150 ${
+                                  cadence.activeDays.includes(day)
+                                    ? "bg-accent text-white"
+                                    : "bg-surface-secondary text-text-secondary hover:text-text-primary"
+                                }`}
+                              >
+                                {day}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Retry */}
+                        <div className="space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[13px] text-text-primary">Retry unanswered calls</span>
+                            <button
+                              onClick={() => updateBranchCadence(br.id, { retryEnabled: !cadence.retryEnabled })}
+                              className={`relative w-9 h-5 rounded-full transition-colors duration-150 ${
+                                cadence.retryEnabled ? "bg-accent" : "bg-silver-light"
+                              }`}
+                            >
+                              <span
+                                className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-150 ${
+                                  cadence.retryEnabled ? "translate-x-4" : "translate-x-0"
+                                }`}
+                              />
+                            </button>
+                          </div>
+                          {cadence.retryEnabled && (
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <label className="block text-[12px] text-text-secondary mb-1">Max retries</label>
+                                <input
+                                  type="number"
+                                  value={cadence.maxRetries}
+                                  onChange={(e) => updateBranchCadence(br.id, { maxRetries: e.target.value })}
+                                  className="w-full h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 tabular-nums"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[12px] text-text-secondary mb-1">Retry interval (hours)</label>
+                                <input
+                                  type="number"
+                                  value={cadence.retryInterval}
+                                  onChange={(e) => updateBranchCadence(br.id, { retryInterval: e.target.value })}
+                                  className="w-full h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 tabular-nums"
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Follow-up Rules */}
+                      <div className="mt-6 pt-5 border-t border-border-subtle">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-[13px] font-semibold text-text-primary">Follow-up Rules</h3>
+                        <button
+                          onClick={() => addBranchFollowUpRule(br.id)}
+                          className="inline-flex items-center gap-1 text-[12px] font-medium text-accent hover:text-accent-hover transition-colors duration-150"
+                        >
+                          <Plus size={13} strokeWidth={2} />
+                          Add Rule
+                        </button>
+                      </div>
+                      <p className="text-[12px] text-text-secondary mb-4">
+                        Define what the sequence does after each call based on the agent outcome.
+                      </p>
+                      <div className="space-y-2">
+                        {cadence.followUpRules.map((rule) => (
+                          <div
+                            key={rule.id}
+                            className="flex items-center gap-2 px-3 py-2.5 rounded-[6px] border border-border"
+                          >
+                            <select
+                              value={rule.outcome}
+                              onChange={(e) => updateBranchFollowUpRule(br.id, rule.id, { outcome: e.target.value })}
+                              className="h-9 px-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer flex-1"
+                              style={selectStyle}
+                            >
+                              {OUTCOME_OPTIONS.map((o) => (
+                                <option key={o} value={o}>{o}</option>
+                              ))}
+                            </select>
+                            <span className="text-[12px] text-text-tertiary flex-shrink-0">&rarr;</span>
+                            <select
+                              value={rule.action}
+                              onChange={(e) => updateBranchFollowUpRule(br.id, rule.id, { action: e.target.value as FollowUpRule["action"] })}
+                              className="h-9 px-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer w-[120px]"
+                              style={selectStyle}
+                            >
+                              {ACTION_OPTIONS.map((a) => (
+                                <option key={a} value={a}>
+                                  {a === "retry" ? "Retry" : a === "follow_up" ? "Follow up" : "Stop"}
+                                </option>
+                              ))}
+                            </select>
+                            {rule.action !== "stop" ? (
+                              <div className="flex items-center gap-1.5 flex-shrink-0">
+                                <span className="text-[12px] text-text-tertiary">in</span>
+                                <input
+                                  type="number"
+                                  value={rule.delay_hours}
+                                  onChange={(e) => updateBranchFollowUpRule(br.id, rule.id, { delay_hours: Number(e.target.value) })}
+                                  className="w-[64px] h-9 px-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 tabular-nums text-center"
+                                />
+                                <span className="text-[12px] text-text-tertiary">hrs</span>
+                              </div>
+                            ) : (
+                              <div className="w-[120px]" />
+                            )}
+                            <button
+                              onClick={() => removeBranchFollowUpRule(br.id, rule.id)}
+                              className="p-1 text-text-tertiary hover:text-status-error transition-colors duration-150 flex-shrink-0"
+                            >
+                              <Trash2 size={13} strokeWidth={1.5} />
+                            </button>
+                          </div>
+                        ))}
+                        {cadence.followUpRules.length === 0 && (
+                          <div className="text-[12px] text-text-tertiary py-2">No follow-up rules configured</div>
+                        )}
+                      </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              /* ── Single cadence (default_step) ── */
+              <>
+                {/* Schedule */}
+                <div className="bg-white border border-border rounded-card p-6">
+                  <h2 className="text-card-title text-text-primary mb-4">Cadence & Schedule</h2>
+                  <div className="space-y-5">
+                    {/* Daily limit */}
+                    <div>
+                      <label className="block text-[13px] font-medium text-text-primary mb-1.5">Daily Limit</label>
+                      <input
+                        type="number"
+                        value={dailyLimit}
+                        onChange={(e) => setDailyLimit(e.target.value)}
+                        className="w-[120px] h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 tabular-nums"
+                      />
+                    </div>
+
+                    {/* Calling hours */}
+                    <div>
+                      <label className="block text-[13px] font-medium text-text-primary mb-1.5">Calling Hours</label>
+                      <div className="flex items-center gap-2">
                         <input
-                          type="number"
-                          value={retryInterval}
-                          onChange={(e) => setRetryInterval(e.target.value)}
-                          className="w-full h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 tabular-nums"
+                          type="time"
+                          value={startTime}
+                          onChange={(e) => setStartTime(e.target.value)}
+                          className="h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150"
+                        />
+                        <span className="text-[12px] text-text-tertiary">to</span>
+                        <input
+                          type="time"
+                          value={endTime}
+                          onChange={(e) => setEndTime(e.target.value)}
+                          className="h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150"
                         />
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
-            </div>
 
-            {/* Follow-up Rules */}
-            <div className="bg-white border border-border rounded-card p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-card-title text-text-primary">Follow-up Rules</h2>
-                <button
-                  onClick={addFollowUpRule}
-                  className="inline-flex items-center gap-1 text-[12px] font-medium text-accent hover:text-accent-hover transition-colors duration-150"
-                >
-                  <Plus size={13} strokeWidth={2} />
-                  Add Rule
-                </button>
-              </div>
-              <p className="text-[12px] text-text-secondary mb-4">
-                Define what the sequence does after each call based on the agent outcome.
-              </p>
-              <div className="space-y-2">
-                {followUpRules.map((rule) => (
-                  <div
-                    key={rule.id}
-                    className="flex items-center gap-2 px-3 py-2.5 rounded-[6px] border border-border"
-                  >
-                    {/* Outcome dropdown */}
-                    <select
-                      value={rule.outcome}
-                      onChange={(e) => updateFollowUpRule(rule.id, { outcome: e.target.value })}
-                      className="h-9 px-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer flex-1"
-                      style={selectStyle}
-                    >
-                      {OUTCOME_OPTIONS.map((o) => (
-                        <option key={o} value={o}>{o}</option>
-                      ))}
-                    </select>
-
-                    <span className="text-[12px] text-text-tertiary flex-shrink-0">&rarr;</span>
-
-                    {/* Action dropdown */}
-                    <select
-                      value={rule.action}
-                      onChange={(e) => updateFollowUpRule(rule.id, { action: e.target.value as FollowUpRule["action"] })}
-                      className="h-9 px-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer w-[120px]"
-                      style={selectStyle}
-                    >
-                      {ACTION_OPTIONS.map((a) => (
-                        <option key={a} value={a}>
-                          {a === "retry" ? "Retry" : a === "follow_up" ? "Follow up" : "Stop"}
-                        </option>
-                      ))}
-                    </select>
-
-                    {/* Delay (hidden for "stop") */}
-                    {rule.action !== "stop" ? (
-                      <div className="flex items-center gap-1.5 flex-shrink-0">
-                        <span className="text-[12px] text-text-tertiary">in</span>
-                        <input
-                          type="number"
-                          value={rule.delay_hours}
-                          onChange={(e) => updateFollowUpRule(rule.id, { delay_hours: Number(e.target.value) })}
-                          className="w-[64px] h-9 px-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 tabular-nums text-center"
-                        />
-                        <span className="text-[12px] text-text-tertiary">hrs</span>
+                    {/* Active days */}
+                    <div>
+                      <label className="block text-[13px] font-medium text-text-primary mb-2">Active Days</label>
+                      <div className="flex items-center gap-1.5">
+                        {DAYS.map((day) => (
+                          <button
+                            key={day}
+                            onClick={() => toggleDay(day)}
+                            className={`w-10 h-9 text-[12px] font-medium rounded-[6px] transition-colors duration-150 ${
+                              activeDays.includes(day)
+                                ? "bg-accent text-white"
+                                : "bg-surface-secondary text-text-secondary hover:text-text-primary"
+                            }`}
+                          >
+                            {day}
+                          </button>
+                        ))}
                       </div>
-                    ) : (
-                      <div className="w-[120px]" />
-                    )}
+                    </div>
 
-                    {/* Remove */}
+                    {/* Retry */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[13px] text-text-primary">Retry unanswered calls</span>
+                        <button
+                          onClick={() => setRetryEnabled(!retryEnabled)}
+                          className={`relative w-9 h-5 rounded-full transition-colors duration-150 ${
+                            retryEnabled ? "bg-accent" : "bg-silver-light"
+                          }`}
+                        >
+                          <span
+                            className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-150 ${
+                              retryEnabled ? "translate-x-4" : "translate-x-0"
+                            }`}
+                          />
+                        </button>
+                      </div>
+                      {retryEnabled && (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[12px] text-text-secondary mb-1">Max retries</label>
+                            <input
+                              type="number"
+                              value={maxRetries}
+                              onChange={(e) => setMaxRetries(e.target.value)}
+                              className="w-full h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 tabular-nums"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[12px] text-text-secondary mb-1">Retry interval (hours)</label>
+                            <input
+                              type="number"
+                              value={retryInterval}
+                              onChange={(e) => setRetryInterval(e.target.value)}
+                              className="w-full h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 tabular-nums"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Follow-up Rules */}
+                <div className="bg-white border border-border rounded-card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-card-title text-text-primary">Follow-up Rules</h2>
                     <button
-                      onClick={() => removeFollowUpRule(rule.id)}
-                      className="p-1 text-text-tertiary hover:text-status-error transition-colors duration-150 flex-shrink-0"
+                      onClick={addFollowUpRule}
+                      className="inline-flex items-center gap-1 text-[12px] font-medium text-accent hover:text-accent-hover transition-colors duration-150"
                     >
-                      <Trash2 size={13} strokeWidth={1.5} />
+                      <Plus size={13} strokeWidth={2} />
+                      Add Rule
                     </button>
                   </div>
-                ))}
-                {followUpRules.length === 0 && (
-                  <div className="text-[12px] text-text-tertiary py-2">No follow-up rules configured</div>
-                )}
-              </div>
-            </div>
+                  <p className="text-[12px] text-text-secondary mb-4">
+                    Define what the sequence does after each call based on the agent outcome.
+                  </p>
+                  <div className="space-y-2">
+                    {followUpRules.map((rule) => (
+                      <div
+                        key={rule.id}
+                        className="flex items-center gap-2 px-3 py-2.5 rounded-[6px] border border-border"
+                      >
+                        {/* Outcome dropdown */}
+                        <select
+                          value={rule.outcome}
+                          onChange={(e) => updateFollowUpRule(rule.id, { outcome: e.target.value })}
+                          className="h-9 px-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer flex-1"
+                          style={selectStyle}
+                        >
+                          {OUTCOME_OPTIONS.map((o) => (
+                            <option key={o} value={o}>{o}</option>
+                          ))}
+                        </select>
+
+                        <span className="text-[12px] text-text-tertiary flex-shrink-0">&rarr;</span>
+
+                        {/* Action dropdown */}
+                        <select
+                          value={rule.action}
+                          onChange={(e) => updateFollowUpRule(rule.id, { action: e.target.value as FollowUpRule["action"] })}
+                          className="h-9 px-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer w-[120px]"
+                          style={selectStyle}
+                        >
+                          {ACTION_OPTIONS.map((a) => (
+                            <option key={a} value={a}>
+                              {a === "retry" ? "Retry" : a === "follow_up" ? "Follow up" : "Stop"}
+                            </option>
+                          ))}
+                        </select>
+
+                        {/* Delay (hidden for "stop") */}
+                        {rule.action !== "stop" ? (
+                          <div className="flex items-center gap-1.5 flex-shrink-0">
+                            <span className="text-[12px] text-text-tertiary">in</span>
+                            <input
+                              type="number"
+                              value={rule.delay_hours}
+                              onChange={(e) => updateFollowUpRule(rule.id, { delay_hours: Number(e.target.value) })}
+                              className="w-[64px] h-9 px-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 tabular-nums text-center"
+                            />
+                            <span className="text-[12px] text-text-tertiary">hrs</span>
+                          </div>
+                        ) : (
+                          <div className="w-[120px]" />
+                        )}
+
+                        {/* Remove */}
+                        <button
+                          onClick={() => removeFollowUpRule(rule.id)}
+                          className="p-1 text-text-tertiary hover:text-status-error transition-colors duration-150 flex-shrink-0"
+                        >
+                          <Trash2 size={13} strokeWidth={1.5} />
+                        </button>
+                      </div>
+                    ))}
+                    {followUpRules.length === 0 && (
+                      <div className="text-[12px] text-text-tertiary py-2">No follow-up rules configured</div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         )}
 
