@@ -24,14 +24,6 @@ const projectCategories = [
   "Other",
 ];
 
-const durationOptions = [
-  "7 days",
-  "14 days",
-  "30 days",
-  "45 days",
-  "60 days",
-  "90 days",
-];
 
 function SelectField({ label, options, placeholder, value, onChange, required }: {
   label: string; options: (string | { value: string; label: string })[]; placeholder: string; value: string; onChange: (v: string) => void; required?: boolean;
@@ -97,10 +89,9 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
   const [newProjectCategory, setNewProjectCategory] = useState("");
   const [newProjectDescription, setNewProjectDescription] = useState("");
 
-  const [targetLeads, setTargetLeads] = useState("");
-  const [targetVerifiedLeads, setTargetVerifiedLeads] = useState("");
-  const [targetQualifiedLeads, setTargetQualifiedLeads] = useState("");
-  const [campaignDuration, setCampaignDuration] = useState("");
+  const [objectiveType, setObjectiveType] = useState<"leads" | "verified_leads" | "qualified_leads">("leads");
+  const [targetCount, setTargetCount] = useState("");
+  const [campaignDays, setCampaignDays] = useState("");
 
   const [offer, setOffer] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
@@ -160,20 +151,41 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
 
         {/* 2. Campaign Objective */}
         <div>
-          <label className="block text-[13px] font-medium text-text-primary mb-1.5">
+          <label className="block text-[13px] font-medium text-text-primary mb-3">
             Campaign Objective<span className="text-status-error ml-0.5">*</span>
           </label>
-          <div className="grid grid-cols-3 gap-4">
-            <TextField label="Target Leads" placeholder="e.g., 500"
-              value={targetLeads} onChange={setTargetLeads} type="number" />
-            <TextField label="Target Verified Leads" placeholder="e.g., 200"
-              value={targetVerifiedLeads} onChange={setTargetVerifiedLeads} type="number" />
-            <TextField label="Target Qualified Leads" placeholder="e.g., 100"
-              value={targetQualifiedLeads} onChange={setTargetQualifiedLeads} type="number" />
-          </div>
-          <div className="mt-4">
-            <SelectField label="Campaign Duration" options={durationOptions}
-              placeholder="Select duration..." value={campaignDuration} onChange={setCampaignDuration} />
+          <div className="flex items-end gap-3">
+            <div className="flex-1">
+              <label className="block text-[12px] text-text-secondary mb-1">Optimize for</label>
+              <div className="flex gap-2">
+                {([
+                  { value: "leads" as const, label: "Leads" },
+                  { value: "verified_leads" as const, label: "Verified Leads" },
+                  { value: "qualified_leads" as const, label: "Qualified Leads" },
+                ]).map((opt) => (
+                  <button key={opt.value} type="button" onClick={() => setObjectiveType(opt.value)}
+                    className={`px-3 py-2 text-[12px] font-medium rounded-[6px] border transition-colors duration-150 ${
+                      objectiveType === opt.value
+                        ? "border-accent bg-accent text-white"
+                        : "border-border bg-white text-text-secondary hover:border-border-hover hover:text-text-primary"
+                    }`}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="w-[140px]">
+              <label className="block text-[12px] text-text-secondary mb-1">Target count</label>
+              <input type="number" value={targetCount} onChange={(e) => setTargetCount(e.target.value)}
+                placeholder="e.g., 500"
+                className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary tabular-nums" />
+            </div>
+            <div className="w-[140px]">
+              <label className="block text-[12px] text-text-secondary mb-1">Duration (days)</label>
+              <input type="number" value={campaignDays} onChange={(e) => setCampaignDays(e.target.value)}
+                placeholder="e.g., 30"
+                className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary tabular-nums" />
+            </div>
           </div>
         </div>
 

@@ -204,25 +204,17 @@ export function Step3Strategy({ onNext, onBack }: Step3Props) {
                 <div key={persona.id} className="border border-border-subtle rounded-[6px] p-3">
                   <div className="flex items-center gap-2 mb-1">
                     <Users size={13} strokeWidth={1.5} className="text-text-tertiary" />
-                    <span className="text-[13px] font-medium text-text-primary">{persona.name}</span>
-                    <span className="text-[11px] px-2 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8]">
-                      {persona.angle}
-                    </span>
+                    <span className="text-[13px] font-medium text-text-primary">{persona.name}, {persona.age}</span>
+                    <span className="text-[11px] text-text-secondary">({persona.role})</span>
                   </div>
-                  <p className="text-[12px] text-text-secondary mt-1">{persona.description}</p>
-                  <div className="text-[11px] text-text-tertiary mt-2">
-                    <span className="font-medium">Pain:</span> {persona.pain}
-                  </div>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {persona.hooks.map((hook, i) => (
-                      <span
-                        key={i}
-                        className="text-[11px] px-2 py-0.5 rounded-full bg-surface-secondary text-text-primary"
-                      >
-                        &ldquo;{hook}&rdquo;
-                      </span>
+                  <ul className="mt-1.5 space-y-1">
+                    {persona.bullets.map((bullet: string, i: number) => (
+                      <li key={i} className="text-[12px] text-text-secondary flex items-start gap-1.5">
+                        <span className="text-text-tertiary mt-[2px]">•</span>
+                        <span>{bullet}</span>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 </div>
               ))}
             </div>
