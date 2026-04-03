@@ -317,3 +317,103 @@ export const chartMetricOptions = [
   { key: "qualifiedLeads", label: "Qualified Leads", color: "#8B5CF6", format: "number" },
   { key: "ctr", label: "CTR %", color: "#EC4899", format: "percent" },
 ] as const;
+
+// ─── Creative Angles (per persona) ──────────────────────────────────
+
+export const angleData = [
+  {
+    id: "angle-1",
+    personaId: "p-1",
+    personaName: "Rahul, 34",
+    painPoint: "Tired of paying rent with no ownership, long daily commute to Whitefield office",
+    usp: "Premium 3BHK just 2 mins from Whitefield IT corridor, smart home ready with modern amenities",
+    hook: "Stop paying someone else's EMI — own your dream home in Whitefield",
+    cta: "Book a free site visit this weekend",
+    angleName: "Lifestyle Upgrade",
+  },
+  {
+    id: "angle-2",
+    personaId: "p-2",
+    personaName: "Meera, 42",
+    painPoint: "Managing investment property from abroad is a hassle, worried about builder trustworthiness",
+    usp: "RERA-registered Godrej property with 8%+ rental yield, end-to-end property management included",
+    hook: "Your Bangalore investment, managed end-to-end while you're abroad",
+    cta: "Get the NRI investment brochure",
+    angleName: "Investment Returns",
+  },
+  {
+    id: "angle-3",
+    personaId: "p-3",
+    personaName: "Suresh, 38",
+    painPoint: "Kids are growing up and need more space, current 2BHK feels cramped for family of 4",
+    usp: "Spacious 3BHK with 3-acre zen gardens, swimming pool, play area, and top schools nearby",
+    hook: "Your kids deserve a garden, not a balcony — upgrade to Godrej Air",
+    cta: "See the 3BHK floor plans",
+    angleName: "Family-First Living",
+  },
+];
+
+// ─── Form Field Presets ─────────────────────────────────────────────
+
+export interface FormField {
+  id: string;
+  name: string;
+  type: "text" | "phone" | "email" | "dropdown" | "custom";
+  required: boolean;
+  enabled: boolean;
+  options?: string[];
+  placeholder?: string;
+}
+
+export const highIntentFormFields: FormField[] = [
+  { id: "ff-1", name: "Full Name", type: "text", required: true, enabled: true, placeholder: "Enter your full name" },
+  { id: "ff-2", name: "Phone", type: "phone", required: true, enabled: true, placeholder: "+91 XXXXX XXXXX" },
+  { id: "ff-3", name: "Email", type: "email", required: false, enabled: true, placeholder: "your@email.com" },
+  { id: "ff-4", name: "Budget Range", type: "dropdown", required: true, enabled: true, options: ["Below ₹1Cr", "₹1Cr – ₹2Cr", "₹2Cr – ₹3Cr", "Above ₹3Cr"] },
+  { id: "ff-5", name: "Purchase Timeline", type: "dropdown", required: true, enabled: true, options: ["Within 3 months", "3–6 months", "6–12 months", "12+ months"] },
+  { id: "ff-6", name: "Preferred Configuration", type: "dropdown", required: false, enabled: true, options: ["2 BHK", "3 BHK", "4 BHK", "Villa", "Plot"] },
+];
+
+export const quickInquiryFormFields: FormField[] = [
+  { id: "ff-1", name: "Full Name", type: "text", required: true, enabled: true, placeholder: "Enter your full name" },
+  { id: "ff-2", name: "Phone", type: "phone", required: true, enabled: true, placeholder: "+91 XXXXX XXXXX" },
+  { id: "ff-3", name: "Email", type: "email", required: false, enabled: false, placeholder: "your@email.com" },
+];
+
+// ─── Campaign Structure Mock Data ───────────────────────────────────
+
+export const campaignStructureData = {
+  campaignName: "Godrej Air Phase 3 — Lead Gen",
+  adSets: [
+    {
+      id: "as-1",
+      name: "Whitefield HNI — 30-45",
+      persona: "Rahul, 34 (IT Professional)",
+      targeting: { geo: "Whitefield, Bangalore (10km)", audience: "IT professionals, 30-45, income 20L+", interests: "Home buying, Real estate, Premium living" },
+      dailyBudget: 3000,
+      assignedCreatives: ["Lifestyle Upgrade creative"],
+      assignedForm: "High Intent Form",
+    },
+    {
+      id: "as-2",
+      name: "NRI — Global",
+      persona: "Meera, 42 (NRI Investor)",
+      targeting: { geo: "San Francisco, Dubai, Singapore, London", audience: "NRIs, 35-55, India connection", interests: "Property investment, NRI services, Bangalore real estate" },
+      dailyBudget: 3000,
+      assignedCreatives: ["Investment Returns creative"],
+      assignedForm: "High Intent Form",
+    },
+    {
+      id: "as-3",
+      name: "Family Upgraders — Sarjapur/Whitefield",
+      persona: "Suresh, 38 (Family Upgrader)",
+      targeting: { geo: "Sarjapur Road, Whitefield, Bangalore (15km)", audience: "Families, 35-45, existing homeowners", interests: "Family living, Schools, Kids activities, Home upgrade" },
+      dailyBudget: 2000,
+      assignedCreatives: ["Family-First Living creative"],
+      assignedForm: "Quick Inquiry Form",
+    },
+  ],
+  totalDailyBudget: 8000,
+  estimatedCPL: { min: 800, max: 1200 },
+  estimatedLeadsPerDay: 7,
+};

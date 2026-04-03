@@ -2,11 +2,9 @@
 
 import { useState } from "react";
 import {
-  ArrowRight, ArrowLeft, Rocket, AlertCircle, Upload, Image, Phone,
-  Zap, X, CheckCircle2, ExternalLink,
+  ArrowRight, ArrowLeft, Rocket, AlertCircle,
 } from "lucide-react";
 import { adAccounts, facebookPages } from "@/lib/wizard-data";
-import { agentsList } from "@/lib/voice-agent-data";
 
 interface Step4Props {
   onNext: () => void;
@@ -19,154 +17,45 @@ const selectStyle = {
   backgroundPosition: "right 12px center",
 };
 
-function Toggle({ enabled, onToggle, label, helper }: {
-  enabled: boolean; onToggle: () => void; label: string; helper?: string;
-}) {
-  return (
-    <div className="flex items-start justify-between py-3">
-      <div className="flex-1 mr-4">
-        <span className="text-[13px] text-text-primary">{label}</span>
-        {helper && <p className="text-[11px] text-text-tertiary mt-0.5">{helper}</p>}
-      </div>
-      <button onClick={onToggle} className={`relative w-9 h-5 rounded-full transition-colors duration-150 shrink-0 mt-0.5 ${enabled ? "bg-accent" : "bg-silver-light"}`}>
-        <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow-sm transition-transform duration-150 ${enabled ? "translate-x-4" : "translate-x-0"}`} />
-      </button>
-    </div>
-  );
-}
-
-// Mock creatives for the library
-const mockCreatives = [
-  { id: "cr-1", name: "Godrej Air 3BHK Carousel", format: "Carousel", thumb: "🏠" },
-  { id: "cr-2", name: "Godrej Air Lifestyle Video", format: "Video", thumb: "🎬" },
-  { id: "cr-3", name: "Floor Plan Static", format: "Image", thumb: "📐" },
-  { id: "cr-4", name: "Amenities Showcase", format: "Carousel", thumb: "🏊" },
-];
-
 export function Step4Launch({ onNext, onBack }: Step4Props) {
   const [adAccount, setAdAccount] = useState("");
   const [fbPage, setFbPage] = useState("");
   const [launching, setLaunching] = useState(false);
 
-  // Creatives
-  const [selectedCreatives, setSelectedCreatives] = useState<string[]>([]);
-  const [showCreativeModal, setShowCreativeModal] = useState(false);
-
-  // Enrichment & Voice AI
-  const [autoEnrich, setAutoEnrich] = useState(true);
-  const [enableVoiceAI, setEnableVoiceAI] = useState(false);
-  const [selectedAgent, setSelectedAgent] = useState("");
-
   const canLaunch = adAccount && fbPage;
-  const activeAgents = agentsList.filter((a) => a.status === "active");
-  const agent = activeAgents.find((a) => a.id === selectedAgent);
 
   const handleLaunch = () => {
     setLaunching(true);
     setTimeout(() => { setLaunching(false); onNext(); }, 2000);
   };
 
-  const toggleCreative = (id: string) => {
-    setSelectedCreatives((prev) => prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]);
-  };
-
   return (
     <div className="space-y-6">
       <div className="mb-2">
         <h2 className="text-[20px] font-semibold text-text-primary">Launch Campaign</h2>
-        <p className="text-meta text-text-secondary mt-1">Attach creatives, configure lead processing, and connect your Meta ad account</p>
+        <p className="text-meta text-text-secondary mt-1">Connect your Meta ad account and publish the campaign</p>
       </div>
 
-      {/* Campaign Creatives */}
-      <div className="bg-white border border-border rounded-card p-6">
-        <div className="flex items-center gap-2 mb-1">
-          <Image size={16} strokeWidth={1.5} className="text-text-tertiary" />
-          <h3 className="text-[14px] font-semibold text-text-primary">Campaign Creatives</h3>
-        </div>
-        <p className="text-[12px] text-text-tertiary mb-4">Attach creative assets for this campaign</p>
-
-        <div className="flex items-center gap-3 mb-3">
-          <button onClick={() => setShowCreativeModal(true)}
-            className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors">
-            <Image size={13} strokeWidth={1.5} /> Select from library
-          </button>
-          <button className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors">
-            <Upload size={13} strokeWidth={1.5} /> Upload new
-          </button>
-        </div>
-
-        {selectedCreatives.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {selectedCreatives.map((id) => {
-              const cr = mockCreatives.find((c) => c.id === id);
-              return cr ? (
-                <div key={id} className="inline-flex items-center gap-2 bg-surface-page rounded-[6px] px-3 py-2">
-                  <span className="text-[16px]">{cr.thumb}</span>
-                  <div>
-                    <div className="text-[12px] font-medium text-text-primary">{cr.name}</div>
-                    <div className="text-[10px] text-text-tertiary">{cr.format}</div>
-                  </div>
-                  <button onClick={() => toggleCreative(id)} className="text-text-tertiary hover:text-text-primary ml-1">
-                    <X size={12} strokeWidth={1.5} />
-                  </button>
-                </div>
-              ) : null;
-            })}
+      {/* Campaign Summary */}
+      <div className="bg-surface-page border border-border-subtle rounded-card p-5">
+        <div className="grid grid-cols-4 gap-4">
+          <div>
+            <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1">Campaign</span>
+            <span className="block text-[13px] text-text-primary font-medium">Godrej Air Phase 3</span>
           </div>
-        )}
-
-        <p className="text-[11px] text-text-tertiary mt-3">You can add creatives after launch too.</p>
-      </div>
-
-      {/* Enrichment & Voice AI */}
-      <div className="bg-white border border-border rounded-card p-6">
-        <div className="flex items-center gap-2 mb-1">
-          <Zap size={16} strokeWidth={1.5} className="text-text-tertiary" />
-          <h3 className="text-[14px] font-semibold text-text-primary">Enrichment & Voice AI</h3>
-        </div>
-        <p className="text-[12px] text-text-tertiary mb-3">Configure lead processing for this campaign</p>
-
-        <div className="border-b border-border-subtle">
-          <Toggle enabled={autoEnrich} onToggle={() => setAutoEnrich(!autoEnrich)}
-            label="Auto-enrich new leads" helper="Automatically enrich incoming leads with Revspot data" />
-        </div>
-
-        <Toggle enabled={enableVoiceAI} onToggle={() => setEnableVoiceAI(!enableVoiceAI)}
-          label="Enable Voice AI qualification" helper="Automatically call and qualify new leads using an AI voice agent" />
-
-        {enableVoiceAI && (
-          <div className="mt-1 ml-0 space-y-3">
-            {activeAgents.length > 0 ? (
-              <>
-                <select value={selectedAgent} onChange={(e) => setSelectedAgent(e.target.value)}
-                  className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
-                  style={selectStyle}>
-                  <option value="">Select agent...</option>
-                  {activeAgents.map((a) => (
-                    <option key={a.id} value={a.id}>{a.name} · {a.qualificationRate}% qual rate</option>
-                  ))}
-                </select>
-                {agent && (
-                  <div className="bg-surface-page rounded-[6px] px-3 py-2.5">
-                    <div className="text-[12px] text-text-primary font-medium">{agent.name}</div>
-                    <div className="text-[11px] text-text-secondary mt-0.5">{agent.languages.join(", ")} · {agent.qualificationRate}% qualification rate</div>
-                    <div className="text-[11px] text-text-tertiary mt-0.5">{agent.postCallSummary}</div>
-                    <button className="text-[11px] text-accent font-medium mt-1 inline-flex items-center gap-1 hover:underline">
-                      Preview agent <ExternalLink size={10} strokeWidth={1.5} />
-                    </button>
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="bg-surface-page rounded-[6px] px-3 py-2.5">
-                <p className="text-[12px] text-text-secondary">No agents created yet.</p>
-                <a href="/agents/create" className="text-[12px] text-accent font-medium inline-flex items-center gap-1 mt-1 hover:underline">
-                  Create one <ArrowRight size={11} strokeWidth={1.5} />
-                </a>
-              </div>
-            )}
+          <div>
+            <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1">Ad Sets</span>
+            <span className="block text-[13px] text-text-primary font-medium">3</span>
           </div>
-        )}
+          <div>
+            <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1">Creatives</span>
+            <span className="block text-[13px] text-text-primary font-medium">3</span>
+          </div>
+          <div>
+            <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1">Daily Budget</span>
+            <span className="block text-[13px] text-text-primary font-medium">₹8,000</span>
+          </div>
+        </div>
       </div>
 
       {/* Ad Account & Page */}
@@ -215,42 +104,6 @@ export function Step4Launch({ onNext, onBack }: Step4Props) {
           )}
         </button>
       </div>
-
-      {/* Creative Selection Modal */}
-      {showCreativeModal && (
-        <>
-          <div className="fixed inset-0 bg-black/20 z-[60]" onClick={() => setShowCreativeModal(false)} />
-          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-            <div className="bg-white rounded-card border border-border shadow-lg w-full max-w-[480px]">
-              <div className="px-6 py-4 border-b border-border-subtle flex items-center justify-between">
-                <h3 className="text-[14px] font-semibold text-text-primary">Select creatives</h3>
-                <button onClick={() => setShowCreativeModal(false)} className="p-1 text-text-secondary hover:bg-surface-secondary rounded-button"><X size={16} strokeWidth={1.5} /></button>
-              </div>
-              <div className="p-4 grid grid-cols-2 gap-3">
-                {mockCreatives.map((cr) => (
-                  <button key={cr.id} onClick={() => toggleCreative(cr.id)}
-                    className={`text-left border rounded-card p-3 transition-all duration-150 ${
-                      selectedCreatives.includes(cr.id) ? "border-accent ring-1 ring-accent/20" : "border-border hover:border-border-hover"
-                    }`}>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[20px]">{cr.thumb}</span>
-                      {selectedCreatives.includes(cr.id) && <CheckCircle2 size={14} strokeWidth={2} className="text-accent ml-auto" />}
-                    </div>
-                    <div className="text-[12px] font-medium text-text-primary">{cr.name}</div>
-                    <div className="text-[10px] text-text-tertiary">{cr.format}</div>
-                  </button>
-                ))}
-              </div>
-              <div className="px-6 py-4 border-t border-border-subtle flex justify-end">
-                <button onClick={() => setShowCreativeModal(false)}
-                  className="h-8 px-4 bg-accent text-white text-[12px] font-medium rounded-button hover:bg-accent-hover transition-colors">
-                  Attach {selectedCreatives.length > 0 ? `(${selectedCreatives.length})` : "selected"}
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
     </div>
   );
 }

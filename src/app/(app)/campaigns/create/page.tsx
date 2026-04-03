@@ -7,6 +7,8 @@ import type { Variants } from "framer-motion";
 import {
   FileInput,
   Users,
+  Image,
+  FileText,
   Sparkles,
   Rocket,
   CheckCircle2,
@@ -15,9 +17,11 @@ import {
 } from "lucide-react";
 import { Step1CampaignInput } from "@/components/wizard/step1-input";
 import { Step2BusinessProfile } from "@/components/wizard/step2-profile";
-import { Step3Strategy } from "@/components/wizard/step3-strategy";
-import { Step4Launch } from "@/components/wizard/step4-launch";
-import { Step5Finalize } from "@/components/wizard/step5-finalize";
+import { Step3Creatives } from "@/components/wizard/step3-creatives";
+import { Step4Forms } from "@/components/wizard/step4-forms";
+import { Step5Structure } from "@/components/wizard/step5-structure";
+import { Step4Launch as Step6Launch } from "@/components/wizard/step4-launch";
+import { Step5Finalize as Step7Finalize } from "@/components/wizard/step5-finalize";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 6 },
@@ -27,7 +31,9 @@ const fadeUp: Variants = {
 const steps = [
   { key: "input", label: "Campaign Input", icon: FileInput },
   { key: "personas", label: "Personas", icon: Users },
-  { key: "strategy", label: "Strategy", icon: Sparkles },
+  { key: "creatives", label: "Creatives", icon: Image },
+  { key: "forms", label: "Forms", icon: FileText },
+  { key: "structure", label: "Structure", icon: Sparkles },
   { key: "launch", label: "Launch", icon: Rocket },
   { key: "finalize", label: "Finalize", icon: CheckCircle2 },
 ] as const;
@@ -61,18 +67,16 @@ export default function CreateCampaignPage() {
             const Icon = step.icon;
             const isComplete = i < currentStep;
             const isCurrent = i === currentStep;
-            const isFuture = i > currentStep;
 
             return (
               <div key={step.key} className="flex items-center">
-                {/* Step Circle + Label */}
                 <button
                   onClick={() => i <= currentStep && setCurrentStep(i)}
                   disabled={i > currentStep}
                   className="flex flex-col items-center gap-1.5 group"
                 >
                   <div
-                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${
+                    className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-200 ${
                       isComplete
                         ? "bg-accent text-white"
                         : isCurrent
@@ -81,13 +85,13 @@ export default function CreateCampaignPage() {
                     } ${i <= currentStep ? "cursor-pointer" : "cursor-not-allowed"}`}
                   >
                     {isComplete ? (
-                      <Check size={16} strokeWidth={2.5} />
+                      <Check size={14} strokeWidth={2.5} />
                     ) : (
-                      <Icon size={16} strokeWidth={1.5} />
+                      <Icon size={14} strokeWidth={1.5} />
                     )}
                   </div>
                   <span
-                    className={`text-[11px] font-medium transition-colors duration-150 ${
+                    className={`text-[10px] font-medium transition-colors duration-150 whitespace-nowrap ${
                       isCurrent
                         ? "text-text-primary"
                         : isComplete
@@ -99,10 +103,9 @@ export default function CreateCampaignPage() {
                   </span>
                 </button>
 
-                {/* Connector Line */}
                 {i < steps.length - 1 && (
                   <div
-                    className={`w-16 h-[2px] mx-2 mt-[-18px] transition-colors duration-200 ${
+                    className={`w-10 h-[2px] mx-1 mt-[-18px] transition-colors duration-200 ${
                       i < currentStep ? "bg-accent" : "bg-border"
                     }`}
                   />
@@ -114,7 +117,7 @@ export default function CreateCampaignPage() {
       </div>
 
       {/* Step Content */}
-      <div className="max-w-[800px] mx-auto">
+      <div className="max-w-[860px] mx-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentStep}
@@ -125,9 +128,11 @@ export default function CreateCampaignPage() {
           >
             {currentStep === 0 && <Step1CampaignInput onNext={goNext} />}
             {currentStep === 1 && <Step2BusinessProfile onNext={goNext} onBack={goBack} />}
-            {currentStep === 2 && <Step3Strategy onNext={goNext} onBack={goBack} />}
-            {currentStep === 3 && <Step4Launch onNext={goNext} onBack={goBack} />}
-            {currentStep === 4 && <Step5Finalize />}
+            {currentStep === 2 && <Step3Creatives onNext={goNext} onBack={goBack} />}
+            {currentStep === 3 && <Step4Forms onNext={goNext} onBack={goBack} />}
+            {currentStep === 4 && <Step5Structure onNext={goNext} onBack={goBack} />}
+            {currentStep === 5 && <Step6Launch onNext={goNext} onBack={goBack} />}
+            {currentStep === 6 && <Step7Finalize />}
           </motion.div>
         </AnimatePresence>
       </div>
