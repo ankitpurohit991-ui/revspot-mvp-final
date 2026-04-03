@@ -306,6 +306,25 @@ export function CreativeGeneratorModal({
         </>
       ) : (
         <>
+          {/* Feedback + action — always visible at top */}
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder={selectedOption ? `Suggest changes to Option ${selectedOption}...` : "Select an option first, then suggest changes..."}
+              className="flex-1 h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
+            />
+            <button
+              type="button"
+              onClick={handleRegenerate}
+              className="inline-flex items-center gap-1.5 h-9 px-3 text-[12px] font-medium text-accent border border-accent/30 rounded-button hover:bg-accent/5 transition-colors duration-150 shrink-0"
+            >
+              <RefreshCw size={13} strokeWidth={1.5} />
+              {selectedOption ? `Tweak Option ${selectedOption}` : "Regenerate All"}
+            </button>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             {[1, 2, 3, 4].map((n) => {
               const selected = selectedOption === n;
@@ -314,7 +333,7 @@ export function CreativeGeneratorModal({
               return (
                 <div
                   key={n}
-                  onClick={() => setSelectedOption(n)}
+                  onClick={() => setSelectedOption(selected ? null : n)}
                   className={`text-left bg-white border rounded-card p-4 transition-all duration-150 cursor-pointer ${
                     selected
                       ? "border-accent ring-2 ring-accent/20"
@@ -358,23 +377,6 @@ export function CreativeGeneratorModal({
                 </div>
               );
             })}
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              placeholder={selectedOption ? `Suggest changes to Option ${selectedOption}...` : "Select an option first, then suggest changes..."}
-              className="flex-1 h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
-            />
-            <button
-              type="button"
-              onClick={handleRegenerate}
-              className="inline-flex items-center gap-1.5 h-9 px-3 text-[12px] font-medium text-accent border border-accent/30 rounded-button hover:bg-accent/5 transition-colors duration-150"
-            >
-              <RefreshCw size={13} strokeWidth={1.5} />
-              {selectedOption ? `Tweak Option ${selectedOption}` : "Regenerate All"}
-            </button>
           </div>
         </>
       )}
