@@ -117,34 +117,39 @@ export function Step5Structure({ onNext, onBack }: Step5Props) {
       ) : (
         /* Loaded State */
         <div className="space-y-5">
-          {/* Campaign Name */}
+          {/* Campaign Container — name + ad sets nested */}
           <motion.div
             custom={0}
             initial="hidden"
             animate="visible"
             variants={fadeUp}
-            className="bg-white border border-border rounded-card p-6"
+            className="bg-white border border-border border-l-4 border-l-accent rounded-card overflow-hidden"
           >
-            <label className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1.5">
-              Campaign Name
-            </label>
-            <input
-              type="text"
-              value={campaignName}
-              onChange={(e) => setCampaignName(e.target.value)}
-              className="w-full h-10 px-3 text-[16px] font-semibold border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150"
-            />
-          </motion.div>
+            {/* Campaign Name Header */}
+            <div className="p-6 pb-4">
+              <label className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1.5">
+                Campaign Name
+              </label>
+              <input
+                type="text"
+                value={campaignName}
+                onChange={(e) => setCampaignName(e.target.value)}
+                className="w-full h-10 px-3 text-[16px] font-semibold border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150"
+              />
+            </div>
 
-          {/* Ad Sets */}
+            {/* Ad Sets Section */}
+            <div className="px-6 pb-6">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px]">Ad Sets</span>
+                <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-surface-secondary text-text-secondary">{adSets.length}</span>
+              </div>
+
+              <div className="space-y-3">
           {adSets.map((adSet, i) => (
-            <motion.div
+            <div
               key={adSet.id}
-              custom={i + 1}
-              initial="hidden"
-              animate="visible"
-              variants={fadeUp}
-              className="bg-white border border-border rounded-card p-5"
+              className="bg-surface-page border border-border-subtle rounded-[8px] p-4"
             >
               {/* Header */}
               <div className="flex items-center justify-between mb-4">
@@ -284,16 +289,19 @@ export function Step5Structure({ onNext, onBack }: Step5Props) {
                   </span>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
+              </div>
+            </div>
+          </motion.div>
 
-          {/* Budget Summary */}
+          {/* Budget Summary — highlighted */}
           <motion.div
-            custom={adSets.length + 1}
+            custom={1}
             initial="hidden"
             animate="visible"
             variants={fadeUp}
-            className="bg-white border border-border rounded-card p-6"
+            className="bg-accent/5 border border-accent/20 rounded-card p-6"
           >
             <h3 className="text-[16px] font-semibold text-text-primary mb-4">
               Budget Summary

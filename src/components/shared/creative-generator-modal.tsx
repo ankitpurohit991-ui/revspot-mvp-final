@@ -179,13 +179,30 @@ export function CreativeGeneratorModal({
 
   const handleRegenerate = useCallback(() => {
     setIsGenerating(true);
-    setSelectedOption(null);
     setTimeout(() => {
-      setOptionData((prev) => (prev === OPTION_DATA ? ALT_OPTION_DATA : OPTION_DATA));
+      if (selectedOption) {
+        // Only tweak the selected option — others stay unchanged
+        const idx = selectedOption - 1;
+        const feedbackSuffix = feedback.trim() ? ` (${feedback.trim()})` : "";
+        setOptionData((prev) =>
+          prev.map((opt, i) =>
+            i === idx
+              ? {
+                  style: `${ALT_OPTION_DATA[idx]?.style || opt.style}${feedbackSuffix}`,
+                  postText: ALT_OPTION_DATA[idx]?.postText || opt.postText,
+                }
+              : opt
+          )
+        );
+      } else {
+        // No option selected — regenerate all
+        setOptionData((prev) => (prev === OPTION_DATA ? ALT_OPTION_DATA : OPTION_DATA));
+        setSelectedOption(null);
+      }
       setEditingPostText(null);
       setIsGenerating(false);
     }, 2000);
-  }, []);
+  }, [selectedOption, feedback]);
 
   const canContinue = (): boolean => {
     if (modalStep === 2) return selectedOption !== null;
@@ -347,7 +364,7 @@ export function CreativeGeneratorModal({
               type="text"
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
-              placeholder="Suggest changes (e.g., make it more premium)..."
+              placeholder={selectedOption ? `Suggest changes to Option ${selectedOption}...` : "Select an option first, then suggest changes..."}
               className="flex-1 h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
             />
             <button
@@ -356,7 +373,7 @@ export function CreativeGeneratorModal({
               className="inline-flex items-center gap-1.5 h-9 px-3 text-[12px] font-medium text-accent border border-accent/30 rounded-button hover:bg-accent/5 transition-colors duration-150"
             >
               <RefreshCw size={13} strokeWidth={1.5} />
-              Regenerate
+              {selectedOption ? `Tweak Option ${selectedOption}` : "Regenerate All"}
             </button>
           </div>
         </>
