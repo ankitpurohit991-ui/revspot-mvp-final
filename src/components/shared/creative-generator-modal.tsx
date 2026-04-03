@@ -10,6 +10,7 @@ import {
   RefreshCw,
   Download,
   Image as ImageIcon,
+  Pencil,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -38,18 +39,23 @@ interface CreativeGeneratorModalProps {
 /*  Data                                                               */
 /* ------------------------------------------------------------------ */
 
-const OPTION_DESCRIPTIONS = [
-  "Bold typography with lifestyle imagery",
-  "Minimalist with price anchor",
-  "Testimonial-style with social proof",
-  "Premium dark theme with gold accents",
+interface OptionData {
+  style: string;
+  postText: string;
+}
+
+const OPTION_DATA: OptionData[] = [
+  { style: "Bold typography with lifestyle imagery", postText: "🏡 Your dream home is closer than you think.\n\nPremium 3BHK apartments in Whitefield, starting at ₹1.8Cr. Smart homes with world-class amenities, just 2 mins from the IT corridor.\n\n📍 Book your free site visit this weekend.\n\n#GodrejAir #Whitefield #LuxuryLiving" },
+  { style: "Minimalist with price anchor", postText: "₹1.8 Cr.\nThat's all it takes to own a Godrej home in Whitefield.\n\n3BHK | Smart Home Ready | RERA Registered\n\nLimited units in Phase 3. Don't wait.\n\n👉 Get the brochure now." },
+  { style: "Testimonial-style with social proof", postText: "\"We moved into Godrej Air 6 months ago and it changed our lives.\"\n— Rajesh & Priya, 3BHK owners\n\n1200+ families already call Godrej Air home. Phase 3 is now open.\n\n🏠 See what they're talking about →" },
+  { style: "Premium dark theme with gold accents", postText: "Luxury isn't just a word. It's an address.\n\nGodrej Air, Phase 3 — Where Japanese-inspired architecture meets Bangalore's most coveted location.\n\nStarting ₹1.8Cr | 3 & 4 BHK\n\n✨ Experience the walkthrough →" },
 ];
 
-const ALT_DESCRIPTIONS = [
-  "Clean layout with gradient background",
-  "Photo-centric with text overlay",
-  "Split-screen comparison style",
-  "Aspirational lifestyle with soft tones",
+const ALT_OPTION_DATA: OptionData[] = [
+  { style: "Clean layout with gradient background", postText: "Stop scrolling. Start living.\n\nGodrej Air Phase 3 brings you 3BHK homes designed for modern families. Zen gardens, infinity pool, and a location that puts everything within reach.\n\n📞 Talk to our team today." },
+  { style: "Photo-centric with text overlay", postText: "This could be your morning view. ☀️\n\nWake up to 3 acres of landscaped gardens at Godrej Air, Whitefield. Phase 3 now open for bookings.\n\nStarting ₹1.8Cr.\n\n👉 Book a site visit" },
+  { style: "Split-screen comparison style", postText: "Rent: ₹45K/month. Zero ownership.\nEMI: ₹1.1L/month. 100% yours.\n\nThe math is simple. Make the switch to Godrej Air.\n\n3BHK in Whitefield | RERA Approved\n\n🏡 Get started →" },
+  { style: "Aspirational lifestyle with soft tones", postText: "Home is where your story begins.\n\nAt Godrej Air, every detail is designed to make life beautiful — from the zen-inspired gardens to the smartly crafted living spaces.\n\nPhase 3 | Starting ₹1.8Cr\n\n💫 Explore now" },
 ];
 
 interface SizeOption {
@@ -120,7 +126,8 @@ export function CreativeGeneratorModal({
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedCreatives, setGeneratedCreatives] = useState<GeneratedCreative[]>([]);
-  const [descriptions, setDescriptions] = useState(OPTION_DESCRIPTIONS);
+  const [optionData, setOptionData] = useState(OPTION_DATA);
+  const [editingPostText, setEditingPostText] = useState<number | null>(null);
 
   /* Reset when modal opens */
   useEffect(() => {
@@ -133,7 +140,8 @@ export function CreativeGeneratorModal({
       setSelectedSizes([SIZE_OPTIONS[0].id, SIZE_OPTIONS[1].id]);
       setIsGenerating(false);
       setGeneratedCreatives([]);
-      setDescriptions(OPTION_DESCRIPTIONS);
+      setOptionData(OPTION_DATA);
+      setEditingPostText(null);
     }
   }, [open]);
 
@@ -153,7 +161,7 @@ export function CreativeGeneratorModal({
             id: `creative-${sId}-${Date.now()}`,
             size: so.dimensions,
             label: so.label,
-            postText: `${hook}\n\nDiscover what sets this apart. ${cta}`,
+            postText: selectedOption ? optionData[selectedOption - 1].postText : `${hook}\n\n${cta}`,
           };
         });
         setGeneratedCreatives(creatives);
@@ -173,7 +181,8 @@ export function CreativeGeneratorModal({
     setIsGenerating(true);
     setSelectedOption(null);
     setTimeout(() => {
-      setDescriptions((prev) => (prev === OPTION_DESCRIPTIONS ? ALT_DESCRIPTIONS : OPTION_DESCRIPTIONS));
+      setOptionData((prev) => (prev === OPTION_DATA ? ALT_OPTION_DATA : OPTION_DATA));
+      setEditingPostText(null);
       setIsGenerating(false);
     }, 2000);
   }, []);
@@ -283,22 +292,53 @@ export function CreativeGeneratorModal({
           <div className="grid grid-cols-2 gap-4">
             {[1, 2, 3, 4].map((n) => {
               const selected = selectedOption === n;
+              const opt = optionData[n - 1];
+              const isEditingThis = editingPostText === n;
               return (
-                <button
+                <div
                   key={n}
-                  type="button"
                   onClick={() => setSelectedOption(n)}
-                  className={`text-left bg-white border rounded-card p-4 transition-all duration-150 ${
+                  className={`text-left bg-white border rounded-card p-4 transition-all duration-150 cursor-pointer ${
                     selected
                       ? "border-accent ring-2 ring-accent/20"
                       : "border-border hover:border-accent/40"
                   }`}
                 >
-                  <div className="aspect-square bg-surface-secondary rounded-[8px] flex items-center justify-center mb-3">
-                    <span className="text-[13px] font-medium text-text-tertiary">Option {n}</span>
+                  {/* Image placeholder */}
+                  <div className="aspect-[4/3] bg-surface-secondary rounded-[8px] flex items-center justify-center mb-3">
+                    <span className="text-[12px] font-medium text-text-tertiary">Option {n}</span>
                   </div>
-                  <p className="text-[12px] text-text-secondary leading-relaxed">{descriptions[n - 1]}</p>
-                </button>
+                  {/* Style description */}
+                  <p className="text-[11px] text-text-tertiary mb-2">{opt.style}</p>
+                  {/* Post text with edit */}
+                  <div className="relative">
+                    <div className="flex items-start justify-between gap-1">
+                      <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Post Text</span>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setEditingPostText(isEditingThis ? null : n); }}
+                        className="p-0.5 text-text-tertiary hover:text-accent transition-colors"
+                        title="Edit post text"
+                      >
+                        <Pencil size={10} strokeWidth={1.5} />
+                      </button>
+                    </div>
+                    {isEditingThis ? (
+                      <textarea
+                        value={opt.postText}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setOptionData((prev) => prev.map((o, i) => i === n - 1 ? { ...o, postText: val } : o));
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        rows={4}
+                        className="w-full mt-1 px-2 py-1.5 text-[11px] border border-accent/30 rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 resize-none leading-relaxed"
+                      />
+                    ) : (
+                      <p className="text-[11px] text-text-secondary leading-relaxed mt-1 line-clamp-4 whitespace-pre-line">{opt.postText}</p>
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>

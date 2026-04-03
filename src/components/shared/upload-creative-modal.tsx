@@ -48,7 +48,7 @@ export function UploadCreativeModal({ open, onClose, onComplete, angleName, pers
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.97 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="relative bg-white rounded-card border border-border shadow-xl w-full max-w-[600px]"
+            className="relative bg-white rounded-card border border-border shadow-xl w-full max-w-[600px] max-h-[90vh] flex flex-col"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-border">
@@ -62,7 +62,7 @@ export function UploadCreativeModal({ open, onClose, onComplete, angleName, pers
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-5">
+            <div className="p-6 space-y-5 overflow-y-auto flex-1">
               {/* Upload + Text side by side */}
               <div className="grid grid-cols-2 gap-4">
                 {/* Image Upload */}
@@ -71,14 +71,14 @@ export function UploadCreativeModal({ open, onClose, onComplete, angleName, pers
                   {!imageFile ? (
                     <div
                       onClick={() => setImageFile("godrej_air_creative.jpg")}
-                      className="border-2 border-dashed border-border rounded-[8px] p-6 text-center cursor-pointer hover:border-border-hover hover:bg-surface-page/50 transition-all duration-150 aspect-square flex flex-col items-center justify-center"
+                      className="border-2 border-dashed border-border rounded-[8px] p-6 text-center cursor-pointer hover:border-border-hover hover:bg-surface-page/50 transition-all duration-150 aspect-[4/3] flex flex-col items-center justify-center"
                     >
                       <Upload size={20} strokeWidth={1.5} className="text-text-tertiary mb-2" />
                       <p className="text-[12px] text-text-secondary">Upload image</p>
                       <p className="text-[10px] text-text-tertiary mt-1">JPG, PNG up to 10MB</p>
                     </div>
                   ) : (
-                    <div className="relative border border-border rounded-[8px] aspect-square bg-surface-secondary flex items-center justify-center">
+                    <div className="relative border border-border rounded-[8px] aspect-[4/3] bg-surface-secondary flex items-center justify-center">
                       <ImageIcon size={32} strokeWidth={1} className="text-text-tertiary" />
                       <span className="absolute bottom-2 left-2 right-2 text-[10px] text-text-secondary bg-white/80 rounded px-1.5 py-0.5 truncate">{imageFile}</span>
                       <button onClick={() => setImageFile(null)} className="absolute top-2 right-2 p-1 bg-white rounded-full shadow-sm text-text-tertiary hover:text-text-primary">
