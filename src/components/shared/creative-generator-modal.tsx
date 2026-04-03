@@ -141,15 +141,19 @@ export function CreativeGeneratorModal({
       setIsGenerating(false);
       setGeneratedCreatives([]);
       setOptionData(OPTION_DATA);
+      setStep2Loaded(false);
       setEditingPostText(null);
     }
   }, [open]);
 
+  /* Track if step 2 has loaded options at least once */
+  const [step2Loaded, setStep2Loaded] = useState(false);
+
   /* Trigger loading states for step 2 and 4 */
   useEffect(() => {
-    if (modalStep === 2 && selectedOption === null) {
+    if (modalStep === 2 && !step2Loaded) {
       setIsGenerating(true);
-      const t = setTimeout(() => setIsGenerating(false), 2000);
+      const t = setTimeout(() => { setIsGenerating(false); setStep2Loaded(true); }, 2000);
       return () => clearTimeout(t);
     }
     if (modalStep === 4 && generatedCreatives.length === 0) {
