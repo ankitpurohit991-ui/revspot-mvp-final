@@ -14,6 +14,25 @@ const selectStyle = {
   backgroundPosition: "right 12px center",
 };
 
+const projectCategories = [
+  "Real Estate",
+  "EdTech",
+  "FinTech",
+  "Healthcare",
+  "SaaS",
+  "E-commerce",
+  "Other",
+];
+
+const durationOptions = [
+  "7 days",
+  "14 days",
+  "30 days",
+  "45 days",
+  "60 days",
+  "90 days",
+];
+
 function SelectField({ label, options, placeholder, value, onChange, required }: {
   label: string; options: (string | { value: string; label: string })[]; placeholder: string; value: string; onChange: (v: string) => void; required?: boolean;
 }) {
@@ -72,14 +91,40 @@ function TextAreaField({ label, placeholder, value, onChange, required, rows = 3
 
 export function Step1CampaignInput({ onNext }: Step1Props) {
   const [project, setProject] = useState("");
-  const [objective, setObjective] = useState("");
+  const [isNewProject, setIsNewProject] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectClient, setNewProjectClient] = useState("");
+  const [newProjectCategory, setNewProjectCategory] = useState("");
+  const [newProjectDescription, setNewProjectDescription] = useState("");
+
+  const [targetLeads, setTargetLeads] = useState("");
+  const [targetVerifiedLeads, setTargetVerifiedLeads] = useState("");
+  const [targetQualifiedLeads, setTargetQualifiedLeads] = useState("");
+  const [campaignDuration, setCampaignDuration] = useState("");
+
   const [offer, setOffer] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
   const [businessDetails, setBusinessDetails] = useState("");
   const [files, setFiles] = useState<string[]>([]);
   const [city, setCity] = useState("Bangalore");
   const [budgetCeiling, setBudgetCeiling] = useState("");
-  const [language, setLanguage] = useState("English");
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["English"]);
+
+  const handleProjectChange = (v: string) => {
+    if (v === "__new__") {
+      setProject("");
+      setIsNewProject(true);
+    } else {
+      setProject(v);
+      setIsNewProject(false);
+    }
+  };
+
+  const toggleLanguage = (lang: string) => {
+    setSelectedLanguages((prev) =>
+      prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]
+    );
+  };
 
   const handleFileDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -95,12 +140,42 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
 
       <div className="bg-white border border-border rounded-card p-6 space-y-5">
         {/* 1. Project */}
-        <SelectField label="Project" options={[...existingClients, { value: "__new__", label: "+ Create new project" }]}
-          placeholder="Select a project..." value={project} onChange={setProject} required />
+        <div>
+          <SelectField label="Project" options={[...existingClients, { value: "__new__", label: "+ Create new project" }]}
+            placeholder="Select a project..." value={isNewProject ? "" : project} onChange={handleProjectChange} required />
+
+          {isNewProject && (
+            <div className="mt-3 ml-2 bg-surface-page border border-border-subtle rounded-[8px] p-4 space-y-4">
+              <TextField label="Project Name" placeholder="e.g., Godrej Air Launch"
+                value={newProjectName} onChange={setNewProjectName} required />
+              <TextField label="Client Name" placeholder="e.g., Godrej Properties"
+                value={newProjectClient} onChange={setNewProjectClient} />
+              <SelectField label="Category" options={projectCategories}
+                placeholder="Select category..." value={newProjectCategory} onChange={setNewProjectCategory} />
+              <TextAreaField label="Description" placeholder="Brief project description (optional)"
+                value={newProjectDescription} onChange={setNewProjectDescription} rows={2} />
+            </div>
+          )}
+        </div>
 
         {/* 2. Campaign Objective */}
-        <TextAreaField label="Campaign Objective" placeholder="e.g., Generate 100 qualified leads for luxury 3BHK apartments in Whitefield, Bangalore"
-          value={objective} onChange={setObjective} required rows={3} />
+        <div>
+          <label className="block text-[13px] font-medium text-text-primary mb-1.5">
+            Campaign Objective<span className="text-status-error ml-0.5">*</span>
+          </label>
+          <div className="grid grid-cols-3 gap-4">
+            <TextField label="Target Leads" placeholder="e.g., 500"
+              value={targetLeads} onChange={setTargetLeads} type="number" />
+            <TextField label="Target Verified Leads" placeholder="e.g., 200"
+              value={targetVerifiedLeads} onChange={setTargetVerifiedLeads} type="number" />
+            <TextField label="Target Qualified Leads" placeholder="e.g., 100"
+              value={targetQualifiedLeads} onChange={setTargetQualifiedLeads} type="number" />
+          </div>
+          <div className="mt-4">
+            <SelectField label="Campaign Duration" options={durationOptions}
+              placeholder="Select duration..." value={campaignDuration} onChange={setCampaignDuration} />
+          </div>
+        </div>
 
         {/* 3. Offer */}
         <TextField label="Offer" placeholder="e.g., Godrej Reflections Habitat, 3BHK Launch Offer"
@@ -151,9 +226,23 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
 
           {/* 8. Budget Ceiling */}
           <TextField label="Budget Ceiling" placeholder="e.g., 250000" value={budgetCeiling} onChange={setBudgetCeiling} type="number" prefix="₹" />
+        </div>
 
-          {/* 9. Language */}
-          <SelectField label="Language" options={languages} placeholder="Select language..." value={language} onChange={setLanguage} />
+        {/* 9. Targeted Language(s) */}
+        <div>
+          <label className="block text-[13px] font-medium text-text-primary mb-1.5">Targeted Language(s)</label>
+          <div className="flex flex-wrap gap-2">
+            {languages.map((lang) => (
+              <button key={lang} type="button" onClick={() => toggleLanguage(lang)}
+                className={`px-2.5 py-1 text-[11px] font-medium rounded-badge transition-colors ${
+                  selectedLanguages.includes(lang)
+                    ? "bg-accent text-white"
+                    : "bg-surface-secondary text-text-secondary"
+                }`}>
+                {lang}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -161,7 +250,7 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
       <div className="flex justify-end pt-2">
         <button onClick={onNext}
           className="inline-flex items-center gap-2 h-10 px-6 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
-          Create & Extract Profile <ArrowRight size={15} strokeWidth={2} />
+          Continue to Personas <ArrowRight size={15} strokeWidth={2} />
         </button>
       </div>
     </div>

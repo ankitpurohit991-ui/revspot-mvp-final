@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
 import {
   FileInput,
-  Building2,
+  Users,
   Sparkles,
   Rocket,
   CheckCircle2,
@@ -26,7 +26,7 @@ const fadeUp: Variants = {
 
 const steps = [
   { key: "input", label: "Campaign Input", icon: FileInput },
-  { key: "profile", label: "Business Profile", icon: Building2 },
+  { key: "personas", label: "Personas", icon: Users },
   { key: "strategy", label: "Strategy", icon: Sparkles },
   { key: "launch", label: "Launch", icon: Rocket },
   { key: "finalize", label: "Finalize", icon: CheckCircle2 },
