@@ -186,34 +186,25 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
           <label className="block text-[13px] font-medium text-text-primary mb-3">
             Campaign Objective<span className="text-status-error ml-0.5">*</span>
           </label>
-          <div className="flex items-end gap-3">
-            <div className="flex-1">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
               <label className="block text-[12px] text-text-secondary mb-1">Optimize for</label>
-              <div className="flex gap-2">
-                {([
-                  { value: "leads" as const, label: "Leads" },
-                  { value: "verified_leads" as const, label: "Verified Leads" },
-                  { value: "qualified_leads" as const, label: "Qualified Leads" },
-                ]).map((opt) => (
-                  <button key={opt.value} type="button" onClick={() => setObjectiveType(opt.value)}
-                    className={`px-3 py-2 text-[12px] font-medium rounded-[6px] border transition-colors duration-150 ${
-                      objectiveType === opt.value
-                        ? "border-accent bg-accent text-white"
-                        : "border-border bg-white text-text-secondary hover:border-border-hover hover:text-text-primary"
-                    }`}>
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+              <select value={objectiveType} onChange={(e) => setObjectiveType(e.target.value as typeof objectiveType)}
+                className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer"
+                style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9B9B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center" }}>
+                <option value="leads">Leads</option>
+                <option value="verified_leads">Verified Leads</option>
+                <option value="qualified_leads">AI Qualified Leads</option>
+              </select>
             </div>
-            <div className="w-[140px]">
-              <label className="block text-[12px] text-text-secondary mb-1">Target count</label>
+            <div>
+              <label className="block text-[12px] text-text-secondary mb-1">Target count <span className="text-status-error">*</span></label>
               <input type="number" value={targetCount} onChange={(e) => setTargetCount(e.target.value)}
                 placeholder="e.g., 500"
                 className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary tabular-nums" />
             </div>
-            <div className="w-[140px]">
-              <label className="block text-[12px] text-text-secondary mb-1">Duration (days)</label>
+            <div>
+              <label className="block text-[12px] text-text-secondary mb-1">Duration (days) <span className="text-status-error">*</span></label>
               <input type="number" value={campaignDays} onChange={(e) => setCampaignDays(e.target.value)}
                 placeholder="e.g., 30"
                 className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary tabular-nums" />
@@ -223,7 +214,7 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
 
         {/* 3. Offer */}
         <TextField label="Offer" placeholder="e.g., Godrej Reflections Habitat, 3BHK Launch Offer"
-          value={offer} onChange={setOffer} required />
+          value={offer} onChange={setOffer} />
 
         {/* 4. Upload Brochures */}
         <div>
@@ -253,8 +244,9 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
           )}
         </div>
 
-        {/* 5. Website URL */}
-        <TextField label="Website URL" placeholder="https://www.assetz.in/mizumi" value={websiteUrl} onChange={setWebsiteUrl} />
+        {/* 5. Project Website */}
+        <TextField label="Project Website" placeholder="https://godrejproperties.com/godrej-air" value={websiteUrl} onChange={setWebsiteUrl}
+          helper="Used as context for AI to understand the project better" />
 
         {/* 6. Business Details */}
         <TextAreaField label="Business Details" placeholder="Any additional context about the product, target audience, or competitive positioning..."
@@ -302,8 +294,8 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
           </div>
         </div>
 
-        {/* 8. Budget Ceiling */}
-        <TextField label="Budget Ceiling" placeholder="e.g., 250000" value={budgetCeiling} onChange={setBudgetCeiling} type="number" prefix="₹" />
+        {/* 8. Budget */}
+        <TextField label="Budget" placeholder="e.g., 250000" value={budgetCeiling} onChange={setBudgetCeiling} type="number" prefix="₹" />
 
         {/* 9. Targeted Language(s) */}
         <div>
