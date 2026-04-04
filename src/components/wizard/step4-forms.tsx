@@ -468,7 +468,7 @@ export function Step4Forms({ onNext, onBack }: Step4Props) {
         {flexibleDelivery && (
           <div className="flex gap-3 ml-1">
             {(["optimized", "manual"] as const).map((mode) => (
-              <label key={mode} className="flex items-center gap-2 cursor-pointer">
+              <button key={mode} type="button" onClick={() => setDeliveryMode(mode)} className="flex items-center gap-2 cursor-pointer">
                 <div
                   className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
                     deliveryMode === mode ? "border-accent" : "border-border"
@@ -477,7 +477,7 @@ export function Step4Forms({ onNext, onBack }: Step4Props) {
                   {deliveryMode === mode && <div className="h-2 w-2 rounded-full bg-accent" />}
                 </div>
                 <span className="text-[12px] text-text-primary capitalize">{mode}</span>
-              </label>
+              </button>
             ))}
           </div>
         )}
@@ -529,7 +529,7 @@ export function Step4Forms({ onNext, onBack }: Step4Props) {
               </label>
               <div className="flex gap-3 mb-3">
                 {(["paragraph", "list"] as const).map((fmt) => (
-                  <label key={fmt} className="flex items-center gap-2 cursor-pointer">
+                  <button key={fmt} type="button" onClick={() => setDescriptionFormat(fmt)} className="flex items-center gap-2 cursor-pointer">
                     <div
                       className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
                         descriptionFormat === fmt ? "border-accent" : "border-border"
@@ -538,7 +538,7 @@ export function Step4Forms({ onNext, onBack }: Step4Props) {
                       {descriptionFormat === fmt && <div className="h-2 w-2 rounded-full bg-accent" />}
                     </div>
                     <span className="text-[12px] text-text-primary capitalize">{fmt}</span>
-                  </label>
+                  </button>
                 ))}
               </div>
 
@@ -869,7 +869,7 @@ export function Step4Forms({ onNext, onBack }: Step4Props) {
               { value: "call" as EndingAction, label: "Call business" },
             ] as const
           ).map((opt) => (
-            <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+            <button key={opt.value} type="button" onClick={() => setEndingAction(opt.value)} className="flex items-center gap-2 cursor-pointer">
               <div
                 className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
                   endingAction === opt.value ? "border-accent" : "border-border"
@@ -878,7 +878,7 @@ export function Step4Forms({ onNext, onBack }: Step4Props) {
                 {endingAction === opt.value && <div className="h-2 w-2 rounded-full bg-accent" />}
               </div>
               <span className="text-[12px] text-text-primary">{opt.label}</span>
-            </label>
+            </button>
           ))}
         </div>
       </div>
@@ -934,15 +934,13 @@ export function Step4Forms({ onNext, onBack }: Step4Props) {
       case "form_type":
         return (
           <div className="space-y-3">
-            <div className="h-12 w-12 rounded-[12px] bg-surface-page border border-border flex items-center justify-center mx-auto">
-              <FileText size={20} strokeWidth={1.5} className="text-text-tertiary" />
+            <div className="h-12 w-12 rounded-[12px] bg-accent/10 border border-accent/20 flex items-center justify-center mx-auto">
+              <span className="text-[14px] font-bold text-accent">GP</span>
             </div>
+            <div className="text-[10px] text-text-tertiary text-center">Godrej Properties</div>
             <h4 className="text-[13px] font-semibold text-text-primary text-center leading-snug">
-              Headline text
+              {formName || "Form headline"}
             </h4>
-            <p className="text-[10px] text-text-tertiary text-center">
-              {formType === "higher_intent" ? "Higher intent form" : "Quick volume form"}
-            </p>
           </div>
         );
       case "intro":
@@ -1143,6 +1141,16 @@ export function Step4Forms({ onNext, onBack }: Step4Props) {
             <div className="flex justify-center pt-2 pb-1 bg-white">
               <div className="h-[6px] w-[80px] rounded-full bg-[#1A1A1A]" />
             </div>
+
+            {/* Background image */}
+            {backgroundImage && (activeSection === "intro" || activeSection === "form_type") && (
+              <div className="h-[100px] bg-gradient-to-b from-[#1a365d] via-[#2d4a7a] to-[#4a7ab5] flex items-end px-4 pb-3">
+                <div className="text-white">
+                  <div className="text-[9px] font-medium opacity-70">GODREJ PROPERTIES</div>
+                  <div className="text-[11px] font-semibold mt-0.5">Godrej Air — Phase 3</div>
+                </div>
+              </div>
+            )}
 
             {/* Content */}
             <div className="px-4 pb-4 pt-3 min-h-[380px] max-h-[440px] overflow-y-auto">
