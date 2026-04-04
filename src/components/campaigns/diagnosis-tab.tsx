@@ -68,15 +68,13 @@ export function DiagnosisTab() {
               </ul>
             </div>
             <div>
-              <div className="flex items-center gap-1.5 mb-3">
+              <div className="flex items-center gap-1.5 mb-2">
                 <Lightbulb size={14} strokeWidth={1.5} className="text-text-tertiary" />
-                <span className="text-[12px] font-medium text-text-secondary uppercase tracking-[0.4px]">What to do</span>
+                <span className="text-[12px] font-medium text-text-secondary uppercase tracking-[0.4px]">Recommendations</span>
               </div>
-              <ul className="space-y-2">
-                {campaignDiagnosis.recommendations.map((r, i) => (
-                  <li key={i} className="text-[12px] text-text-secondary leading-relaxed pl-3 relative before:content-[''] before:absolute before:left-0 before:top-[7px] before:w-1 before:h-1 before:bg-accent before:rounded-full">{r}</li>
-                ))}
-              </ul>
+              <p className="text-[12px] text-text-secondary leading-relaxed">
+                Actionable recommendations are shown at the top of this page in the <span className="font-medium text-text-primary">AI Recommendations</span> section with one-click apply buttons.
+              </p>
             </div>
           </div>
 

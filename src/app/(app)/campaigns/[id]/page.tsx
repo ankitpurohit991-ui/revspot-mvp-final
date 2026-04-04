@@ -33,23 +33,67 @@ export default function CampaignDetailPage() {
   const campaign = campaignDetail;
   const diagCfg = diagnosisStatusConfig[campaignDiagnosis.status];
 
-  const [suggestions, setSuggestions] = useState([
-    { id: "sug-1", text: 'Shift 20% budget from "Broad Bangalore" to "Whitefield HNI" — Whitefield HNI has 35% lower CPL and 2x conversion rate.' },
-    { id: "sug-2", text: 'Pause "Godrej Air Floor Plan Static" creative — CTR dropped 40% in the last 7 days. Consider replacing with a new lifestyle creative.' },
-    { id: "sug-3", text: 'Increase bid on "3BHK Whitefield" audience by 15% — conversion rate is 2.3x above average but impression share is low.' },
+  interface Suggestion {
+    id: string;
+    text: string;
+    cta: string;
+    ctaLink?: string;
+    ctaModule?: string;
+    type: "budget" | "creative" | "targeting" | "general";
+  }
+
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([
+    {
+      id: "sug-1",
+      text: 'Shift 20% budget from "Broad Bangalore" to "Whitefield HNI" — Whitefield HNI has 35% lower CPL and 2x conversion rate.',
+      cta: "Adjust Budget",
+      type: "budget",
+    },
+    {
+      id: "sug-2",
+      text: 'Pause "Godrej Air Floor Plan Static" creative — CTR dropped 40% in the last 7 days. Consider replacing with a new lifestyle creative.',
+      cta: "Update Creative",
+      ctaLink: "/creatives",
+      ctaModule: "Creatives",
+      type: "creative",
+    },
+    {
+      id: "sug-3",
+      text: 'Increase bid on "3BHK Whitefield" audience by 15% — conversion rate is 2.3x above average but impression share is low.',
+      cta: "Adjust Targeting",
+      type: "targeting",
+    },
+    {
+      id: "sug-4",
+      text: 'Add Sarjapur Road as a separate ad set — 12% of qualified leads come from this area but no dedicated targeting exists.',
+      cta: "Add Ad Set",
+      type: "general",
+    },
   ]);
   const [appliedId, setAppliedId] = useState<string | null>(null);
+  const [navigationConfirm, setNavigationConfirm] = useState<{ link: string; module: string } | null>(null);
 
-  const applySuggestion = (id: string) => {
-    setAppliedId(id);
+  const applySuggestion = (sug: Suggestion) => {
+    if (sug.ctaLink && sug.ctaModule) {
+      setNavigationConfirm({ link: sug.ctaLink, module: sug.ctaModule });
+      return;
+    }
+    setAppliedId(sug.id);
     setTimeout(() => {
-      setSuggestions((prev) => prev.filter((s) => s.id !== id));
+      setSuggestions((prev) => prev.filter((s) => s.id !== sug.id));
       setAppliedId(null);
     }, 1200);
   };
 
   const dismissSuggestion = (id: string) => {
     setSuggestions((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  const confirmNavigation = () => {
+    if (navigationConfirm) {
+      router.push(navigationConfirm.link);
+    }
+    setNavigationConfirm(null);
   };
 
   const tabs: { key: Tab; label: string; count?: number }[] = [
@@ -93,12 +137,12 @@ export default function CampaignDetailPage() {
         </div>
       </div>
 
-      {/* Optimization Suggestions */}
+      {/* AI Recommendations */}
       {suggestions.length > 0 && (
         <div className="mb-4 bg-[#EFF6FF] border border-[#3B82F6]/20 rounded-card p-4">
           <div className="flex items-center gap-2 mb-3">
             <Lightbulb size={14} strokeWidth={2} className="text-[#3B82F6]" />
-            <span className="text-[13px] font-semibold text-text-primary">AI Optimization Suggestions</span>
+            <span className="text-[13px] font-semibold text-text-primary">AI Recommendations</span>
             <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-[#3B82F6]/10 text-[#1D4ED8]">{suggestions.length}</span>
           </div>
           <div className="space-y-2">
@@ -113,9 +157,9 @@ export default function CampaignDetailPage() {
                     </span>
                   ) : (
                     <>
-                      <button onClick={() => applySuggestion(sug.id)}
+                      <button onClick={() => applySuggestion(sug)}
                         className="h-7 px-3 text-[11px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors">
-                        Apply
+                        {sug.cta}
                       </button>
                       <button onClick={() => dismissSuggestion(sug.id)}
                         className="p-1 text-text-tertiary hover:text-text-primary rounded-button hover:bg-surface-secondary transition-colors">
@@ -128,6 +172,31 @@ export default function CampaignDetailPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* Navigation Confirmation Popup */}
+      {navigationConfirm && (
+        <>
+          <div className="fixed inset-0 bg-black/20 z-[60]" onClick={() => setNavigationConfirm(null)} />
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <div className="bg-white rounded-card border border-border shadow-xl w-full max-w-[400px] p-6">
+              <h3 className="text-[16px] font-semibold text-text-primary mb-2">Navigate to {navigationConfirm.module}?</h3>
+              <p className="text-[13px] text-text-secondary leading-relaxed mb-5">
+                You&apos;ll be taken to the {navigationConfirm.module} section to make the recommended changes. Any unsaved changes on this page will be preserved.
+              </p>
+              <div className="flex items-center justify-end gap-2">
+                <button onClick={() => setNavigationConfirm(null)}
+                  className="h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors">
+                  Cancel
+                </button>
+                <button onClick={confirmNavigation}
+                  className="h-9 px-4 text-[13px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors">
+                  Go to {navigationConfirm.module}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
       )}
 
       {/* Diagnosis Summary Bar */}
