@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { ArrowLeft, Calendar, ArrowRight, Sparkles } from "lucide-react";
+import { ArrowLeft, Calendar, ArrowRight, Sparkles, Lightbulb, X, Check } from "lucide-react";
 import { campaignDetail, campaignDiagnosis } from "@/lib/campaign-data";
 import { LeadsTab } from "@/components/campaigns/leads-tab";
 import { AnalysisTab } from "@/components/campaigns/analysis-tab";
@@ -32,6 +32,25 @@ export default function CampaignDetailPage() {
 
   const campaign = campaignDetail;
   const diagCfg = diagnosisStatusConfig[campaignDiagnosis.status];
+
+  const [suggestions, setSuggestions] = useState([
+    { id: "sug-1", text: 'Shift 20% budget from "Broad Bangalore" to "Whitefield HNI" — Whitefield HNI has 35% lower CPL and 2x conversion rate.' },
+    { id: "sug-2", text: 'Pause "Godrej Air Floor Plan Static" creative — CTR dropped 40% in the last 7 days. Consider replacing with a new lifestyle creative.' },
+    { id: "sug-3", text: 'Increase bid on "3BHK Whitefield" audience by 15% — conversion rate is 2.3x above average but impression share is low.' },
+  ]);
+  const [appliedId, setAppliedId] = useState<string | null>(null);
+
+  const applySuggestion = (id: string) => {
+    setAppliedId(id);
+    setTimeout(() => {
+      setSuggestions((prev) => prev.filter((s) => s.id !== id));
+      setAppliedId(null);
+    }, 1200);
+  };
+
+  const dismissSuggestion = (id: string) => {
+    setSuggestions((prev) => prev.filter((s) => s.id !== id));
+  };
 
   const tabs: { key: Tab; label: string; count?: number }[] = [
     { key: "analysis", label: "Analysis" },
@@ -73,6 +92,43 @@ export default function CampaignDetailPage() {
           <span>Budget: <span className="text-text-primary font-medium">₹{campaign.dailyBudget.toLocaleString("en-IN")}/day</span></span>
         </div>
       </div>
+
+      {/* Optimization Suggestions */}
+      {suggestions.length > 0 && (
+        <div className="mb-4 bg-[#EFF6FF] border border-[#3B82F6]/20 rounded-card p-4">
+          <div className="flex items-center gap-2 mb-3">
+            <Lightbulb size={14} strokeWidth={2} className="text-[#3B82F6]" />
+            <span className="text-[13px] font-semibold text-text-primary">AI Optimization Suggestions</span>
+            <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-[#3B82F6]/10 text-[#1D4ED8]">{suggestions.length}</span>
+          </div>
+          <div className="space-y-2">
+            {suggestions.map((sug) => (
+              <div key={sug.id} className="flex items-start gap-3 bg-white rounded-[8px] px-4 py-3 border border-[#3B82F6]/10">
+                <Lightbulb size={14} strokeWidth={1.5} className="text-[#3B82F6] mt-0.5 shrink-0" />
+                <p className="text-[12px] text-text-secondary leading-relaxed flex-1">{sug.text}</p>
+                <div className="flex items-center gap-2 shrink-0">
+                  {appliedId === sug.id ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#15803D]">
+                      <Check size={12} strokeWidth={2} /> Applied!
+                    </span>
+                  ) : (
+                    <>
+                      <button onClick={() => applySuggestion(sug.id)}
+                        className="h-7 px-3 text-[11px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors">
+                        Apply
+                      </button>
+                      <button onClick={() => dismissSuggestion(sug.id)}
+                        className="p-1 text-text-tertiary hover:text-text-primary rounded-button hover:bg-surface-secondary transition-colors">
+                        <X size={14} strokeWidth={1.5} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Diagnosis Summary Bar */}
       <div className="flex items-center gap-3 mb-5 px-4 py-2.5 bg-white border border-border rounded-card">

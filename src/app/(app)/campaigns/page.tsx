@@ -18,6 +18,7 @@ import {
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
+  Lightbulb,
 } from "lucide-react";
 import { campaignsList } from "@/lib/campaign-data";
 import type { CampaignStatus, CampaignHealth } from "@/lib/campaign-data";
@@ -206,8 +207,16 @@ export default function CampaignsPage() {
                     i % 2 === 0 ? "bg-white" : "bg-surface-page/40"
                   }`}
                 >
-                  <td className="px-4 py-3 text-[13px] text-text-primary font-medium max-w-[280px] truncate">
-                    {c.name}
+                  <td className="px-4 py-3 text-[13px] text-text-primary font-medium max-w-[280px]">
+                    <div className="flex items-center gap-1.5 truncate">
+                      {c.name}
+                      {c.id === "camp-7" && (
+                        <span className="inline-flex items-center gap-0.5 text-[9px] font-medium px-1.5 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8] shrink-0" title="Optimization suggestions available">
+                          <Lightbulb size={9} strokeWidth={2} />
+                          Optimize
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     <TypeBadge type={c.type} />
