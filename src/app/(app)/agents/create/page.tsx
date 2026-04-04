@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import {
   newVoiceOptions, languageOptions, defaultObjectives,
-  defaultSystemPrompt, defaultFAQs,
+  defaultSystemPrompt, defaultFAQs, conversationSteps,
 } from "@/lib/voice-agent-data";
 import type {
   AgentTemplate, AgentTone, LanguageBehavior, Objective,
@@ -139,6 +139,7 @@ const STEPS = [
   { label: "Identity" },
   { label: "Channels" },
   { label: "Knowledge" },
+  { label: "Flow" },
   { label: "Objectives" },
   { label: "Review" },
 ];
@@ -193,8 +194,6 @@ export default function CreateAgentPage() {
   // voice settings
   const [selectedVoice, setSelectedVoice] = useState("v-1");
   const [maxDuration, setMaxDuration] = useState("5");
-  const [silenceTimeout, setSilenceTimeout] = useState("10");
-  const [interruptionHandling, setInterruptionHandling] = useState(true);
   // whatsapp settings
   const [firstMessage, setFirstMessage] = useState("Hi {{lead_name}}, this is {{persona}} from Godrej Properties. I saw you were interested in {{project_name}}. Would you like to know more?");
   const [quickReplies, setQuickReplies] = useState<string[]>(["Yes, tell me more", "Schedule a site visit", "Send brochure", "Not interested"]);
@@ -206,7 +205,18 @@ export default function CreateAgentPage() {
   const [faqs, setFaqs] = useState(defaultFAQs.map((f, i) => ({ ...f, id: `faq-${i}` })));
   const [systemPrompt, setSystemPrompt] = useState(defaultSystemPrompt);
 
-  /* ── Step 4: Objectives ────────────────────────────────────── */
+  /* ── Step 4: Conversation Flow ─────────────────────────────── */
+  const [conversationFlow, setConversationFlow] = useState(
+    conversationSteps.map(cs => ({ ...cs }))
+  );
+  const [expandedFlowStep, setExpandedFlowStep] = useState<string | null>(null);
+
+  /* ── Step 5: Objectives ──────────────────────────────────── */
+  const [budgetThreshold, setBudgetThreshold] = useState("1");
+  const [timelineThreshold, setTimelineThreshold] = useState("6");
+  const [requireDecisionMaker, setRequireDecisionMaker] = useState(true);
+  const [requireSiteVisit, setRequireSiteVisit] = useState(true);
+  const [qualificationThresholdRule, setQualificationThresholdRule] = useState("all_critical_1_high");
   const [objectives, setObjectives] = useState<Objective[]>(defaultObjectives);
   const [expandedObj, setExpandedObj] = useState<string | null>(null);
   const [threshold, setThreshold] = useState("all_critical_1_high");
@@ -214,6 +224,25 @@ export default function CreateAgentPage() {
   /* ── Helpers ────────────────────────────────────────────────── */
   const canContinue0 = name.trim().length > 0;
   const canContinue1 = voiceEnabled || whatsappEnabled;
+
+  function moveFlow(from: number, dir: -1 | 1) {
+    const to = from + dir;
+    if (to < 0 || to >= conversationFlow.length) return;
+    const arr = [...conversationFlow];
+    [arr[from], arr[to]] = [arr[to], arr[from]];
+    setConversationFlow(arr.map((s, i) => ({ ...s, step: i + 1 })));
+  }
+
+  function addFlowStep() {
+    const ns = {
+      id: `cs-${Date.now()}`,
+      step: conversationFlow.length + 1,
+      name: "",
+      script: "",
+    };
+    setConversationFlow(prev => [...prev, ns]);
+    setExpandedFlowStep(ns.id);
+  }
 
   function moveObj(from: number, dir: -1 | 1) {
     const to = from + dir;
@@ -253,7 +282,7 @@ export default function CreateAgentPage() {
         <span className="text-meta text-text-secondary">Tools &rsaquo; Agents &rsaquo; Create</span>
       </div>
 
-      {/* ── Progress stepper (5 steps) ───────────────────────── */}
+      {/* ── Progress stepper (6 steps) ───────────────────────── */}
       <div className="flex items-center justify-center mb-10">
         {STEPS.map((s, i) => (
           <div key={i} className="flex items-center">
@@ -433,21 +462,11 @@ export default function CreateAgentPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <label className={subLabelCls}>Max duration (minutes)</label>
-                          <input type="number" value={maxDuration} onChange={(e) => setMaxDuration(e.target.value)}
-                            className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent tabular-nums" />
-                        </div>
-                        <div>
-                          <label className={subLabelCls}>Silence timeout (seconds)</label>
-                          <input type="number" value={silenceTimeout} onChange={(e) => setSilenceTimeout(e.target.value)}
-                            className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent tabular-nums" />
-                        </div>
+                      <div>
+                        <label className={subLabelCls}>Max duration (minutes)</label>
+                        <input type="number" value={maxDuration} onChange={(e) => setMaxDuration(e.target.value)}
+                          className="w-32 h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent tabular-nums" />
                       </div>
-
-                      <Toggle enabled={interruptionHandling} onToggle={() => setInterruptionHandling(!interruptionHandling)}
-                        label="Interruption handling" helper="Agent can detect and gracefully handle when the lead interrupts mid-sentence" />
                     </div>
                   )}
                 </div>
@@ -611,14 +630,142 @@ export default function CreateAgentPage() {
             )}
 
             {/* ════════════════════════════════════════════════════
-                STEP 4 — Objectives
+                STEP 4 — Conversation Flow
             ════════════════════════════════════════════════════ */}
             {step === 3 && (
+              <div className="space-y-5">
+                <div className="mb-2">
+                  <h2 className="text-[20px] font-semibold text-text-primary">Conversation Flow</h2>
+                  <p className="text-meta text-text-secondary mt-1">Define the flow of the conversation your agent will follow.</p>
+                </div>
+
+                <div className="bg-white border border-border rounded-card p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div>
+                      <h3 className="text-card-title text-text-primary">Conversation steps</h3>
+                      <p className="text-[11px] text-text-tertiary mt-0.5">{conversationFlow.length} step{conversationFlow.length !== 1 ? "s" : ""} configured</p>
+                    </div>
+                    <button onClick={addFlowStep}
+                      className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">
+                      <Plus size={13} strokeWidth={1.5} /> Add step
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {conversationFlow.map((fs, i) => (
+                      <div key={fs.id} className="border border-border rounded-[6px] overflow-hidden">
+                        <button onClick={() => setExpandedFlowStep(expandedFlowStep === fs.id ? null : fs.id)}
+                          className="w-full flex items-center gap-2.5 px-3 py-2.5 hover:bg-surface-page transition-colors text-left">
+                          <div className="flex flex-col gap-0.5">
+                            <button type="button" onClick={(e) => { e.stopPropagation(); moveFlow(i, -1); }} disabled={i === 0} className="text-text-tertiary hover:text-text-secondary disabled:opacity-30">
+                              <ChevronUp size={11} strokeWidth={2} />
+                            </button>
+                            <button type="button" onClick={(e) => { e.stopPropagation(); moveFlow(i, 1); }} disabled={i === conversationFlow.length - 1} className="text-text-tertiary hover:text-text-secondary disabled:opacity-30">
+                              <ChevronDown size={11} strokeWidth={2} />
+                            </button>
+                          </div>
+                          <span className="w-5 h-5 rounded-full bg-surface-secondary flex items-center justify-center text-[10px] font-semibold text-text-tertiary">{i + 1}</span>
+                          <span className="text-[13px] font-medium text-text-primary flex-1">{fs.name || "Untitled step"}</span>
+                          {expandedFlowStep === fs.id ? <ChevronUp size={14} strokeWidth={1.5} className="text-text-tertiary" /> : <ChevronDown size={14} strokeWidth={1.5} className="text-text-tertiary" />}
+                        </button>
+
+                        {expandedFlowStep === fs.id && (
+                          <div className="px-4 pb-4 pt-2 border-t border-border-subtle space-y-4">
+                            <div>
+                              <label className={subLabelCls}>Step name</label>
+                              <input type="text" value={fs.name} onChange={(e) => setConversationFlow(prev => prev.map(s => s.id === fs.id ? { ...s, name: e.target.value } : s))}
+                                placeholder="e.g., Greeting" className="w-full h-9 px-2.5 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent" />
+                            </div>
+                            <div>
+                              <label className={subLabelCls}>Script</label>
+                              <textarea value={fs.script} onChange={(e) => setConversationFlow(prev => prev.map(s => s.id === fs.id ? { ...s, script: e.target.value } : s))} rows={3}
+                                placeholder="What should the agent say or do in this step?"
+                                className="w-full px-2.5 py-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent resize-none leading-relaxed" />
+                            </div>
+                            <div className="flex justify-end">
+                              <button onClick={() => { setConversationFlow(prev => prev.filter(s => s.id !== fs.id).map((s, idx) => ({ ...s, step: idx + 1 }))); setExpandedFlowStep(null); }}
+                                className="inline-flex items-center gap-1 text-[12px] font-medium text-status-error hover:text-red-700 transition-colors">
+                                <Trash2 size={13} strokeWidth={1.5} /> Remove step
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {conversationFlow.length === 0 && (
+                    <div className="text-center py-8 text-[13px] text-text-tertiary">
+                      No steps yet. Click &ldquo;Add step&rdquo; to get started.
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex items-center justify-between pt-2">
+                  <button onClick={() => setStep(2)} className="inline-flex items-center gap-1.5 h-10 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">
+                    <ArrowLeft size={15} strokeWidth={1.5} /> Back
+                  </button>
+                  <button onClick={() => setStep(4)} className="inline-flex items-center gap-2 h-10 px-6 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
+                    Continue <ArrowRight size={15} strokeWidth={2} />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* ════════════════════════════════════════════════════
+                STEP 5 — Objectives
+            ════════════════════════════════════════════════════ */}
+            {step === 4 && (
               <div className="space-y-5">
                 <div className="mb-2">
                   <h2 className="text-[20px] font-semibold text-text-primary">Define objectives</h2>
                   <p className="text-meta text-text-secondary mt-1">What should the agent accomplish in each conversation? Add, edit, and reorder objectives below.</p>
                 </div>
+
+                {/* Qualification Criteria — only for qualifying template */}
+                {template === "qualifying" && (
+                  <div className="bg-white border border-border rounded-card p-6">
+                    <h3 className="text-card-title text-text-primary mb-1">Qualification Criteria</h3>
+                    <p className="text-[11px] text-text-tertiary mb-4">Define what makes a lead qualified. The agent will score leads against these criteria.</p>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className={subLabelCls}>Budget threshold</label>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[13px] text-text-secondary">&#8377;</span>
+                          <input type="number" value={budgetThreshold} onChange={(e) => setBudgetThreshold(e.target.value)}
+                            className="w-24 h-9 px-2.5 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent tabular-nums" />
+                          <span className="text-[12px] text-text-tertiary">Cr</span>
+                        </div>
+                      </div>
+                      <div>
+                        <label className={subLabelCls}>Timeline threshold</label>
+                        <div className="flex items-center gap-1.5">
+                          <input type="number" value={timelineThreshold} onChange={(e) => setTimelineThreshold(e.target.value)}
+                            className="w-24 h-9 px-2.5 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent tabular-nums" />
+                          <span className="text-[12px] text-text-tertiary">months</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 space-y-0">
+                      <Toggle enabled={requireDecisionMaker} onToggle={() => setRequireDecisionMaker(!requireDecisionMaker)}
+                        label="Decision maker" helper="Require lead to be the primary decision maker" />
+                      <Toggle enabled={requireSiteVisit} onToggle={() => setRequireSiteVisit(!requireSiteVisit)}
+                        label="Site visit willingness" helper="Lead should be willing to visit the site" />
+                    </div>
+
+                    <div className="mt-4">
+                      <label className={subLabelCls}>Threshold rule</label>
+                      <select value={qualificationThresholdRule} onChange={(e) => setQualificationThresholdRule(e.target.value)}
+                        className="h-9 px-3 pr-8 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer" style={selectStyle}>
+                        <option value="all_critical_1_high">All critical + at least 1 high metric</option>
+                        <option value="all_critical">All critical metrics</option>
+                        <option value="any_3">Any 3 metrics</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
 
                 <div className="bg-white border border-border rounded-card p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -747,10 +894,10 @@ export default function CreateAgentPage() {
                 </div>
 
                 <div className="flex items-center justify-between pt-2">
-                  <button onClick={() => setStep(2)} className="inline-flex items-center gap-1.5 h-10 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">
+                  <button onClick={() => setStep(3)} className="inline-flex items-center gap-1.5 h-10 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">
                     <ArrowLeft size={15} strokeWidth={1.5} /> Back
                   </button>
-                  <button onClick={() => setStep(4)} className="inline-flex items-center gap-2 h-10 px-6 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
+                  <button onClick={() => setStep(5)} className="inline-flex items-center gap-2 h-10 px-6 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
                     Continue <ArrowRight size={15} strokeWidth={2} />
                   </button>
                 </div>
@@ -758,9 +905,9 @@ export default function CreateAgentPage() {
             )}
 
             {/* ════════════════════════════════════════════════════
-                STEP 5 — Review
+                STEP 6 — Review
             ════════════════════════════════════════════════════ */}
-            {step === 4 && (
+            {step === 5 && (
               <div className="space-y-5">
                 <div className="mb-2">
                   <h2 className="text-[20px] font-semibold text-text-primary">Review &amp; create</h2>
@@ -857,11 +1004,27 @@ export default function CreateAgentPage() {
                   </div>
                 </div>
 
+                {/* Flow summary */}
+                <div className="bg-white border border-border rounded-card p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-card-title text-text-primary">Conversation Flow</h3>
+                    <button onClick={() => setStep(3)} className="text-[11px] font-medium text-accent hover:underline">Edit</button>
+                  </div>
+                  <div className="space-y-1.5">
+                    {conversationFlow.map((fs, i) => (
+                      <div key={fs.id} className="flex items-center gap-2.5 py-1.5">
+                        <span className="w-5 h-5 rounded-full bg-surface-secondary flex items-center justify-center text-[10px] font-semibold text-text-tertiary">{i + 1}</span>
+                        <span className="text-[13px] text-text-primary">{fs.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Objectives summary */}
                 <div className="bg-white border border-border rounded-card p-6">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-card-title text-text-primary">Objectives</h3>
-                    <button onClick={() => setStep(3)} className="text-[11px] font-medium text-accent hover:underline">Edit</button>
+                    <button onClick={() => setStep(4)} className="text-[11px] font-medium text-accent hover:underline">Edit</button>
                   </div>
                   <div className="space-y-1.5">
                     {objectives.map((obj, i) => (
@@ -956,7 +1119,7 @@ export default function CreateAgentPage() {
 
                 {/* Actions */}
                 <div className="flex items-center justify-between pt-2 pb-8">
-                  <button onClick={() => setStep(3)} className="inline-flex items-center gap-1.5 h-10 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">
+                  <button onClick={() => setStep(4)} className="inline-flex items-center gap-1.5 h-10 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">
                     <ArrowLeft size={15} strokeWidth={1.5} /> Back
                   </button>
                   <button onClick={() => router.push("/agents/va-1")} className="inline-flex items-center gap-2 h-10 px-6 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
