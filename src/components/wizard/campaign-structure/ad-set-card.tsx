@@ -357,52 +357,24 @@ export function AdSetCard({
                   </div>
                   <span className="text-[10px] text-text-tertiary">{ad.creativeName}</span>
                 </summary>
-                <div className="px-3 pb-3 space-y-3 border-t border-border-subtle">
-                  <div className="pt-3">
-                    <label className="block text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px] mb-1">Primary Text</label>
-                    <textarea
-                      value={ad.primaryText}
-                      onChange={(e) => {
-                        const updated = [...adSet.ads];
-                        updated[adIdx] = { ...ad, primaryText: e.target.value };
-                        onChange({ ads: updated });
-                      }}
-                      rows={3}
-                      className="w-full px-2.5 py-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors resize-none leading-relaxed"
-                    />
+                <div className="px-3 pb-3 space-y-2.5 border-t border-border-subtle pt-3">
+                  <div>
+                    <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Primary Text</span>
+                    <p className="text-[11px] text-text-secondary leading-relaxed mt-0.5 whitespace-pre-line line-clamp-3">{ad.primaryText}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px] mb-1">Headline</label>
-                      <input type="text" value={ad.headline}
-                        onChange={(e) => {
-                          const updated = [...adSet.ads];
-                          updated[adIdx] = { ...ad, headline: e.target.value };
-                          onChange({ ads: updated });
-                        }}
-                        className="w-full h-8 px-2.5 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors" />
+                      <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Headline</span>
+                      <p className="text-[11px] text-text-primary font-medium mt-0.5">{ad.headline}</p>
                     </div>
                     <div>
-                      <label className="block text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px] mb-1">Description</label>
-                      <input type="text" value={ad.description}
-                        onChange={(e) => {
-                          const updated = [...adSet.ads];
-                          updated[adIdx] = { ...ad, description: e.target.value };
-                          onChange({ ads: updated });
-                        }}
-                        className="w-full h-8 px-2.5 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors" />
+                      <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Description</span>
+                      <p className="text-[11px] text-text-secondary mt-0.5">{ad.description}</p>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px] mb-1">URL Parameters</label>
-                    <input type="text" value={ad.urlParams}
-                      onChange={(e) => {
-                        const updated = [...adSet.ads];
-                        updated[adIdx] = { ...ad, urlParams: e.target.value };
-                        onChange({ ads: updated });
-                      }}
-                      className="w-full h-8 px-2.5 text-[11px] font-mono border border-border rounded-input bg-surface-page text-text-secondary focus:outline-none focus:border-accent transition-colors" />
-                    <p className="text-[9px] text-text-tertiary mt-1">AI-generated tracking parameters. Edit if needed.</p>
+                    <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">URL Parameters</span>
+                    <p className="text-[10px] font-mono text-text-tertiary mt-0.5 bg-surface-page rounded px-2 py-1 break-all">{ad.urlParams}</p>
                   </div>
                 </div>
               </details>

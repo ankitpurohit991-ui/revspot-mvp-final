@@ -81,7 +81,7 @@ function TypeBadge({ type }: { type: string }) {
   );
 }
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 15;
 
 export default function CampaignsPage() {
   const router = useRouter();
@@ -136,7 +136,7 @@ export default function CampaignsPage() {
       {/* Filters */}
       <motion.div variants={fadeUp} className="flex items-center gap-3 mb-5">
         <div className="flex items-center gap-0.5 bg-surface-secondary rounded-input p-0.5">
-          {(["all", "active", "paused", "completed"] as const).map((s) => (
+          {(["all", "active", "paused", "completed", "draft"] as const).map((s) => (
             <button
               key={s}
               onClick={() => {

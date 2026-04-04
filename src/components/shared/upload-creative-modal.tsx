@@ -7,7 +7,7 @@ import { X, Upload, Image as ImageIcon, Check } from "lucide-react";
 export interface UploadCreativeModalProps {
   open: boolean;
   onClose: () => void;
-  onComplete: (creative: { imageFile: string; postText: string; sizes: string[] }) => void;
+  onComplete: (creative: { imageFile: string; postText: string; headline: string; description: string; sizes: string[] }) => void;
   angleName: string;
   personaName: string;
 }
@@ -21,10 +21,13 @@ const SIZE_OPTIONS = [
 
 export function UploadCreativeModal({ open, onClose, onComplete, angleName, personaName }: UploadCreativeModalProps) {
   const [imageFile, setImageFile] = useState<string | null>(null);
-  const [postText, setPostText] = useState("");
+  const [primaryText, setPrimaryText] = useState("");
+  const [headline, setHeadline] = useState("");
+  const [description, setDescription] = useState("");
   const [selectedSizes, setSelectedSizes] = useState<string[]>(["sq", "story"]);
 
-  const canSubmit = imageFile && postText.trim().length > 0 && selectedSizes.length > 0;
+  const canSubmit = imageFile && primaryText.trim().length > 0 && headline.trim().length > 0 && selectedSizes.length > 0;
+  const postText = primaryText; // for preview compatibility
 
   const toggleSize = (id: string) => {
     setSelectedSizes((prev) => prev.includes(id) ? prev.filter((s) => s !== id) : [...prev, id]);
@@ -36,17 +39,23 @@ export function UploadCreativeModal({ open, onClose, onComplete, angleName, pers
     if (!imageFile || !postText.trim()) return;
     onComplete({
       imageFile,
-      postText: postText.trim(),
+      postText: primaryText.trim(),
+      headline: headline.trim(),
+      description: description.trim(),
       sizes: selectedSizes.map((id) => SIZE_OPTIONS.find((s) => s.id === id)?.dimensions || id),
     });
     setImageFile(null);
-    setPostText("");
+    setPrimaryText("");
+    setHeadline("");
+    setDescription("");
     setSelectedSizes(["sq", "story"]);
   };
 
   const handleClose = () => {
     setImageFile(null);
-    setPostText("");
+    setPrimaryText("");
+    setHeadline("");
+    setDescription("");
     setSelectedSizes(["sq", "story"]);
     onClose();
   };
@@ -107,15 +116,29 @@ export function UploadCreativeModal({ open, onClose, onComplete, angleName, pers
                   )}
                 </div>
 
-                <div>
-                  <label className="block text-[12px] font-medium text-text-primary mb-1.5">Ad Copy</label>
-                  <textarea
-                    value={postText}
-                    onChange={(e) => setPostText(e.target.value)}
-                    rows={8}
-                    placeholder="Write the ad copy that will appear with this creative..."
-                    className="w-full px-3 py-2.5 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary resize-none leading-relaxed"
-                  />
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-[12px] font-medium text-text-primary mb-1">Primary Text</label>
+                    <textarea
+                      value={primaryText}
+                      onChange={(e) => setPrimaryText(e.target.value)}
+                      rows={4}
+                      placeholder="Main ad copy that appears above the image..."
+                      className="w-full px-2.5 py-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors placeholder:text-text-tertiary resize-none leading-relaxed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-medium text-text-primary mb-1">Headline</label>
+                    <input type="text" value={headline} onChange={(e) => setHeadline(e.target.value)}
+                      placeholder="Bold headline below the image"
+                      className="w-full h-8 px-2.5 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors placeholder:text-text-tertiary" />
+                  </div>
+                  <div>
+                    <label className="block text-[12px] font-medium text-text-primary mb-1">Description</label>
+                    <input type="text" value={description} onChange={(e) => setDescription(e.target.value)}
+                      placeholder="Short description text"
+                      className="w-full h-8 px-2.5 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors placeholder:text-text-tertiary" />
+                  </div>
                 </div>
               </div>
 
@@ -182,8 +205,12 @@ export function UploadCreativeModal({ open, onClose, onComplete, angleName, pers
                   <div className={`aspect-square bg-surface-secondary flex items-center justify-center ${imageFile ? "" : "opacity-40"}`}>
                     <ImageIcon size={32} strokeWidth={1} className="text-text-tertiary" />
                   </div>
-                  <div className="flex items-center justify-between px-3 py-1.5 border-t border-border-subtle bg-surface-page">
-                    <span className="text-[10px] text-text-secondary">godrejproperties.com</span>
+                  <div className="px-3 py-1.5 border-t border-border-subtle bg-surface-page">
+                    <div className="text-[10px] text-text-secondary mb-0.5">godrejproperties.com</div>
+                    {headline && <div className="text-[11px] font-semibold text-text-primary leading-snug">{headline}</div>}
+                    {description && <div className="text-[10px] text-text-tertiary mt-0.5 line-clamp-1">{description}</div>}
+                  </div>
+                  <div className="flex items-center justify-center px-3 py-1.5 border-t border-border-subtle">
                     <span className="text-[10px] font-medium text-accent">Learn More</span>
                   </div>
                 </div>
