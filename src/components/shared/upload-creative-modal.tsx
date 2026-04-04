@@ -2,7 +2,19 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Upload, Image as ImageIcon, Check } from "lucide-react";
+import { X, Upload, Image as ImageIcon, Check, ChevronDown } from "lucide-react";
+
+const CTA_OPTIONS = [
+  "Apply now",
+  "Book now",
+  "Download",
+  "Get offer",
+  "Get quote",
+  "Learn more",
+  "See details",
+  "Sign up",
+  "Subscribe",
+];
 
 export interface UploadCreativeModalProps {
   open: boolean;
@@ -24,6 +36,7 @@ export function UploadCreativeModal({ open, onClose, onComplete, angleName, pers
   const [primaryText, setPrimaryText] = useState("");
   const [headline, setHeadline] = useState("");
   const [description, setDescription] = useState("");
+  const [ctaButton, setCtaButton] = useState("Learn more");
   const [selectedSizes, setSelectedSizes] = useState<string[]>(["sq", "story"]);
 
   const canSubmit = imageFile && primaryText.trim().length > 0 && headline.trim().length > 0 && selectedSizes.length > 0;
@@ -56,6 +69,7 @@ export function UploadCreativeModal({ open, onClose, onComplete, angleName, pers
     setPrimaryText("");
     setHeadline("");
     setDescription("");
+    setCtaButton("Learn more");
     setSelectedSizes(["sq", "story"]);
     onClose();
   };
@@ -139,6 +153,14 @@ export function UploadCreativeModal({ open, onClose, onComplete, angleName, pers
                       placeholder="Short description text"
                       className="w-full h-8 px-2.5 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors placeholder:text-text-tertiary" />
                   </div>
+                  <div>
+                    <label className="block text-[12px] font-medium text-text-primary mb-1">Call to Action</label>
+                    <select value={ctaButton} onChange={(e) => setCtaButton(e.target.value)}
+                      className="w-full h-8 px-2.5 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors appearance-none cursor-pointer"
+                      style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9B9B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 10px center" }}>
+                      {CTA_OPTIONS.map((cta) => <option key={cta} value={cta}>{cta}</option>)}
+                    </select>
+                  </div>
                 </div>
               </div>
 
@@ -211,7 +233,7 @@ export function UploadCreativeModal({ open, onClose, onComplete, angleName, pers
                     {description && <div className="text-[10px] text-text-tertiary mt-0.5 line-clamp-1">{description}</div>}
                   </div>
                   <div className="flex items-center justify-center px-3 py-1.5 border-t border-border-subtle">
-                    <span className="text-[10px] font-medium text-accent">Learn More</span>
+                    <span className="text-[10px] font-medium text-accent">{ctaButton}</span>
                   </div>
                 </div>
               </div>
