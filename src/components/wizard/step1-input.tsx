@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Upload, ArrowRight, X, FileText } from "lucide-react";
-import { existingClients, cities, languages } from "@/lib/wizard-data";
+import { existingClients, cities, adAccounts } from "@/lib/wizard-data";
 
 interface Step1Props {
   onNext: () => void;
@@ -89,7 +89,7 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
   const [selectedLocations, setSelectedLocations] = useState<string[]>(["Bangalore"]);
   const [locationInput, setLocationInput] = useState("");
   const [budgetCeiling, setBudgetCeiling] = useState("");
-  const [selectedLanguages, setSelectedLanguages] = useState<string[]>(["English"]);
+  const [adAccount, setAdAccount] = useState("");
 
   const handleProjectChange = (v: string) => {
     if (v === "__new__") {
@@ -114,12 +114,6 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
 
   const removeLocation = (loc: string) => {
     setSelectedLocations((prev) => prev.filter((l) => l !== loc));
-  };
-
-  const toggleLanguage = (lang: string) => {
-    setSelectedLanguages((prev) =>
-      prev.includes(lang) ? prev.filter((l) => l !== lang) : [...prev, lang]
-    );
   };
 
   const handleFileDrop = (e: React.DragEvent) => {
@@ -297,21 +291,15 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
         {/* 8. Budget */}
         <TextField label="Budget" placeholder="e.g., 250000" value={budgetCeiling} onChange={setBudgetCeiling} type="number" prefix="₹" />
 
-        {/* 9. Targeted Language(s) */}
+        {/* 9. Ad Account */}
         <div>
-          <label className="block text-[13px] font-medium text-text-primary mb-1.5">Targeted Language(s)</label>
-          <div className="flex flex-wrap gap-2">
-            {languages.map((lang) => (
-              <button key={lang} type="button" onClick={() => toggleLanguage(lang)}
-                className={`px-2.5 py-1 text-[11px] font-medium rounded-badge transition-colors ${
-                  selectedLanguages.includes(lang)
-                    ? "bg-accent text-white"
-                    : "bg-surface-secondary text-text-secondary"
-                }`}>
-                {lang}
-              </button>
-            ))}
-          </div>
+          <label className="block text-[13px] font-medium text-text-primary mb-1.5">Ad Account <span className="text-status-error">*</span></label>
+          <select value={adAccount} onChange={(e) => setAdAccount(e.target.value)}
+            className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
+            style={selectStyle}>
+            <option value="">Select ad account...</option>
+            {adAccounts.map((acc) => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
+          </select>
         </div>
       </div>
 
