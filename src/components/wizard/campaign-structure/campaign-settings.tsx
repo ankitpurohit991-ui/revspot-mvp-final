@@ -1,62 +1,42 @@
 "use client";
 
-import { Info } from "lucide-react";
-import type {
-  CampaignSettings,
-  CampaignObjective,
-  SpecialAdCategory,
-  BidStrategy,
-} from "./types";
-import {
-  objectiveOptions,
-  specialAdCategoryOptions,
-  bidStrategyOptions,
-} from "./types";
+import { Lock } from "lucide-react";
+import type { CampaignSettings, BidStrategy } from "./types";
 
 interface CampaignSettingsProps {
   campaign: CampaignSettings;
   onChange: (updates: Partial<CampaignSettings>) => void;
 }
 
-/* ─── Toggle switch (matches step4-forms pattern) ─── */
-const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
-  <button
-    type="button"
-    onClick={onChange}
-    className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-150 ${
-      checked ? "bg-accent" : "bg-gray-200"
-    }`}
-  >
-    <span
-      className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform duration-150 ${
-        checked ? "translate-x-[18px]" : "translate-x-[3px]"
+/* ─── Toggle switch ─── */
+const Toggle = ({ checked, onChange, label }: { checked: boolean; onChange: () => void; label?: string }) => (
+  <div className="flex items-center gap-2">
+    <button
+      type="button"
+      onClick={onChange}
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-150 ${
+        checked ? "bg-accent" : "bg-gray-200"
       }`}
-    />
-  </button>
+    >
+      <span
+        className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform duration-150 ${
+          checked ? "translate-x-[18px]" : "translate-x-[3px]"
+        }`}
+      />
+    </button>
+    {label && <span className="text-[11px] text-text-tertiary">{checked ? "ON" : "OFF"}</span>}
+  </div>
 );
 
 export function CampaignSettingsCard({ campaign, onChange }: CampaignSettingsProps) {
-  /* ─── Special Ad Category logic: "none" is mutually exclusive ─── */
-  const handleCategoryToggle = (value: SpecialAdCategory) => {
-    if (value === "none") {
-      onChange({ specialAdCategories: ["none"] });
-      return;
-    }
-    const current = campaign.specialAdCategories.filter((c) => c !== "none");
-    const exists = current.includes(value);
-    const next = exists ? current.filter((c) => c !== value) : [...current, value];
-    onChange({ specialAdCategories: next.length === 0 ? ["none"] : next });
-  };
-
   return (
-    <div className="bg-white border border-border rounded-card p-6">
-      {/* Section label */}
-      <h2 className="text-[20px] font-semibold text-text-primary mb-6">Campaign Settings</h2>
+    <div>
+      <h2 className="text-[16px] font-semibold text-text-primary mb-5">Campaign Settings</h2>
 
       <div className="space-y-5">
         {/* ── 1. Campaign Name ── */}
         <div>
-          <label className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">
+          <label className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1.5">
             Campaign Name
           </label>
           <input
@@ -68,85 +48,33 @@ export function CampaignSettingsCard({ campaign, onChange }: CampaignSettingsPro
           />
         </div>
 
-        {/* ── 2. Campaign Objective ── */}
+        {/* ── 2. Campaign Objective (locked from Step 1) ── */}
         <div>
-          <label className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">
+          <label className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1.5">
             Campaign Objective
           </label>
-          <div className="flex flex-wrap gap-2">
-            {objectiveOptions.map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => onChange({ objective: opt.value as CampaignObjective })}
-                className={`px-3 py-1.5 text-[12px] font-medium rounded-full transition-colors duration-150 ${
-                  campaign.objective === opt.value
-                    ? "bg-accent text-white"
-                    : "bg-surface-secondary text-text-secondary hover:bg-gray-200"
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded-full bg-surface-secondary text-text-primary">
+            <Lock size={10} strokeWidth={2} className="text-text-tertiary" />
+            {campaign.objective === "leads" ? "Leads" : campaign.objective.charAt(0).toUpperCase() + campaign.objective.slice(1)}
           </div>
+          <p className="text-[10px] text-text-tertiary mt-1">Set in Campaign Input. Cannot be changed here.</p>
         </div>
 
-        {/* ── 3. Special Ad Categories ── */}
-        <div>
-          <div className="flex items-center gap-1.5 mb-2">
-            <label className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px]">
-              Special Ad Categories
-            </label>
-            <div className="group relative">
-              <Info size={12} strokeWidth={2} className="text-text-tertiary cursor-help" />
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2.5 py-1.5 text-[11px] text-white bg-gray-900 rounded-md whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-150 z-10">
-                Required for ads about credit, employment, housing, or social issues
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {specialAdCategoryOptions.map((opt) => {
-              const isActive =
-                opt.value === "none"
-                  ? campaign.specialAdCategories.includes("none")
-                  : campaign.specialAdCategories.includes(opt.value);
-              return (
-                <button
-                  key={opt.value}
-                  type="button"
-                  onClick={() => handleCategoryToggle(opt.value as SpecialAdCategory)}
-                  className={`px-3 py-1.5 text-[12px] font-medium rounded-full transition-colors duration-150 ${
-                    isActive
-                      ? "bg-accent text-white"
-                      : "bg-surface-secondary text-text-secondary hover:bg-gray-200"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* ── 4. Advantage Campaign Budget (CBO) ── */}
+        {/* ── 3. Advantage Campaign Budget (CBO) ── */}
         <div>
           <div className="flex items-center justify-between">
-            <label className="text-[13px] font-medium text-text-primary">
-              Advantage Campaign Budget
-            </label>
-            <Toggle
-              checked={campaign.cboEnabled}
-              onChange={() => onChange({ cboEnabled: !campaign.cboEnabled })}
-            />
+            <div>
+              <span className="text-[13px] font-medium text-text-primary">Advantage Campaign Budget</span>
+              <p className="text-[11px] text-text-tertiary mt-0.5">Let Meta optimize budget across ad sets</p>
+            </div>
+            <Toggle checked={campaign.cboEnabled} onChange={() => onChange({ cboEnabled: !campaign.cboEnabled })} label="toggle" />
           </div>
 
-          {/* ── 5. Campaign Budget (conditional on CBO) ── */}
+          {/* Campaign Budget (conditional on CBO) */}
           {campaign.cboEnabled && (
-            <div className="mt-4 flex items-center gap-3">
+            <div className="mt-3 flex items-center gap-3">
               <div className="relative flex-1">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-text-secondary">
-                  &#8377;
-                </span>
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-text-secondary">₹</span>
                 <input
                   type="number"
                   value={campaign.budget}
@@ -156,16 +84,10 @@ export function CampaignSettingsCard({ campaign, onChange }: CampaignSettingsPro
               </div>
               <div className="flex rounded-input border border-border overflow-hidden">
                 {(["daily", "lifetime"] as const).map((bt) => (
-                  <button
-                    key={bt}
-                    type="button"
-                    onClick={() => onChange({ budgetType: bt })}
+                  <button key={bt} type="button" onClick={() => onChange({ budgetType: bt })}
                     className={`px-3 h-9 text-[12px] font-medium transition-colors duration-150 ${
-                      campaign.budgetType === bt
-                        ? "bg-accent text-white"
-                        : "bg-white text-text-secondary hover:bg-surface-secondary"
-                    }`}
-                  >
+                      campaign.budgetType === bt ? "bg-accent text-white" : "bg-white text-text-secondary hover:bg-surface-secondary"
+                    }`}>
                     {bt === "daily" ? "Daily" : "Lifetime"}
                   </button>
                 ))}
@@ -174,41 +96,41 @@ export function CampaignSettingsCard({ campaign, onChange }: CampaignSettingsPro
           )}
         </div>
 
-        {/* ── 6. Bid Strategy ── */}
+        {/* ── 4. Bid Strategy (only relevant options for lead gen) ── */}
         <div>
-          <label className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">
+          <label className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1.5">
             Bid Strategy
           </label>
-          <select
-            value={campaign.bidStrategy}
-            onChange={(e) => onChange({ bidStrategy: e.target.value as BidStrategy })}
-            className="w-full h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 appearance-none cursor-pointer"
-          >
-            {bidStrategyOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
+          <div className="flex gap-2">
+            {([
+              { value: "highest_volume" as BidStrategy, label: "Highest Volume", desc: "Get the most leads within your budget" },
+              { value: "cost_per_result" as BidStrategy, label: "Cost Per Result Goal", desc: "Set a target cost per lead" },
+            ]).map((opt) => (
+              <button key={opt.value} type="button" onClick={() => onChange({ bidStrategy: opt.value })}
+                className={`flex-1 text-left p-3 rounded-[8px] border transition-colors duration-150 ${
+                  campaign.bidStrategy === opt.value
+                    ? "border-accent bg-accent/5"
+                    : "border-border hover:border-border-hover"
+                }`}>
+                <div className="text-[12px] font-medium text-text-primary">{opt.label}</div>
+                <div className="text-[10px] text-text-tertiary mt-0.5">{opt.desc}</div>
+              </button>
             ))}
-          </select>
+          </div>
 
-          {/* Target CPA (conditional on cost_per_result) */}
           {campaign.bidStrategy === "cost_per_result" && (
-            <div className="mt-3 relative">
-              <label className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">
-                Target Cost Per Result
+            <div className="mt-3">
+              <label className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1.5">
+                Target Cost Per Lead
               </label>
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-text-secondary">
-                  &#8377;
-                </span>
+              <div className="relative w-[200px]">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[13px] text-text-secondary">₹</span>
                 <input
                   type="number"
                   value={campaign.targetCPA ?? ""}
-                  onChange={(e) =>
-                    onChange({ targetCPA: e.target.value ? Number(e.target.value) : null })
-                  }
+                  onChange={(e) => onChange({ targetCPA: e.target.value ? Number(e.target.value) : null })}
                   className="w-full h-9 pl-7 pr-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150"
-                  placeholder="e.g. 250"
+                  placeholder="e.g., 1200"
                 />
               </div>
             </div>

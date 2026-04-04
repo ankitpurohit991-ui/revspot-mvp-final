@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowRight, ArrowLeft, Sparkles, Plus } from "lucide-react";
+import { ArrowRight, ArrowLeft, Sparkles, Plus, Send, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   type CampaignSettings,
@@ -32,6 +32,9 @@ export function Step5Structure({ onNext, onBack }: Step5Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [campaign, setCampaign] = useState<CampaignSettings>(defaultCampaignSettings);
   const [adSets, setAdSets] = useState<AdSetState[]>(initialAdSets);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [isAiProcessing, setIsAiProcessing] = useState(false);
+  const [autoOptimize, setAutoOptimize] = useState(true);
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 2000);
@@ -88,6 +91,26 @@ export function Step5Structure({ onNext, onBack }: Step5Props) {
     setAdSets((prev) => [...prev, newAdSet]);
   };
 
+  const handleAiEdit = () => {
+    if (!aiPrompt.trim()) return;
+    setIsAiProcessing(true);
+    setTimeout(() => {
+      // Simulate AI edit — e.g. "increase budget for NRI ad set"
+      const lower = aiPrompt.toLowerCase();
+      if (lower.includes("budget") && lower.includes("nri")) {
+        setAdSets((prev) => prev.map((a) =>
+          a.name.toLowerCase().includes("nri") ? { ...a, budget: a.budget + 1000 } : a
+        ));
+      } else if (lower.includes("add") && lower.includes("ad set")) {
+        addAdSet();
+      } else if (lower.includes("rename")) {
+        setCampaign((prev) => ({ ...prev, name: prev.name + " (Updated)" }));
+      }
+      setAiPrompt("");
+      setIsAiProcessing(false);
+    }, 1500);
+  };
+
   const totalDailyBudget = campaign.cboEnabled
     ? campaign.budget
     : adSets.reduce((sum, a) => sum + a.budget, 0);
@@ -120,42 +143,104 @@ export function Step5Structure({ onNext, onBack }: Step5Props) {
         </div>
       ) : (
         <>
-          {/* Campaign Settings */}
+          {/* AI Prompt to Edit */}
           <motion.div custom={0} initial="hidden" animate="visible" variants={fadeUp}>
-            <CampaignSettingsCard campaign={campaign} onChange={updateCampaign} />
-          </motion.div>
-
-          {/* Ad Sets Header */}
-          <motion.div custom={1} initial="hidden" animate="visible" variants={fadeUp}
-            className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <h3 className="text-[16px] font-semibold text-text-primary">Ad Sets</h3>
-              <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-surface-secondary text-text-secondary">{adSets.length}</span>
+              <div className="relative flex-1">
+                <Sparkles size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
+                <input
+                  type="text"
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleAiEdit(); }}
+                  placeholder="Ask AI to edit the structure (e.g., &quot;increase NRI budget&quot;, &quot;add a new ad set for young professionals&quot;)..."
+                  className="w-full h-10 pl-9 pr-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
+                />
+              </div>
+              <button onClick={handleAiEdit} disabled={!aiPrompt.trim() || isAiProcessing}
+                className="h-10 w-10 flex items-center justify-center bg-accent text-white rounded-button hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed shrink-0">
+                {isAiProcessing
+                  ? <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  : <Send size={14} strokeWidth={2} />
+                }
+              </button>
             </div>
-            <button onClick={addAdSet}
-              className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium text-accent border border-accent/30 rounded-button hover:bg-accent/5 transition-colors duration-150">
-              <Plus size={13} strokeWidth={2} />
-              Add Ad Set
-            </button>
           </motion.div>
 
-          {/* Ad Set Cards */}
-          {adSets.map((adSet, i) => (
-            <motion.div key={adSet.id} custom={i + 2} initial="hidden" animate="visible" variants={fadeUp}>
-              <AdSetCard
-                adSet={adSet}
-                index={i}
-                cboEnabled={campaign.cboEnabled}
-                canDelete={adSets.length > 1}
-                onChange={(updates) => updateAdSet(adSet.id, updates)}
-                onDelete={() => deleteAdSet(adSet.id)}
-                onDuplicate={() => duplicateAdSet(adSet.id)}
-              />
-            </motion.div>
-          ))}
+          {/* Campaign Card (contains settings + ad sets) */}
+          <motion.div custom={1} initial="hidden" animate="visible" variants={fadeUp}
+            className="bg-white border border-border border-l-4 border-l-accent rounded-card overflow-hidden">
+
+            {/* Campaign Settings */}
+            <div className="p-6 pb-4">
+              <CampaignSettingsCard campaign={campaign} onChange={updateCampaign} />
+            </div>
+
+            {/* Ad Sets Section (nested inside campaign) */}
+            <div className="px-6 pb-6">
+              <div className="flex items-center justify-between mb-3 pt-4 border-t border-border-subtle">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px]">Ad Sets</span>
+                  <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-surface-secondary text-text-secondary">{adSets.length}</span>
+                </div>
+                <button onClick={addAdSet}
+                  className="inline-flex items-center gap-1.5 h-7 px-2.5 text-[11px] font-medium text-accent border border-accent/30 rounded-button hover:bg-accent/5 transition-colors duration-150">
+                  <Plus size={11} strokeWidth={2} />
+                  Add Ad Set
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {adSets.map((adSet, i) => (
+                  <AdSetCard
+                    key={adSet.id}
+                    adSet={adSet}
+                    index={i}
+                    cboEnabled={campaign.cboEnabled}
+                    canDelete={adSets.length > 1}
+                    onChange={(updates) => updateAdSet(adSet.id, updates)}
+                    onDelete={() => deleteAdSet(adSet.id)}
+                    onDuplicate={() => duplicateAdSet(adSet.id)}
+                  />
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
+          {/* AI Budget Optimization Toggle */}
+          <motion.div custom={2} initial="hidden" animate="visible" variants={fadeUp}
+            className="bg-[#EFF6FF] border border-[#3B82F6]/20 rounded-card p-5">
+            <div className="flex items-start justify-between">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-[#3B82F6]/10 flex items-center justify-center shrink-0 mt-0.5">
+                  <Zap size={14} strokeWidth={2} className="text-[#3B82F6]" />
+                </div>
+                <div>
+                  <h4 className="text-[13px] font-semibold text-text-primary">AI Budget Optimization</h4>
+                  <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">
+                    Revspot will monitor campaign performance and suggest budget reallocation across ad sets
+                    to maximize lead volume and reduce CPL. Suggestions will appear in the campaign dashboard.
+                  </p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setAutoOptimize(!autoOptimize)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-150 shrink-0 mt-1 ${
+                  autoOptimize ? "bg-[#3B82F6]" : "bg-gray-200"
+                }`}>
+                <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform duration-150 ${
+                  autoOptimize ? "translate-x-[18px]" : "translate-x-[3px]"
+                }`} />
+              </button>
+            </div>
+            {autoOptimize && (
+              <div className="mt-3 ml-11 text-[11px] text-[#1D4ED8] font-medium">
+                ✓ Optimization suggestions will appear in your campaign dashboard after launch
+              </div>
+            )}
+          </motion.div>
 
           {/* Budget Summary */}
-          <motion.div custom={adSets.length + 2} initial="hidden" animate="visible" variants={fadeUp}
+          <motion.div custom={3} initial="hidden" animate="visible" variants={fadeUp}
             className="bg-accent/5 border border-accent/20 rounded-card p-6">
             <h3 className="text-[16px] font-semibold text-text-primary mb-4">Budget Summary</h3>
             <div className="grid grid-cols-2 gap-4">

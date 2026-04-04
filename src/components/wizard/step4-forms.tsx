@@ -1123,6 +1123,33 @@ export function Step4Forms({ onNext, onBack }: Step4Props) {
             transition={{ duration: 0.2 }}
           >
             {renderActiveSection()}
+
+            {/* Section navigation (Next/Previous within form builder) */}
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-border-subtle">
+              {(() => {
+                const currentIdx = visibleSidebarItems.findIndex((s) => s.key === activeSection);
+                const prevSection = currentIdx > 0 ? visibleSidebarItems[currentIdx - 1] : null;
+                const nextSection = currentIdx < visibleSidebarItems.length - 1 ? visibleSidebarItems[currentIdx + 1] : null;
+                return (
+                  <>
+                    {prevSection ? (
+                      <button onClick={() => setActiveSection(prevSection.key)}
+                        className="inline-flex items-center gap-1 text-[12px] font-medium text-text-secondary hover:text-text-primary transition-colors">
+                        ← {prevSection.label}
+                      </button>
+                    ) : <div />}
+                    {nextSection ? (
+                      <button onClick={() => setActiveSection(nextSection.key)}
+                        className="inline-flex items-center gap-1 text-[12px] font-medium text-accent hover:text-accent-hover transition-colors">
+                        {nextSection.label} →
+                      </button>
+                    ) : (
+                      <span className="text-[11px] text-text-tertiary">Last section — click Continue below</span>
+                    )}
+                  </>
+                );
+              })()}
+            </div>
           </motion.div>
         </div>
 
