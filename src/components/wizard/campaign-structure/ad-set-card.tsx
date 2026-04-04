@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Trash2, Copy, Lock, ChevronDown, ChevronRight, X, Users, Pencil } from "lucide-react";
-import type { AdSetState, PlacementSelection } from "./types";
+import type { AdSetState, PlacementSelection, AdCopy } from "./types";
 import { mockInstantForms } from "./types";
 import { LocationSelector } from "./location-selector";
 import { ManualPlacementsSelector } from "./manual-placements";
@@ -340,6 +340,76 @@ export function AdSetCard({
             </div>
           )}
         </div>
+
+        {/* ── Ads (Primary Text, Headlines, Descriptions, URL Params) ── */}
+        {adSet.ads && adSet.ads.length > 0 && (
+        <div className="border-t border-border-subtle pt-4 mt-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px]">Ads ({adSet.ads.length})</span>
+          </div>
+          <div className="space-y-3">
+            {adSet.ads.map((ad, adIdx) => (
+              <details key={ad.id} className="bg-white border border-border rounded-[6px] overflow-hidden group">
+                <summary className="flex items-center justify-between px-3 py-2.5 cursor-pointer hover:bg-surface-page/50 transition-colors list-none">
+                  <div className="flex items-center gap-2">
+                    <ChevronRight size={12} strokeWidth={1.5} className="text-text-tertiary group-open:rotate-90 transition-transform" />
+                    <span className="text-[12px] font-medium text-text-primary">{ad.name}</span>
+                  </div>
+                  <span className="text-[10px] text-text-tertiary">{ad.creativeName}</span>
+                </summary>
+                <div className="px-3 pb-3 space-y-3 border-t border-border-subtle">
+                  <div className="pt-3">
+                    <label className="block text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px] mb-1">Primary Text</label>
+                    <textarea
+                      value={ad.primaryText}
+                      onChange={(e) => {
+                        const updated = [...adSet.ads];
+                        updated[adIdx] = { ...ad, primaryText: e.target.value };
+                        onChange({ ads: updated });
+                      }}
+                      rows={3}
+                      className="w-full px-2.5 py-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors resize-none leading-relaxed"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px] mb-1">Headline</label>
+                      <input type="text" value={ad.headline}
+                        onChange={(e) => {
+                          const updated = [...adSet.ads];
+                          updated[adIdx] = { ...ad, headline: e.target.value };
+                          onChange({ ads: updated });
+                        }}
+                        className="w-full h-8 px-2.5 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors" />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px] mb-1">Description</label>
+                      <input type="text" value={ad.description}
+                        onChange={(e) => {
+                          const updated = [...adSet.ads];
+                          updated[adIdx] = { ...ad, description: e.target.value };
+                          onChange({ ads: updated });
+                        }}
+                        className="w-full h-8 px-2.5 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors" />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px] mb-1">URL Parameters</label>
+                    <input type="text" value={ad.urlParams}
+                      onChange={(e) => {
+                        const updated = [...adSet.ads];
+                        updated[adIdx] = { ...ad, urlParams: e.target.value };
+                        onChange({ ads: updated });
+                      }}
+                      className="w-full h-8 px-2.5 text-[11px] font-mono border border-border rounded-input bg-surface-page text-text-secondary focus:outline-none focus:border-accent transition-colors" />
+                    <p className="text-[9px] text-text-tertiary mt-1">AI-generated tracking parameters. Edit if needed.</p>
+                  </div>
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+        )}
 
         {/* ── Full Config link ────────────────────────────────── */}
         <div className="border-t border-border-subtle pt-4 mt-4">

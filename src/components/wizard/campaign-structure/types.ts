@@ -33,6 +33,16 @@ export interface PlacementSelection {
 }
 
 // Ad Set
+export interface AdCopy {
+  id: string;
+  name: string;
+  primaryText: string;
+  headline: string;
+  description: string;
+  urlParams: string;
+  creativeName: string;
+}
+
 export interface AdSetState {
   id: string;
   name: string;
@@ -47,6 +57,7 @@ export interface AdSetState {
   advantagePlusAudience: boolean;
   advantagePlusPlacements: boolean;
   manualPlacements: PlacementSelection;
+  ads: AdCopy[];
 }
 
 // Defaults
@@ -134,6 +145,18 @@ export const initialAdSets: AdSetState[] = [
     detailedTargeting: { included: [], excluded: [], narrowing_groups: [] },
     advantagePlusAudience: true, advantagePlusPlacements: true,
     manualPlacements: { ...defaultPlacements } as PlacementSelection,
+    ads: [
+      { id: "ad-1a", name: "Lifestyle Upgrade — Carousel", creativeName: "Godrej Air 3BHK Carousel",
+        primaryText: "🏡 Stop paying someone else's EMI — own your dream home in Whitefield.\n\nPremium 3BHK apartments, just 2 mins from the IT corridor. Smart homes with world-class amenities.\n\n📍 Book your free site visit this weekend.",
+        headline: "Premium 3BHK in Whitefield — Starting ₹1.8Cr",
+        description: "RERA registered. Smart home ready. 3-acre zen gardens. Book a site visit today.",
+        urlParams: "utm_source=meta&utm_medium=paid&utm_campaign=godrej_air_p3&utm_content=lifestyle_carousel&utm_term=whitefield_hni" },
+      { id: "ad-1b", name: "Lifestyle Upgrade — Video", creativeName: "Godrej Air Lifestyle Video",
+        primaryText: "Your office is 2 minutes away. Your garden is right outside. Your kids' school is around the corner.\n\nThis isn't a dream — it's Godrej Air, Whitefield.\n\n🎯 Starting ₹1.8Cr | Limited Phase 3 units",
+        headline: "2 Mins from IT Corridor — Godrej Air Whitefield",
+        description: "Luxury 3BHK villas. Japanese-inspired architecture. Book a walkthrough.",
+        urlParams: "utm_source=meta&utm_medium=paid&utm_campaign=godrej_air_p3&utm_content=lifestyle_video&utm_term=whitefield_hni" },
+    ],
   },
   {
     id: "as-2", name: "NRI — Global", instantFormId: "form-1",
@@ -143,6 +166,13 @@ export const initialAdSets: AdSetState[] = [
     detailedTargeting: { included: [], excluded: [], narrowing_groups: [] },
     advantagePlusAudience: true, advantagePlusPlacements: true,
     manualPlacements: { ...defaultPlacements } as PlacementSelection,
+    ads: [
+      { id: "ad-2a", name: "NRI Investment — Static", creativeName: "Godrej Air NRI Static",
+        primaryText: "Your Bangalore investment, managed end-to-end while you're abroad.\n\nGodrej Air, Whitefield — RERA registered, 8%+ rental yield, fully managed property.\n\n📄 Get the NRI investment brochure →",
+        headline: "Invest in Bangalore from Abroad — Godrej Air",
+        description: "8%+ rental yield. Fully managed. RERA registered. NRI-friendly process.",
+        urlParams: "utm_source=meta&utm_medium=paid&utm_campaign=godrej_air_p3&utm_content=nri_static&utm_term=nri_global" },
+    ],
   },
   {
     id: "as-3", name: "Family Upgraders — Sarjapur", instantFormId: "form-2",
@@ -152,6 +182,13 @@ export const initialAdSets: AdSetState[] = [
     detailedTargeting: { included: [], excluded: [], narrowing_groups: [] },
     advantagePlusAudience: true, advantagePlusPlacements: true,
     manualPlacements: { ...defaultPlacements } as PlacementSelection,
+    ads: [
+      { id: "ad-3a", name: "Family Living — Carousel", creativeName: "Godrej Air Family Carousel",
+        primaryText: "Your kids deserve a garden, not a balcony.\n\nGodrej Air — spacious 3BHK with 3-acre zen gardens, swimming pool, and play area. Top schools within 5 km.\n\n🏡 See the 3BHK floor plans →",
+        headline: "Upgrade to 3BHK — Godrej Air, Whitefield",
+        description: "3-acre gardens. Swimming pool. Kids play area. Schools nearby. Starting ₹1.8Cr.",
+        urlParams: "utm_source=meta&utm_medium=paid&utm_campaign=godrej_air_p3&utm_content=family_carousel&utm_term=sarjapur_families" },
+    ],
   },
 ];
 

@@ -68,6 +68,7 @@ export function Step5Structure({ onNext, onBack }: Step5Props) {
         narrowing_groups: source.detailedTargeting.narrowing_groups.map((g) => [...g]),
       },
       manualPlacements: JSON.parse(JSON.stringify(source.manualPlacements)),
+      ads: source.ads.map((ad) => ({ ...ad, id: `ad-${Date.now()}-${Math.random().toString(36).slice(2, 6)}` })),
     };
     setAdSets((prev) => [...prev, newAdSet]);
   };
@@ -87,6 +88,7 @@ export function Step5Structure({ onNext, onBack }: Step5Props) {
       advantagePlusAudience: true,
       advantagePlusPlacements: true,
       manualPlacements: JSON.parse(JSON.stringify(defaultPlacements)),
+      ads: [],
     };
     setAdSets((prev) => [...prev, newAdSet]);
   };
