@@ -1,10 +1,10 @@
 "use client";
 
-import { Trash2, Copy, Lock, ChevronDown, X } from "lucide-react";
+import { useState } from "react";
+import { Trash2, Copy, Lock, ChevronDown, ChevronRight, X, Users, Pencil } from "lucide-react";
 import type { AdSetState, PlacementSelection } from "./types";
 import { mockInstantForms } from "./types";
 import { LocationSelector } from "./location-selector";
-import { AudienceSuggestions } from "./audience-suggestions";
 import { ManualPlacementsSelector } from "./manual-placements";
 
 interface AdSetCardProps {
@@ -32,11 +32,22 @@ export function AdSetCard({
   onDelete,
   onDuplicate,
 }: AdSetCardProps) {
+  const [isExpanded, setIsExpanded] = useState(index === 0); // first ad set expanded by default
+
+  // AI-picked audience for this ad set (single, pre-applied)
+  const aiAudienceNames = [
+    "Real Estate Investors 30-45 in Bangalore",
+    "NRI Property Buyers — Global",
+    "Family Upgraders in Whitefield/Sarjapur",
+  ];
+  const aiAudience = aiAudienceNames[index % aiAudienceNames.length];
+
   return (
-    <div className="bg-white border border-border rounded-card hover:shadow-sm transition-shadow duration-200">
-      {/* ── Header ────────────────────────────────────────────── */}
-      <div className="flex items-center justify-between p-5 pb-0">
-        <div className="flex-1 mr-3">
+    <div className={`bg-surface-page border border-border-subtle rounded-[8px] transition-shadow duration-200 ${isExpanded ? "shadow-sm" : ""}`}>
+      {/* ── Header (always visible, clickable) ────────────────── */}
+      <div className="flex items-center justify-between px-4 py-3 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {isExpanded ? <ChevronDown size={14} strokeWidth={1.5} className="text-text-tertiary shrink-0" /> : <ChevronRight size={14} strokeWidth={1.5} className="text-text-tertiary shrink-0" />}
           <input
             type="text"
             value={adSet.name}
@@ -44,7 +55,7 @@ export function AdSetCard({
             className="w-full h-8 px-2 text-[14px] font-semibold border border-transparent rounded-input bg-transparent text-text-primary hover:border-border focus:outline-none focus:border-accent transition-colors duration-150"
           />
         </div>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
             onClick={onDuplicate}
@@ -66,7 +77,8 @@ export function AdSetCard({
         </div>
       </div>
 
-      <div className="p-5 space-y-0">
+      {isExpanded && (
+      <div className="px-5 pb-5 space-y-0 border-t border-border-subtle">
         {/* ── Conversion Location ─────────────────────────────── */}
         <div>
           <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1.5">
@@ -249,14 +261,20 @@ export function AdSetCard({
           </button>
         </div>
 
-        {/* ── AI Audiences ────────────────────────────────────── */}
+        {/* ── AI-Picked Audience ────────────────────────────── */}
         <div className="border-t border-border-subtle pt-4 mt-4">
-          <AudienceSuggestions
-            onApply={(name) => {
-              // Placeholder: just log or could add to targeting later
-              console.log(`Applied audience: ${name}`);
-            }}
-          />
+          <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1.5">
+            Audience
+          </span>
+          <div className="flex items-center justify-between bg-accent/5 border border-accent/20 rounded-[8px] px-3 py-2.5">
+            <div className="flex items-center gap-2">
+              <Users size={14} strokeWidth={1.5} className="text-accent" />
+              <span className="text-[12px] font-medium text-text-primary">{aiAudience}</span>
+            </div>
+            <button type="button" className="p-1 text-text-tertiary hover:text-accent transition-colors" title="Edit audience">
+              <Pencil size={12} strokeWidth={1.5} />
+            </button>
+          </div>
         </div>
 
         {/* ── Advantage+ Audience ─────────────────────────────── */}
@@ -333,6 +351,18 @@ export function AdSetCard({
           </button>
         </div>
       </div>
+      )}
+
+      {/* Collapsed summary */}
+      {!isExpanded && (
+        <div className="px-4 pb-3 flex items-center gap-3 text-[11px] text-text-tertiary">
+          <span>{adSet.locations.length > 0 ? adSet.locations.map(l => l.name).join(", ") : "No locations"}</span>
+          <span className="text-border">·</span>
+          <span>Age {adSet.ageMin}–{adSet.ageMax === 65 ? "65+" : adSet.ageMax}</span>
+          <span className="text-border">·</span>
+          <span>{aiAudience}</span>
+        </div>
+      )}
     </div>
   );
 }

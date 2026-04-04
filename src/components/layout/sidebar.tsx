@@ -10,6 +10,7 @@ import {
   Workflow,
   Image,
   Bot,
+  Zap,
   FileText,
   Users,
   Globe,
@@ -39,6 +40,7 @@ const navSections = [
     label: "Tools",
     items: [
       { name: "Creatives", href: "/creatives", icon: Image },
+      { name: "Agents MVP", href: "/agents-mvp", icon: Zap },
       { name: "Agents", href: "/agents", icon: Bot },
       { name: "Sequences", href: "/workflows", icon: Workflow },
       { name: "Audiences", href: "/audiences", icon: Globe },
