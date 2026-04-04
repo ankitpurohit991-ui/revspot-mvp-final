@@ -232,6 +232,27 @@ export function Step4Launch({ onNext, onBack }: Step4Props) {
         )}
       </div>
 
+      {/* AI Qualification Toggle */}
+      <div className="bg-white border border-border rounded-card p-6">
+        <div className="flex items-start justify-between">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-full bg-accent/10 flex items-center justify-center shrink-0 mt-0.5">
+              <ShieldCheck size={16} strokeWidth={1.5} className="text-accent" />
+            </div>
+            <div>
+              <h3 className="text-[14px] font-semibold text-text-primary">AI Qualification</h3>
+              <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">
+                When enabled, the AI agent will automatically call and qualify incoming leads from this campaign based on your qualification criteria.
+              </p>
+            </div>
+          </div>
+          <button type="button"
+            className="relative inline-flex h-5 w-9 items-center rounded-full bg-accent transition-colors duration-150 shrink-0 mt-1">
+            <span className="inline-block h-3.5 w-3.5 rounded-full bg-white translate-x-[18px] transition-transform duration-150" />
+          </button>
+        </div>
+      </div>
+
       {/* Info banner */}
       <div className="flex items-start gap-2.5 bg-[#EFF6FF] border border-[#3B82F6]/20 rounded-[6px] px-4 py-3">
         <AlertCircle size={14} strokeWidth={1.5} className="text-[#1D4ED8] mt-0.5 shrink-0" />

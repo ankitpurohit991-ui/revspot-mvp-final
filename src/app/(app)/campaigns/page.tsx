@@ -40,10 +40,11 @@ function formatCurrency(amount: number) {
 }
 
 function StatusBadge({ status }: { status: CampaignStatus }) {
-  const config = {
+  const config: Record<CampaignStatus, { label: string; cls: string }> = {
     active: { label: "Active", cls: "bg-[#F0FDF4] text-[#15803D]" },
     paused: { label: "Paused", cls: "bg-surface-secondary text-text-secondary" },
     completed: { label: "Completed", cls: "bg-[#F0F0F0] text-text-primary" },
+    draft: { label: "Draft", cls: "bg-[#FEF3C7] text-[#92400E]" },
   };
   const { label, cls } = config[status];
   return (
@@ -215,6 +216,12 @@ export default function CampaignsPage() {
                           <Lightbulb size={9} strokeWidth={2} />
                           Optimize
                         </span>
+                      )}
+                      {c.status === "draft" && (
+                        <button onClick={(e) => { e.stopPropagation(); router.push("/campaigns/create"); }}
+                          className="inline-flex items-center gap-0.5 text-[9px] font-medium px-1.5 py-0.5 rounded-badge bg-[#FEF3C7] text-[#92400E] shrink-0 hover:bg-[#FDE68A] transition-colors">
+                          Resume →
+                        </button>
                       )}
                     </div>
                   </td>

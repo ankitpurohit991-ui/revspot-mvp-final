@@ -2,7 +2,7 @@
 
 // ── Campaign List ───────────────────────────────────────────
 
-export type CampaignStatus = "active" | "paused" | "completed";
+export type CampaignStatus = "active" | "paused" | "completed" | "draft";
 export type CampaignType = "Performance" | "Brand";
 export type CampaignHealth = "on-track" | "needs-attention" | "underperforming";
 
@@ -72,6 +72,11 @@ export const campaignsList: CampaignListItem[] = [
     id: "camp-10", name: "Godrej Horizon — Retargeting", type: "Performance",
     client: "Whitefield Luxury Villas", projectId: "proj-1",
     status: "paused", spend: 48000, leads: 64, verifiedLeads: 8, qualifiedLeads: 4, cpl: 750, health: "needs-attention", createdAt: "2026-01-30",
+  },
+  {
+    id: "camp-11", name: "Godrej Reserve — HNI Launch", type: "Performance",
+    client: "Godrej Reserve", projectId: "proj-3",
+    status: "draft", spend: 0, leads: 0, verifiedLeads: 0, qualifiedLeads: 0, cpl: 0, health: "on-track", createdAt: "2026-04-02",
   },
 ];
 

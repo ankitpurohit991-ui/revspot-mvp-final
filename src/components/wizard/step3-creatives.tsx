@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowRight, ArrowLeft, Wand2, Upload, Image as ImageIcon } from "lucide-react";
+import { ArrowRight, ArrowLeft, Wand2, Upload, Image as ImageIcon, X } from "lucide-react";
 import { motion } from "framer-motion";
-import { angleData } from "@/lib/wizard-data";
+import { angleData, facebookPages } from "@/lib/wizard-data";
 import { CreativeGeneratorModal } from "@/components/shared/creative-generator-modal";
 import type { GeneratedCreative } from "@/components/shared/creative-generator-modal";
 import { UploadCreativeModal } from "@/components/shared/upload-creative-modal";
@@ -34,6 +34,7 @@ export function Step3Creatives({ onNext, onBack }: Step3Props) {
   const [cardCreatives, setCardCreatives] = useState<Record<string, CardCreative>>({});
   const [generatorModalAngle, setGeneratorModalAngle] = useState<string | null>(null);
   const [uploadModalAngle, setUploadModalAngle] = useState<string | null>(null);
+  const [selectedPage, setSelectedPage] = useState("");
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 2000);
@@ -50,6 +51,24 @@ export function Step3Creatives({ onNext, onBack }: Step3Props) {
         <h2 className="text-[20px] font-semibold text-text-primary">Creative Strategy</h2>
         <p className="text-meta text-text-secondary mt-1">AI has generated an angle for each persona. Generate or upload creatives for each.</p>
       </div>
+
+      {/* Facebook Page Selection (needed before forms step) */}
+      {!isLoading && (
+        <div className="bg-white border border-border rounded-card p-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <span className="text-[13px] font-medium text-text-primary">Facebook Page</span>
+              <p className="text-[11px] text-text-tertiary mt-0.5">Required for lead forms in the next step</p>
+            </div>
+            <select value={selectedPage} onChange={(e) => setSelectedPage(e.target.value)}
+              className="w-[280px] h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
+              style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9B9B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center" }}>
+              <option value="">Select page...</option>
+              {facebookPages.map((pg) => <option key={pg.id} value={pg.id}>{pg.name}</option>)}
+            </select>
+          </div>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="space-y-4">
@@ -120,7 +139,15 @@ export function Step3Creatives({ onNext, onBack }: Step3Props) {
                 <div className="border-t border-border-subtle pt-3 mt-auto">
                   {creative ? (
                     /* Meta Ad Mini Preview */
-                    <div className="border border-border rounded-[6px] overflow-hidden">
+                    <div className="relative border border-border rounded-[6px] overflow-hidden group">
+                      {/* Remove creative button */}
+                      <button
+                        onClick={() => setCardCreatives((prev) => { const next = { ...prev }; delete next[angle.id]; return next; })}
+                        className="absolute top-1.5 right-1.5 z-10 p-0.5 bg-white rounded-full shadow-sm text-text-tertiary hover:text-status-error opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Remove creative"
+                      >
+                        <X size={10} strokeWidth={2} />
+                      </button>
                       <div className="flex items-center gap-1.5 px-2 py-1.5 bg-white">
                         <div className="w-5 h-5 rounded-full bg-surface-secondary flex items-center justify-center">
                           <span className="text-[7px] font-bold text-text-tertiary">GP</span>
