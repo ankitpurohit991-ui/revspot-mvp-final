@@ -121,6 +121,7 @@ function isSectionComplete(
 export function Step4Forms({ onNext, onBack }: Step4Props) {
   /* Mode */
   const [formMode, setFormMode] = useState<FormMode>("select");
+  const [showExistingList, setShowExistingList] = useState(false);
   const [selectedExistingForm, setSelectedExistingForm] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState<ActiveSection>("form_type");
 
@@ -325,10 +326,10 @@ export function Step4Forms({ onNext, onBack }: Step4Props) {
             </button>
             <button
               type="button"
-              onClick={() => {
-                if (existingForms.length > 0) handleUseExisting(existingForms[0].id);
-              }}
-              className="text-left p-5 rounded-card border border-border bg-white hover:border-accent hover:bg-accent/5 transition-colors duration-150"
+              onClick={() => setShowExistingList(!showExistingList)}
+              className={`text-left p-5 rounded-card border transition-colors duration-150 ${
+                showExistingList ? "border-accent bg-accent/5" : "border-border bg-white hover:border-accent hover:bg-accent/5"
+              }`}
             >
               <div className="flex items-center gap-2 mb-1.5">
                 <Copy size={16} strokeWidth={1.5} className="text-accent" />
@@ -338,10 +339,11 @@ export function Step4Forms({ onNext, onBack }: Step4Props) {
             </button>
           </div>
 
-          {/* Existing forms list */}
+          {/* Existing forms list — only shown when Use Existing is clicked */}
+          {showExistingList && (
           <div className="border-t border-border pt-5">
             <h3 className="text-[13px] font-semibold text-text-tertiary uppercase tracking-[0.4px] mb-3">
-              Existing Forms
+              Select a Form
             </h3>
             <div className="space-y-2">
               {existingForms.map((form) => (
@@ -381,6 +383,7 @@ export function Step4Forms({ onNext, onBack }: Step4Props) {
               ))}
             </div>
           </div>
+          )}
         </div>
 
         {/* Navigation */}

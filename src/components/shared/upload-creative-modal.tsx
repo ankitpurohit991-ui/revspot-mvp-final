@@ -67,15 +67,15 @@ export function UploadCreativeModal({ open, onClose, onComplete, angleName, pers
               <div className="grid grid-cols-2 gap-4">
                 {/* Image Upload */}
                 <div>
-                  <label className="block text-[12px] font-medium text-text-primary mb-1.5">Creative Image</label>
+                  <label className="block text-[12px] font-medium text-text-primary mb-1.5">Creative (Image or Video)</label>
                   {!imageFile ? (
                     <div
                       onClick={() => setImageFile("godrej_air_creative.jpg")}
                       className="border-2 border-dashed border-border rounded-[8px] p-6 text-center cursor-pointer hover:border-border-hover hover:bg-surface-page/50 transition-all duration-150 aspect-[4/3] flex flex-col items-center justify-center"
                     >
                       <Upload size={20} strokeWidth={1.5} className="text-text-tertiary mb-2" />
-                      <p className="text-[12px] text-text-secondary">Upload image</p>
-                      <p className="text-[10px] text-text-tertiary mt-1">JPG, PNG up to 10MB</p>
+                      <p className="text-[12px] text-text-secondary">Upload image or video</p>
+                      <p className="text-[10px] text-text-tertiary mt-1">JPG, PNG, MP4, MOV up to 100MB</p>
                     </div>
                   ) : (
                     <div className="relative border border-border rounded-[8px] aspect-[4/3] bg-surface-secondary flex items-center justify-center">
