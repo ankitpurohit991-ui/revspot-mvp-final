@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import {
-  Plus, ArrowRight, ShieldCheck, ChevronDown, ChevronRight, X,
+  Plus, ArrowRight, ShieldCheck, ChevronDown, ChevronRight, X, Upload, FileText,
 } from "lucide-react";
 import { campaignsList, projectsList } from "@/lib/campaign-data";
 import type { ProjectItem, CampaignListItem } from "@/lib/campaign-data";
@@ -110,6 +110,7 @@ function CreateProjectModal({ onClose, unassignedCampaigns, preSelectedCampaign 
   const [description, setDescription] = useState("");
   const [website, setWebsite] = useState("");
   const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>(preSelectedCampaign ? [preSelectedCampaign] : []);
+  const [brochureFiles, setBrochureFiles] = useState<string[]>([]);
 
   const toggleCampaign = (id: string) => {
     setSelectedCampaigns((prev) => prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]);
@@ -139,6 +140,33 @@ function CreateProjectModal({ onClose, unassignedCampaigns, preSelectedCampaign 
               <label className="block text-[13px] font-medium text-text-primary mb-1.5">Website URL</label>
               <input type="url" value={website} onChange={(e) => setWebsite(e.target.value)} placeholder="https://"
                 className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors placeholder:text-text-tertiary" />
+            </div>
+            <div>
+              <label className="block text-[13px] font-medium text-text-primary mb-1.5">Brochures & Documents <span className="text-text-tertiary font-normal">(optional)</span></label>
+              <div
+                onClick={() => setBrochureFiles((prev) => [...prev, "Project_Brochure.pdf"])}
+                className="border-2 border-dashed border-border rounded-input p-5 text-center cursor-pointer hover:border-border-hover hover:bg-surface-page/50 transition-all duration-150"
+              >
+                <Upload size={18} strokeWidth={1.5} className="mx-auto text-text-tertiary mb-1.5" />
+                <p className="text-[12px] text-text-secondary">Upload brochures, images, or documents</p>
+                <p className="text-[10px] text-text-tertiary mt-0.5">PDF, PPT, DOCX, JPG, PNG up to 25MB</p>
+              </div>
+              {brochureFiles.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {brochureFiles.map((f, i) => (
+                    <div key={i} className="flex items-center justify-between bg-surface-page rounded-[5px] px-2.5 py-1.5 border border-border-subtle">
+                      <div className="flex items-center gap-1.5">
+                        <FileText size={12} strokeWidth={1.5} className="text-text-tertiary" />
+                        <span className="text-[11px] text-text-primary">{f}</span>
+                      </div>
+                      <button onClick={(e) => { e.stopPropagation(); setBrochureFiles((prev) => prev.filter((_, j) => j !== i)); }}
+                        className="text-text-tertiary hover:text-text-primary transition-colors duration-150">
+                        <X size={11} strokeWidth={1.5} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
             {unassignedCampaigns.length > 0 && (
               <div>
