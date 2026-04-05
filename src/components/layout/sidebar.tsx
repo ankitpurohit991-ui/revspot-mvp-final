@@ -77,7 +77,7 @@ export function Sidebar() {
   };
 
   const navLinkClass = (href: string) =>
-    `relative flex items-center gap-2.5 px-2 h-9 rounded-[6px] transition-colors duration-150 ${
+    `relative flex items-center gap-2.5 px-2 h-8 rounded-[6px] transition-colors duration-150 ${
       isActive(href)
         ? "bg-surface-secondary text-text-primary font-medium"
         : "text-text-secondary hover:bg-surface-secondary/60"
@@ -86,15 +86,15 @@ export function Sidebar() {
   return (
     <aside className="fixed left-0 top-0 h-screen w-sidebar bg-white border-r border-border flex flex-col z-50">
       {/* Logo */}
-      <div className="px-4 py-5 flex items-center gap-2.5">
+      <div className="px-4 py-4 flex items-center gap-2.5">
         <RevspotLogo />
         <span className="text-[15px] font-semibold text-text-primary">Revspot</span>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto px-3 py-1">
+      <nav className="flex-1 overflow-y-auto px-3 py-1 pb-2">
         {/* Dashboard — standalone at top */}
-        <div className="mb-4">
+        <div className="mb-3">
           <Link href={dashboardItem.href} className={navLinkClass(dashboardItem.href)} style={{ fontSize: "13.5px" }}>
             <dashboardItem.icon size={16} strokeWidth={1.5} />
             <span>{dashboardItem.name}</span>
@@ -103,8 +103,8 @@ export function Sidebar() {
 
         {/* Sections */}
         {navSections.map((section) => (
-          <div key={section.label} className="mb-5">
-            <div className="label-section px-2 mb-1.5">{section.label}</div>
+          <div key={section.label} className="mb-3">
+            <div className="label-section px-2 mb-1">{section.label}</div>
             <div className="space-y-0.5">
               {section.items.map((item) => (
                 <Link
@@ -123,17 +123,17 @@ export function Sidebar() {
       </nav>
 
       {/* User section */}
-      <div className="border-t border-border px-3 py-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-[30px] h-[30px] rounded-full bg-surface-secondary flex items-center justify-center flex-shrink-0">
-            <span className="text-[12px] font-medium text-text-secondary">GP</span>
+      <div className="border-t border-border px-3 py-2">
+        <div className="flex items-center gap-2">
+          <div className="w-[26px] h-[26px] rounded-full bg-surface-secondary flex items-center justify-center flex-shrink-0">
+            <span className="text-[10px] font-medium text-text-secondary">GP</span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[13px] font-medium text-text-primary">Godrej Properties</div>
-            <div className="text-[11px] text-text-tertiary truncate">demo@godrejproperties.com</div>
+            <div className="text-[12px] font-medium text-text-primary leading-tight">Godrej Properties</div>
+            <div className="text-[10px] text-text-tertiary truncate">demo@godrejproperties.com</div>
           </div>
           <button className="p-1 text-text-tertiary hover:text-text-secondary transition-colors">
-            <Settings size={15} strokeWidth={1.5} />
+            <Settings size={14} strokeWidth={1.5} />
           </button>
         </div>
       </div>
