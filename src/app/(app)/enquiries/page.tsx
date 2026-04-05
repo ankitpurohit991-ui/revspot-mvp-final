@@ -15,6 +15,9 @@ import {
   ShieldCheck,
   ExternalLink,
   Copy,
+  Phone,
+  Bot,
+  SlidersHorizontal,
 } from "lucide-react";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { MetricChart } from "@/components/shared/metric-chart";
@@ -24,12 +27,13 @@ import {
   allLeads,
   enquiryStats,
   campaignFilterOptions,
+  leadStageLabels,
+  leadStageColors,
 } from "@/lib/enquiries-data";
-import type { EnquiryLead } from "@/lib/enquiries-data";
+import type { EnquiryLead, LeadStage } from "@/lib/enquiries-data";
 import type {
   LeadTemperature,
   LeadQualification,
-  EnrichmentStatus,
 } from "@/lib/campaign-data";
 
 const fadeUp: Variants = {
@@ -37,7 +41,57 @@ const fadeUp: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
 };
 
+const avatarColors = ["#F87171", "#FB923C", "#FBBF24", "#34D399", "#60A5FA", "#A78BFA", "#F472B6", "#6EE7B7"];
+
 // ── Badge Components ────────────────────────────────────────
+function LeadStageBadge({ stage }: { stage: LeadStage }) {
+  return (
+    <span
+      className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge ${leadStageColors[stage]}`}
+    >
+      {leadStageLabels[stage]}
+    </span>
+  );
+}
+
+function TemperatureDot({ temp }: { temp: LeadTemperature }) {
+  const config = {
+    hot: { label: "Hot", color: "#DC2626" },
+    warm: { label: "Warm", color: "#F59E0B" },
+    lukewarm: { label: "Lukewarm", color: "#9CA3AF" },
+    cold: { label: "Cold", color: "#3B82F6" },
+  };
+  const { label, color } = config[temp];
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[12px] text-text-secondary whitespace-nowrap">
+      <span
+        className="w-2 h-2 rounded-full inline-block flex-shrink-0"
+        style={{ backgroundColor: color }}
+      />
+      {label}
+    </span>
+  );
+}
+
+function QualificationBadge({ status }: { status: LeadQualification }) {
+  const config = {
+    qualified: { label: "Qualified", cls: "bg-[#F0FDF4] text-[#15803D]" },
+    not_qualified: {
+      label: "Not Qualified",
+      cls: "bg-[#FEF2F2] text-[#DC2626]",
+    },
+    pending: { label: "N/A", cls: "bg-[#F0F0F0] text-text-secondary" },
+  };
+  const { label, cls } = config[status];
+  return (
+    <span
+      className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge ${cls}`}
+    >
+      {label}
+    </span>
+  );
+}
+
 function TemperatureBadge({ temp }: { temp: LeadTemperature }) {
   const config = {
     hot: { label: "Hot", cls: "bg-[#FEF2F2] text-[#DC2626]" },
@@ -55,37 +109,25 @@ function TemperatureBadge({ temp }: { temp: LeadTemperature }) {
   );
 }
 
-function QualificationBadge({ status }: { status: LeadQualification }) {
-  const config = {
-    qualified: { label: "Qualified", cls: "bg-[#F0FDF4] text-[#15803D]" },
-    not_qualified: {
-      label: "Not Qualified",
-      cls: "bg-[#FEF2F2] text-[#DC2626]",
-    },
-    pending: { label: "Pending", cls: "bg-[#FEF3C7] text-[#92400E]" },
-  };
-  const { label, cls } = config[status];
-  return (
-    <span
-      className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge ${cls}`}
-    >
-      {label}
-    </span>
-  );
-}
-
-function EnrichmentIcon({ status }: { status: EnrichmentStatus }) {
-  if (status === "enriched")
+function NextActionCell({ action }: { action: string | null }) {
+  if (!action) return <span className="text-[11px] text-text-tertiary">—</span>;
+  if (action === "Callback From Sales" || action === "Send to CRM") {
     return (
-      <CheckCircle2
-        size={14}
-        strokeWidth={2}
-        className="text-status-success"
-      />
+      <span className="inline-flex items-center gap-1.5 text-[12px] text-text-secondary whitespace-nowrap">
+        <Phone size={12} strokeWidth={1.5} className="text-text-tertiary" />
+        {action === "Send to CRM" ? "Callback From Sales" : action}
+      </span>
     );
-  if (status === "failed")
-    return <X size={14} strokeWidth={2} className="text-status-error" />;
-  return <span className="text-[11px] text-text-tertiary">—</span>;
+  }
+  if (action === "Bot Follow Up") {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[12px] text-text-secondary whitespace-nowrap">
+        <Bot size={12} strokeWidth={1.5} className="text-text-tertiary" />
+        {action}
+      </span>
+    );
+  }
+  return <span className="text-[12px] text-text-secondary">{action}</span>;
 }
 
 function formatLeadStatus(status: string) {
@@ -403,16 +445,35 @@ export default function EnquiriesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <div className="text-meta text-text-secondary mb-1">CRM</div>
-          <h1 className="text-page-title text-text-primary">Leads</h1>
+          <h1 className="text-page-title text-text-primary">
+            Leads ({enquiryStats.total})
+          </h1>
         </div>
         <div className="flex items-center gap-2">
-          <button className="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">
-            <Download size={14} strokeWidth={1.5} />
-            Export
+          <div className="relative flex-1 max-w-[240px]">
+            <Search
+              size={14}
+              strokeWidth={1.5}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary"
+            />
+            <input
+              type="text"
+              placeholder="Search leads..."
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="w-full h-8 pl-8 pr-3 text-[12px] border border-border rounded-input bg-white focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
+            />
+          </div>
+          <button className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">
+            <SlidersHorizontal size={13} strokeWidth={1.5} />
+            Filters
           </button>
-          <button className="inline-flex items-center gap-1.5 h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
-            <Send size={14} strokeWidth={1.5} />
-            Send to CRM
+          <button className="inline-flex items-center gap-1.5 h-8 px-4 bg-accent text-white text-[12px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
+            <Download size={13} strokeWidth={1.5} />
+            Export Leads
           </button>
         </div>
       </div>
@@ -486,24 +547,6 @@ export default function EnquiriesPage() {
             )
           )}
         </div>
-
-        <div className="relative flex-1 max-w-[240px]">
-          <Search
-            size={14}
-            strokeWidth={1.5}
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary"
-          />
-          <input
-            type="text"
-            placeholder="Search leads..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(1);
-            }}
-            className="w-full h-8 pl-8 pr-3 text-[12px] border border-border rounded-input bg-white focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
-          />
-        </div>
       </div>
 
       {/* Table */}
@@ -515,14 +558,12 @@ export default function EnquiriesPage() {
                 {[
                   { label: "Name", align: "left" },
                   { label: "Phone", align: "left" },
-                  { label: "Campaign", align: "left" },
-                  { label: "Created", align: "left" },
-                  { label: "Enriched", align: "center" },
-                  { label: "Verified", align: "center" },
-                  { label: "AI Status", align: "left" },
-                  { label: "Temp", align: "left" },
-                  { label: "Status", align: "left" },
-                  { label: "Qualified", align: "center" },
+                  { label: "Project", align: "left" },
+                  { label: "Lead Stage", align: "left" },
+                  { label: "Verification", align: "center" },
+                  { label: "Lead Temperature", align: "left" },
+                  { label: "AI Qualification", align: "left" },
+                  { label: "Next Action", align: "left" },
                 ].map((h) => (
                   <th
                     key={h.label}
@@ -534,62 +575,77 @@ export default function EnquiriesPage() {
               </tr>
             </thead>
             <tbody>
-              {paginated.map((lead, i) => (
-                <tr
-                  key={lead.id}
-                  onClick={() => setSelectedLead(lead)}
-                  className={`hover:bg-surface-page transition-colors duration-150 cursor-pointer border-b border-border-subtle last:border-b-0 ${
-                    i % 2 === 0 ? "bg-white" : "bg-surface-page/40"
-                  }`}
-                >
-                  <td className="px-3 py-2.5 text-[13px] text-text-primary font-medium whitespace-nowrap">
-                    {lead.name}
-                  </td>
-                  <td className="px-3 py-2.5 text-[12px] text-text-secondary tabular-nums whitespace-nowrap">
-                    {lead.phone}
-                  </td>
-                  <td className="px-3 py-2.5 text-[12px] text-text-secondary whitespace-nowrap max-w-[160px] truncate">
-                    {lead.campaign}
-                  </td>
-                  <td className="px-3 py-2.5 text-[12px] text-text-secondary whitespace-nowrap">
-                    {format(new Date(lead.createdAt), "dd MMM, HH:mm")}
-                  </td>
-                  <td className="px-3 py-2.5 text-center">
-                    <EnrichmentIcon status={lead.enrichmentStatus} />
-                  </td>
-                  <td className="px-3 py-2.5 text-center">
-                    {lead.verified ? (
-                      <ShieldCheck
-                        size={14}
-                        strokeWidth={2}
-                        className="text-status-success inline-block"
-                      />
-                    ) : (
-                      <span className="text-[11px] text-text-tertiary">—</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <QualificationBadge status={lead.aiQualification} />
-                  </td>
-                  <td className="px-3 py-2.5">
-                    <TemperatureBadge temp={lead.temperature} />
-                  </td>
-                  <td className="px-3 py-2.5 text-[12px] text-text-secondary whitespace-nowrap">
-                    {formatLeadStatus(lead.leadStatus)}
-                  </td>
-                  <td className="px-3 py-2.5 text-center">
-                    {lead.sql ? (
-                      <CheckCircle2
-                        size={14}
-                        strokeWidth={2}
-                        className="text-status-success inline-block"
-                      />
-                    ) : (
-                      <span className="text-[11px] text-text-tertiary">—</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
+              {paginated.map((lead, i) => {
+                const globalIndex = (page - 1) * PAGE_SIZE + i;
+                const initials = lead.name
+                  .split(" ")
+                  .map((w) => w.replace(/\*/g, "").charAt(0))
+                  .filter(Boolean)
+                  .slice(0, 2)
+                  .join("")
+                  .toUpperCase();
+                const avatarColor = avatarColors[globalIndex % avatarColors.length];
+
+                return (
+                  <tr
+                    key={lead.id}
+                    onClick={() => setSelectedLead(lead)}
+                    className={`hover:bg-surface-page transition-colors duration-150 cursor-pointer border-b border-border-subtle last:border-b-0 ${
+                      i % 2 === 0 ? "bg-white" : "bg-surface-page/40"
+                    }`}
+                  >
+                    {/* Name with Avatar */}
+                    <td className="px-3 py-2.5 whitespace-nowrap">
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-semibold text-white flex-shrink-0"
+                          style={{ backgroundColor: avatarColor }}
+                        >
+                          {initials}
+                        </div>
+                        <span className="text-[13px] text-text-primary font-medium">
+                          {lead.name}
+                        </span>
+                      </div>
+                    </td>
+                    {/* Phone */}
+                    <td className="px-3 py-2.5 text-[12px] text-text-secondary tabular-nums whitespace-nowrap">
+                      {lead.phone}
+                    </td>
+                    {/* Project (Campaign) */}
+                    <td className="px-3 py-2.5 text-[12px] text-text-secondary whitespace-nowrap max-w-[160px] truncate">
+                      {lead.campaign}
+                    </td>
+                    {/* Lead Stage */}
+                    <td className="px-3 py-2.5">
+                      <LeadStageBadge stage={lead.leadStage} />
+                    </td>
+                    {/* Verification */}
+                    <td className="px-3 py-2.5 text-center">
+                      {lead.verified ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#F0FDF4] text-[#15803D]">
+                          <ShieldCheck size={11} strokeWidth={2} />
+                          Verified
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-text-tertiary">—</span>
+                      )}
+                    </td>
+                    {/* Lead Temperature */}
+                    <td className="px-3 py-2.5">
+                      <TemperatureDot temp={lead.temperature} />
+                    </td>
+                    {/* AI Qualification */}
+                    <td className="px-3 py-2.5">
+                      <QualificationBadge status={lead.aiQualification} />
+                    </td>
+                    {/* Next Action */}
+                    <td className="px-3 py-2.5">
+                      <NextActionCell action={lead.nextAction} />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

@@ -5,6 +5,9 @@ import type {
   EnrichmentStatus,
 } from "@/lib/campaign-data";
 
+// Lead stage values
+export type LeadStage = "new_lead" | "follow_up" | "intent_qualified" | "qualified" | "disqualified";
+
 // Uses a broader set of lead statuses for the CRM view (sales pipeline stages)
 export type EnquiryLeadStatus =
   | "new"
@@ -14,6 +17,19 @@ export type EnquiryLeadStatus =
   | "negotiation"
   | "converted"
   | "lost";
+
+export interface CallRecord {
+  id: string;
+  date: string;
+  status: "completed" | "no_answer" | "busy" | "voicemail";
+  duration: string;
+  qualificationCriteria: {
+    key: string;
+    result: string;
+    leadResponse: string;
+    reasoning: string;
+  }[];
+}
 
 export interface EnquiryLead {
   id: string;
@@ -28,13 +44,41 @@ export interface EnquiryLead {
   aiQualification: LeadQualification;
   temperature: LeadTemperature;
   leadStatus: EnquiryLeadStatus;
+  leadStage: LeadStage;
   verified: boolean;
   sql: boolean;
   sentToCRM: string | null;
   adset: string;
   adName: string;
   formResponses: { question: string; answer: string }[];
+  // New fields
+  nextAction: string | null;
+  segmentTags: string[];
+  aiSummary: string;
+  calls: CallRecord[];
+  profileIntelligence: {
+    gender: string | null;
+    languages: string[];
+    location: string;
+    locationType: string;
+  };
 }
+
+export const leadStageLabels: Record<LeadStage, string> = {
+  new_lead: "New Lead",
+  follow_up: "Follow Up",
+  intent_qualified: "Intent Qualified",
+  qualified: "Qualified",
+  disqualified: "Disqualified",
+};
+
+export const leadStageColors: Record<LeadStage, string> = {
+  new_lead: "bg-[#EFF6FF] text-[#1D4ED8]",
+  follow_up: "bg-[#FEF3C7] text-[#92400E]",
+  intent_qualified: "bg-[#FFF7ED] text-[#C2410C]",
+  qualified: "bg-[#F0FDF4] text-[#15803D]",
+  disqualified: "bg-[#FEF2F2] text-[#DC2626]",
+};
 
 export const enquiryStats = {
   total: 845,
@@ -44,7 +88,8 @@ export const enquiryStats = {
   verified: 142,
 };
 
-export const allLeads: EnquiryLead[] = [
+// Base leads (missing new fields — enriched below)
+const baseLeads: (Omit<EnquiryLead, "leadStage" | "nextAction" | "segmentTags" | "aiSummary" | "calls" | "profileIntelligence">)[] = [
   {
     id: "e-001", name: "V***** R*****", phone: "98XXX XX342", email: "v*****@gmail.com",
     campaign: "Godrej Reflections", campaignId: "camp-1",
@@ -341,6 +386,73 @@ export const allLeads: EnquiryLead[] = [
     ],
   },
 ];
+
+// Enrich leads with new fields based on existing data
+function deriveLeadStage(lead: Omit<EnquiryLead, "leadStage" | "nextAction" | "segmentTags" | "aiSummary" | "calls" | "profileIntelligence">): LeadStage {
+  if (lead.aiQualification === "qualified" && lead.sql) return "qualified";
+  if (lead.aiQualification === "qualified") return "intent_qualified";
+  if (lead.aiQualification === "not_qualified") return "disqualified";
+  if (lead.leadStatus === "contacted" || lead.leadStatus === "interested") return "follow_up";
+  return "new_lead";
+}
+
+function deriveNextAction(lead: Omit<EnquiryLead, "leadStage" | "nextAction" | "segmentTags" | "aiSummary" | "calls" | "profileIntelligence">): string | null {
+  if (lead.aiQualification === "qualified" && !lead.sentToCRM) return "Send to CRM";
+  if (lead.leadStatus === "contacted") return "Bot Follow Up";
+  if (lead.leadStatus === "interested") return "Callback From Sales";
+  if (lead.aiQualification === "pending") return "Bot Follow Up";
+  return null;
+}
+
+function deriveTags(lead: Omit<EnquiryLead, "leadStage" | "nextAction" | "segmentTags" | "aiSummary" | "calls" | "profileIntelligence">): string[] {
+  const tags: string[] = [];
+  const budgetAnswer = lead.formResponses.find(f => f.question.toLowerCase().includes("budget"))?.answer || "";
+  if (budgetAnswer.includes("2Cr") || budgetAnswer.includes("3Cr") || budgetAnswer.includes("2.5Cr")) tags.push("HNI");
+  if (budgetAnswer.includes("60L") || budgetAnswer.includes("70L") || budgetAnswer.includes("80L")) tags.push("First-time Buyer");
+  if (lead.leadStatus === "site_visit") tags.push("Site Visit Done");
+  if (lead.sql) tags.push("Decision Maker");
+  if (lead.verified) tags.push("Budget Qualified");
+  return tags;
+}
+
+const cities = ["Bengaluru", "Mumbai", "Hyderabad", "Chennai", "Pune", "Delhi"];
+const genders = ["M", "F", null];
+
+// Apply enrichment to all leads
+const enrichedLeads: EnquiryLead[] = baseLeads.map((lead, i) => ({
+  ...lead,
+  leadStage: deriveLeadStage(lead),
+  nextAction: deriveNextAction(lead),
+  segmentTags: deriveTags(lead),
+  aiSummary: lead.aiQualification === "qualified"
+    ? `${lead.name.replace(/\*/g, "")} is a strong lead with budget fit and timeline match. They showed interest in the property and are likely ready for a site visit.`
+    : lead.aiQualification === "not_qualified"
+    ? `${lead.name.replace(/\*/g, "")} did not meet the qualification criteria. Budget or timeline did not align with the offering.`
+    : `${lead.name.replace(/\*/g, "")} has been contacted but qualification is still pending. Follow-up recommended.`,
+  calls: lead.aiQualification !== "pending" ? [
+    {
+      id: `call-${lead.id}-1`,
+      date: lead.updatedAt,
+      status: "completed" as const,
+      duration: `${1 + Math.floor(Math.random() * 4)}:${String(Math.floor(Math.random() * 59)).padStart(2, "0")}`,
+      qualificationCriteria: [
+        { key: "Budget Fit", result: lead.aiQualification === "qualified" ? "Qualified" : "Not Determined", leadResponse: lead.formResponses[0]?.answer || "N/A", reasoning: lead.aiQualification === "qualified" ? "Budget meets threshold" : "Budget below threshold" },
+        { key: "True Buying Intent", result: lead.temperature === "hot" ? "Qualified" : "Not Determined", leadResponse: lead.temperature === "hot" ? "Immediate interest" : "Exploring options", reasoning: `Lead temperature is ${lead.temperature}` },
+        { key: "Next Action Item", result: lead.sentToCRM ? "Send to CRM" : "Follow up", leadResponse: "N/A", reasoning: lead.sentToCRM ? "Lead pushed to CRM" : "Needs follow-up" },
+      ],
+    },
+  ] : [],
+  profileIntelligence: {
+    gender: genders[i % 3],
+    languages: i % 3 === 0 ? ["Kannada", "English"] : i % 3 === 1 ? ["Hindi", "English"] : ["English"],
+    location: `${cities[i % cities.length]}, Karnataka, India`,
+    locationType: i % 3 === 0 ? "india_metro" : "india_non_metro",
+  },
+}));
+
+// Export enriched leads as the main export (keep allLeads name for backward compat)
+export { enrichedLeads };
+export const allLeads = enrichedLeads;
 
 export const campaignFilterOptions = [
   "All Campaigns",
