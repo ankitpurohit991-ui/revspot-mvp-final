@@ -93,7 +93,7 @@ export const campaignsList: CampaignListItem[] = [
     status: "active", spend: 220000, leads: 186, verifiedLeads: 42, qualifiedLeads: 22, cpl: 1183, health: "on-track", createdAt: "2025-11-20",
     cpm: 280, ctr: 2.4, cpc: 19,
     firstFrameRetention: 95, hookRate: 34, holdRate: 29, playRate95: 30,
-    costPerLinkClick: 16, costPerVerifiedLead: 5238, costPerQualifiedLead: 10000, verificationRate: 23, qualificationRate: 12, agentConnected: true,
+    costPerLinkClick: 16, costPerVerifiedLead: 5238, costPerQualifiedLead: 10000, verificationRate: 23, qualificationRate: 12, agentConnected: false,
   },
   {
     id: "camp-8", name: "Godrej Woodland — Brand Awareness", type: "Brand",
