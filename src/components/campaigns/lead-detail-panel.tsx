@@ -283,6 +283,9 @@ export function LeadDetailPanel({ lead, onClose }: LeadDetailPanelProps) {
               segmentTags={segmentTags}
               aiSummary={aiSummary}
               mostRecentCall={mostRecentCall}
+              campaign={lead.campaign ?? ""}
+              adset={lead.adset ?? ""}
+              adName={lead.adName ?? ""}
             />
           )}
           {activeTab === "profile" && (
@@ -312,13 +315,46 @@ function OverviewTab({
   segmentTags,
   aiSummary,
   mostRecentCall,
+  campaign,
+  adset,
+  adName,
 }: {
   segmentTags: string[];
   aiSummary: string;
   mostRecentCall: CallRecord | null;
+  campaign: string;
+  adset: string;
+  adName: string;
 }) {
   return (
     <div className="space-y-5">
+      {/* Source Attribution */}
+      {(campaign || adset || adName) && (
+        <div>
+          <h3 className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-2">Source</h3>
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-badge bg-[#EFF6FF] text-[#1D4ED8] border border-[#3B82F6]/15">
+              <span className="text-[#1D4ED8]/60">Channel:</span> <span className="font-medium">Meta</span>
+            </span>
+            {campaign && (
+              <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-badge bg-surface-secondary text-text-secondary border border-border">
+                <span className="text-text-tertiary">Campaign:</span> <span className="font-medium text-text-primary">{campaign}</span>
+              </span>
+            )}
+            {adset && (
+              <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-badge bg-surface-secondary text-text-secondary border border-border">
+                <span className="text-text-tertiary">Ad Set:</span> <span className="font-medium text-text-primary">{adset}</span>
+              </span>
+            )}
+            {adName && (
+              <span className="inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-badge bg-surface-secondary text-text-secondary border border-border">
+                <span className="text-text-tertiary">Ad:</span> <span className="font-medium text-text-primary">{adName}</span>
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Segment Tags */}
       {segmentTags.length > 0 && (
         <div>
