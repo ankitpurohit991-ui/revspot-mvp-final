@@ -91,14 +91,6 @@ function ProjectCard({ project }: { project: ProjectItem }) {
           <div className="text-[10px] text-text-tertiary">CPQL</div>
           <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">₹{project.costPerQualifiedLead.toLocaleString("en-IN")}</div>
         </div>
-        <div>
-          <div className="text-[10px] text-text-tertiary">CTR</div>
-          <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">{project.ctr}%</div>
-        </div>
-        <div>
-          <div className="text-[10px] text-text-tertiary">CPM</div>
-          <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">₹{project.cpm}</div>
-        </div>
       </div>
       <div className="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between">
         <HealthIndicator health={project.healthSummary} />

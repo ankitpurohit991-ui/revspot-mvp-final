@@ -72,7 +72,7 @@ export default function ProjectDetailPage() {
     avgCPL: { key: "avgCPL", label: "Avg CPL", unit: "currency", data: makeTrend(920, project.avgCPL) },
     cpvl: { key: "cpvl", label: "CPVL", unit: "currency", data: makeTrend(4800, project.costPerVerifiedLead) },
     cpql: { key: "cpql", label: "CPQL", unit: "currency", data: makeTrend(9500, project.costPerQualifiedLead) },
-    avgCTR: { key: "avgCTR", label: "Avg CTR", unit: "percentage", data: makeTrend(1.4, project.ctr) },
+    // avgCTR removed per user request
   };
 
   const toggleMetric = useCallback((key: string) => {
@@ -93,7 +93,6 @@ export default function ProjectDetailPage() {
     { key: "avgCPL", label: "Avg CPL", category: "Cost", currentValue: `₹${project.avgCPL.toLocaleString("en-IN")}` },
     { key: "cpvl", label: "CPVL", category: "Cost", currentValue: `₹${project.costPerVerifiedLead.toLocaleString("en-IN")}` },
     { key: "cpql", label: "CPQL", category: "Cost", currentValue: `₹${project.costPerQualifiedLead.toLocaleString("en-IN")}` },
-    { key: "avgCTR", label: "Avg CTR", category: "Overview", currentValue: `${project.ctr}%` },
   ];
 
   return (
@@ -145,8 +144,6 @@ export default function ProjectDetailPage() {
           chartKey="cpvl" isSelected={selectedMetrics.includes("cpvl")} onToggle={toggleMetric} />
         <MetricCard label="CPQL" value={`₹${project.costPerQualifiedLead.toLocaleString("en-IN")}`}
           chartKey="cpql" isSelected={selectedMetrics.includes("cpql")} onToggle={toggleMetric} />
-        <MetricCard label="Avg CTR" value={`${project.ctr}%`}
-          chartKey="avgCTR" isSelected={selectedMetrics.includes("avgCTR")} onToggle={toggleMetric} />
       </div>
 
       {/* Chart */}
