@@ -289,7 +289,34 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
         </div>
 
         {/* 8. Budget */}
-        <TextField label="Budget" placeholder="e.g., 250000" value={budgetCeiling} onChange={setBudgetCeiling} type="number" prefix="₹" />
+        <div>
+          <TextField label="Budget" placeholder="e.g., 250000" value={budgetCeiling} onChange={setBudgetCeiling} type="number" prefix="₹" />
+          {budgetCeiling && targetCount && campaignDays && (() => {
+            const budget = Number(budgetCeiling);
+            const leads = Number(targetCount);
+            const days = Number(campaignDays);
+            if (!budget || !leads || !days) return null;
+            const impliedCPL = Math.round(budget / leads);
+            const dailyBudget = Math.round(budget / days);
+            const isAggressive = impliedCPL < 500 || dailyBudget < 2000;
+            const isUnrealistic = impliedCPL < 200;
+            const isRealistic = impliedCPL >= 500 && impliedCPL <= 2000;
+            const status = isUnrealistic ? "unrealistic" : isAggressive ? "aggressive" : isRealistic ? "realistic" : "high";
+            const config = {
+              unrealistic: { label: "Unrealistic", desc: `Implied CPL of ₹${impliedCPL} is too low for this market. Consider increasing budget or reducing target leads.`, cls: "bg-[#FEF2F2] border-[#DC2626]/20 text-[#DC2626]" },
+              aggressive: { label: "Aggressive", desc: `Implied CPL of ₹${impliedCPL} is ambitious. You may need to optimize aggressively to hit this target.`, cls: "bg-[#FEF3C7] border-[#92400E]/20 text-[#92400E]" },
+              realistic: { label: "Realistic", desc: `Implied CPL of ₹${impliedCPL} is achievable. Daily budget of ₹${dailyBudget.toLocaleString("en-IN")} looks good.`, cls: "bg-[#F0FDF4] border-[#15803D]/20 text-[#15803D]" },
+              high: { label: "Comfortable", desc: `Implied CPL of ₹${impliedCPL} gives you room to optimize for quality over volume.`, cls: "bg-[#F0FDF4] border-[#15803D]/20 text-[#15803D]" },
+            };
+            const { label, desc, cls } = config[status];
+            return (
+              <div className={`mt-2 flex items-start gap-2 px-3 py-2 rounded-[6px] border text-[11px] leading-relaxed ${cls}`}>
+                <span className="font-semibold shrink-0">{label}:</span>
+                <span>{desc}</span>
+              </div>
+            );
+          })()}
+        </div>
 
         {/* 9. Ad Account */}
         <div>

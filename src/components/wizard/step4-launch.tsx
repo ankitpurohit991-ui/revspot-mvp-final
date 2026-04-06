@@ -4,7 +4,7 @@ import { useState } from "react";
 import {
   ArrowRight, ArrowLeft, Rocket, AlertCircle, ShieldCheck, Bot, Sparkles, Lock,
 } from "lucide-react";
-import { adAccounts, facebookPages } from "@/lib/wizard-data";
+// Ad account & page selected in earlier steps — shown as read-only summary here
 import { newAgentsList } from "@/lib/voice-agent-data";
 
 interface Step4Props {
@@ -19,8 +19,6 @@ const selectStyle = {
 };
 
 export function Step4Launch({ onNext, onBack }: Step4Props) {
-  const [adAccount, setAdAccount] = useState("");
-  const [fbPage, setFbPage] = useState("");
   const [launching, setLaunching] = useState(false);
 
   // Verification — ON by default, locked ON if objective is verified_leads
@@ -33,7 +31,7 @@ export function Step4Launch({ onNext, onBack }: Step4Props) {
   const [isCreatingAgent, setIsCreatingAgent] = useState(false);
   const [agentCreated, setAgentCreated] = useState(false);
 
-  const canLaunch = adAccount && fbPage;
+  const canLaunch = true;
 
   const handleLaunch = () => {
     setLaunching(true);
@@ -77,26 +75,17 @@ export function Step4Launch({ onNext, onBack }: Step4Props) {
         </div>
       </div>
 
-      {/* Ad Account & Page */}
-      <div className="bg-white border border-border rounded-card p-6 space-y-5">
-        <h3 className="text-[14px] font-semibold text-text-primary">Meta Ad Account</h3>
-        <div>
-          <label className="block text-[13px] font-medium text-text-primary mb-1.5">Ad Account <span className="text-status-error">*</span></label>
-          <select value={adAccount} onChange={(e) => setAdAccount(e.target.value)}
-            className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
-            style={selectStyle}>
-            <option value="">Select ad account...</option>
-            {adAccounts.map((acc) => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-[13px] font-medium text-text-primary mb-1.5">Facebook Page <span className="text-status-error">*</span></label>
-          <select value={fbPage} onChange={(e) => setFbPage(e.target.value)}
-            className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
-            style={selectStyle}>
-            <option value="">Select Facebook page...</option>
-            {facebookPages.map((pg) => <option key={pg.id} value={pg.id}>{pg.name}</option>)}
-          </select>
+      {/* Ad Account & Page — read-only summary (selected in earlier steps) */}
+      <div className="bg-surface-page border border-border-subtle rounded-card p-5">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1">Ad Account</span>
+            <span className="block text-[13px] text-text-primary font-medium">Godrej Properties — Primary</span>
+          </div>
+          <div>
+            <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1">Facebook Page</span>
+            <span className="block text-[13px] text-text-primary font-medium">Godrej Properties Official</span>
+          </div>
         </div>
       </div>
 
