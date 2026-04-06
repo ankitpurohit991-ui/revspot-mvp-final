@@ -15,6 +15,7 @@ import { MetricCard } from "@/components/dashboard/metric-card";
 import { MetricChart } from "@/components/shared/metric-chart";
 import type { MetricChartDef, MetricOption } from "@/components/shared/metric-chart";
 import { LeadInsights } from "@/components/campaigns/lead-insights";
+import { DateRangeSelector } from "@/components/dashboard/date-range-selector";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
@@ -121,9 +122,12 @@ export default function ProjectDetailPage() {
             <span>{project.campaignIds.length} campaign{project.campaignIds.length !== 1 ? "s" : ""}</span>
           </div>
         </div>
-        <button className="inline-flex items-center gap-1.5 h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
-          <Plus size={15} strokeWidth={2} /> Attach campaign
-        </button>
+        <div className="flex items-center gap-3">
+          <DateRangeSelector compact />
+          <button className="inline-flex items-center gap-1.5 h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
+            <Plus size={15} strokeWidth={2} /> Attach campaign
+          </button>
+        </div>
       </div>
 
       {/* Metric Cards — clickable for charting */}
