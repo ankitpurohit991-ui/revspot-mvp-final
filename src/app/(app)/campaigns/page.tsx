@@ -39,8 +39,8 @@ interface MetricColumn {
 const ALL_METRICS: MetricColumn[] = [
   // Traffic & Engagement
   { key: "spend", label: "Spend", category: "Traffic & Engagement", format: "currency", getValue: (c) => c.spend, defaultVisible: true },
-  { key: "cpm", label: "CPM", category: "Traffic & Engagement", format: "currency", getValue: (c) => c.cpm, defaultVisible: false },
-  { key: "ctr", label: "CTR", category: "Traffic & Engagement", format: "percent", getValue: (c) => c.ctr, defaultVisible: false },
+  { key: "cpm", label: "CPM", category: "Traffic & Engagement", format: "currency", getValue: (c) => c.cpm, defaultVisible: true },
+  { key: "ctr", label: "CTR", category: "Traffic & Engagement", format: "percent", getValue: (c) => c.ctr, defaultVisible: true },
   { key: "cpc", label: "CPC", category: "Traffic & Engagement", format: "currency", getValue: (c) => c.cpc, defaultVisible: false },
   // Video Engagement
   { key: "firstFrameRetention", label: "1st Frame Ret.", category: "Video Engagement", format: "percent", getValue: (c) => c.firstFrameRetention, defaultVisible: false },
@@ -50,11 +50,11 @@ const ALL_METRICS: MetricColumn[] = [
   // Conversion Funnel
   { key: "leads", label: "Leads", category: "Conversion Funnel", format: "number", getValue: (c) => c.leads, defaultVisible: true },
   { key: "verifiedLeads", label: "Verified", category: "Conversion Funnel", format: "number", getValue: (c) => c.verifiedLeads, defaultVisible: true },
-  { key: "qualifiedLeads", label: "Qualified", category: "Conversion Funnel", format: "number", getValue: (c) => c.qualifiedLeads, defaultVisible: false },
+  { key: "qualifiedLeads", label: "Qualified", category: "Conversion Funnel", format: "number", getValue: (c) => c.qualifiedLeads, defaultVisible: true },
   { key: "cpl", label: "CPL", category: "Conversion Funnel", format: "currency", getValue: (c) => c.cpl, defaultVisible: true },
   { key: "costPerLinkClick", label: "CPC (Link)", category: "Conversion Funnel", format: "currency", getValue: (c) => c.costPerLinkClick, defaultVisible: false },
-  { key: "costPerVerifiedLead", label: "CPVL", category: "Conversion Funnel", format: "currency", getValue: (c) => c.costPerVerifiedLead, defaultVisible: false },
-  { key: "costPerQualifiedLead", label: "CPQL", category: "Conversion Funnel", format: "currency", getValue: (c) => c.costPerQualifiedLead, defaultVisible: false },
+  { key: "costPerVerifiedLead", label: "CPVL", category: "Conversion Funnel", format: "currency", getValue: (c) => c.costPerVerifiedLead, defaultVisible: true },
+  { key: "costPerQualifiedLead", label: "CPQL", category: "Conversion Funnel", format: "currency", getValue: (c) => c.costPerQualifiedLead, defaultVisible: true },
   { key: "verificationRate", label: "Verif. Rate", category: "Conversion Funnel", format: "percent", getValue: (c) => c.verificationRate, defaultVisible: false },
   { key: "qualificationRate", label: "Qual. Rate", category: "Conversion Funnel", format: "percent", getValue: (c) => c.qualificationRate, defaultVisible: false },
 ];
@@ -116,6 +116,7 @@ export default function CampaignsPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | CampaignStatus>("all");
+  const [projectFilter, setProjectFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [visibleColumns, setVisibleColumns] = useState<Set<string>>(
     () => new Set(ALL_METRICS.filter((m) => m.defaultVisible).map((m) => m.key))
@@ -136,9 +137,15 @@ export default function CampaignsPage() {
     });
   };
 
+  const projectNames = useMemo(() => {
+    const names = new Set(campaignsList.map((c) => c.client));
+    return ["all", ...Array.from(names).sort()];
+  }, []);
+
   const filtered = useMemo(() => {
     return campaignsList.filter((c) => {
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
+      if (projectFilter !== "all" && c.client !== projectFilter) return false;
       if (
         search &&
         !c.name.toLowerCase().includes(search.toLowerCase()) &&
@@ -147,7 +154,7 @@ export default function CampaignsPage() {
         return false;
       return true;
     });
-  }, [search, statusFilter]);
+  }, [search, statusFilter, projectFilter]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -200,6 +207,18 @@ export default function CampaignsPage() {
             </button>
           ))}
         </div>
+
+        {/* Project Filter */}
+        <select
+          value={projectFilter}
+          onChange={(e) => { setProjectFilter(e.target.value); setPage(1); }}
+          className="h-8 px-2.5 pr-7 text-[12px] font-medium border border-border rounded-[6px] bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239B9B9B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center" }}
+        >
+          {projectNames.map((p) => (
+            <option key={p} value={p}>{p === "all" ? "All Projects" : p}</option>
+          ))}
+        </select>
 
         <div className="relative flex-1 max-w-[280px]">
           <Search
@@ -294,9 +313,9 @@ export default function CampaignsPage() {
                     i % 2 === 0 ? "bg-white" : "bg-surface-page/40"
                   }`}
                 >
-                  <td className="px-4 py-3 text-[13px] text-text-primary font-medium max-w-[280px]">
+                  <td className="px-4 py-2.5 max-w-[280px]">
                     <div className="flex items-center gap-1.5 truncate">
-                      {c.name}
+                      <span className="text-[13px] text-text-primary font-medium">{c.name}</span>
                       {c.id === "camp-7" && (
                         <span className="inline-flex items-center gap-0.5 text-[9px] font-medium px-1.5 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8] shrink-0" title="Optimization suggestions available">
                           <Lightbulb size={9} strokeWidth={2} />
@@ -310,6 +329,7 @@ export default function CampaignsPage() {
                         </button>
                       )}
                     </div>
+                    <div className="text-[10px] text-text-tertiary mt-0.5 truncate">{c.client}</div>
                   </td>
                   <td className="px-4 py-3">
                     <StatusBadge status={c.status} />
