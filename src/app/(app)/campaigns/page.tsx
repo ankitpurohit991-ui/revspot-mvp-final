@@ -19,10 +19,56 @@ import {
   ArrowLeft,
   CheckCircle2,
   Lightbulb,
+  Columns3,
 } from "lucide-react";
 import { campaignsList } from "@/lib/campaign-data";
-import type { CampaignStatus, CampaignHealth } from "@/lib/campaign-data";
+import type { CampaignStatus, CampaignHealth, CampaignListItem } from "@/lib/campaign-data";
 import { agentsList } from "@/lib/voice-agent-data";
+
+// ── Metric column definitions ──────────────────────────────
+
+interface MetricColumn {
+  key: string;
+  label: string;
+  category: string;
+  format: "currency" | "number" | "percent";
+  getValue: (c: CampaignListItem) => number;
+  defaultVisible: boolean;
+}
+
+const ALL_METRICS: MetricColumn[] = [
+  // Traffic & Engagement
+  { key: "spend", label: "Spend", category: "Traffic & Engagement", format: "currency", getValue: (c) => c.spend, defaultVisible: true },
+  { key: "cpm", label: "CPM", category: "Traffic & Engagement", format: "currency", getValue: (c) => c.cpm, defaultVisible: false },
+  { key: "ctr", label: "CTR", category: "Traffic & Engagement", format: "percent", getValue: (c) => c.ctr, defaultVisible: false },
+  { key: "cpc", label: "CPC", category: "Traffic & Engagement", format: "currency", getValue: (c) => c.cpc, defaultVisible: false },
+  // Video Engagement
+  { key: "firstFrameRetention", label: "1st Frame Ret.", category: "Video Engagement", format: "percent", getValue: (c) => c.firstFrameRetention, defaultVisible: false },
+  { key: "hookRate", label: "Hook Rate", category: "Video Engagement", format: "percent", getValue: (c) => c.hookRate, defaultVisible: false },
+  { key: "holdRate", label: "Hold Rate", category: "Video Engagement", format: "percent", getValue: (c) => c.holdRate, defaultVisible: false },
+  { key: "playRate95", label: "95% Play", category: "Video Engagement", format: "percent", getValue: (c) => c.playRate95, defaultVisible: false },
+  // Conversion Funnel
+  { key: "leads", label: "Leads", category: "Conversion Funnel", format: "number", getValue: (c) => c.leads, defaultVisible: true },
+  { key: "verifiedLeads", label: "Verified", category: "Conversion Funnel", format: "number", getValue: (c) => c.verifiedLeads, defaultVisible: true },
+  { key: "qualifiedLeads", label: "Qualified", category: "Conversion Funnel", format: "number", getValue: (c) => c.qualifiedLeads, defaultVisible: false },
+  { key: "cpl", label: "CPL", category: "Conversion Funnel", format: "currency", getValue: (c) => c.cpl, defaultVisible: true },
+  { key: "costPerLinkClick", label: "CPC (Link)", category: "Conversion Funnel", format: "currency", getValue: (c) => c.costPerLinkClick, defaultVisible: false },
+  { key: "costPerVerifiedLead", label: "CPVL", category: "Conversion Funnel", format: "currency", getValue: (c) => c.costPerVerifiedLead, defaultVisible: false },
+  { key: "costPerQualifiedLead", label: "CPQL", category: "Conversion Funnel", format: "currency", getValue: (c) => c.costPerQualifiedLead, defaultVisible: false },
+  { key: "verificationRate", label: "Verif. Rate", category: "Conversion Funnel", format: "percent", getValue: (c) => c.verificationRate, defaultVisible: false },
+  { key: "qualificationRate", label: "Qual. Rate", category: "Conversion Funnel", format: "percent", getValue: (c) => c.qualificationRate, defaultVisible: false },
+];
+
+const METRIC_CATEGORIES = [...new Set(ALL_METRICS.map((m) => m.category))];
+
+function formatMetricValue(value: number, format: MetricColumn["format"]) {
+  if (format === "currency") {
+    if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
+    return `₹${value.toLocaleString("en-IN")}`;
+  }
+  if (format === "percent") return `${value}%`;
+  return value.toLocaleString();
+}
 
 const stagger: Variants = {
   hidden: {},
@@ -33,11 +79,6 @@ const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
   show: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
 };
-
-function formatCurrency(amount: number) {
-  if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
-  return `₹${amount.toLocaleString("en-IN")}`;
-}
 
 function StatusBadge({ status }: { status: CampaignStatus }) {
   const config: Record<CampaignStatus, { label: string; cls: string }> = {
@@ -69,18 +110,6 @@ function HealthBadge({ health }: { health: CampaignHealth }) {
   );
 }
 
-function TypeBadge({ type }: { type: string }) {
-  return (
-    <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge ${
-      type === "Performance"
-        ? "bg-[#EFF6FF] text-[#1D4ED8]"
-        : "bg-[#FDF4FF] text-[#7C3AED]"
-    }`}>
-      {type}
-    </span>
-  );
-}
-
 const PAGE_SIZE = 15;
 
 export default function CampaignsPage() {
@@ -88,6 +117,24 @@ export default function CampaignsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | CampaignStatus>("all");
   const [page, setPage] = useState(1);
+  const [visibleColumns, setVisibleColumns] = useState<Set<string>>(
+    () => new Set(ALL_METRICS.filter((m) => m.defaultVisible).map((m) => m.key))
+  );
+  const [showColumnPicker, setShowColumnPicker] = useState(false);
+
+  const activeMetrics = useMemo(
+    () => ALL_METRICS.filter((m) => visibleColumns.has(m.key)),
+    [visibleColumns]
+  );
+
+  const toggleColumn = (key: string) => {
+    setVisibleColumns((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
+  };
 
   const filtered = useMemo(() => {
     return campaignsList.filter((c) => {
@@ -171,6 +218,46 @@ export default function CampaignsPage() {
             className="w-full h-9 pl-8 pr-3 text-[13px] border border-border rounded-input bg-white focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
           />
         </div>
+
+        {/* Column picker */}
+        <div className="relative">
+          <button
+            onClick={() => setShowColumnPicker((v) => !v)}
+            className="inline-flex items-center gap-1.5 h-9 px-3 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150"
+          >
+            <Columns3 size={14} strokeWidth={1.5} />
+            Columns
+          </button>
+
+          {showColumnPicker && (
+            <>
+              <div className="fixed inset-0 z-[40]" onClick={() => setShowColumnPicker(false)} />
+              <div className="absolute right-0 top-full mt-1.5 w-[300px] bg-white border border-border rounded-card shadow-lg z-[50] py-2 max-h-[400px] overflow-y-auto">
+                {METRIC_CATEGORIES.map((cat) => (
+                  <div key={cat}>
+                    <div className="px-3 pt-3 pb-1 text-[10px] font-medium text-text-tertiary uppercase tracking-[0.5px]">
+                      {cat}
+                    </div>
+                    {ALL_METRICS.filter((m) => m.category === cat).map((m) => (
+                      <label
+                        key={m.key}
+                        className="flex items-center gap-2.5 px-3 py-1.5 cursor-pointer hover:bg-surface-page transition-colors duration-100"
+                      >
+                        <input
+                          type="checkbox"
+                          checked={visibleColumns.has(m.key)}
+                          onChange={() => toggleColumn(m.key)}
+                          className="w-3.5 h-3.5 rounded cursor-pointer"
+                        />
+                        <span className="text-[13px] text-text-primary">{m.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </motion.div>
 
       {/* Table */}
@@ -179,24 +266,23 @@ export default function CampaignsPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-border-subtle">
-                {[
-                  { label: "Campaign", align: "left" },
-                  { label: "Type", align: "left" },
-                  { label: "Project", align: "left" },
-                  { label: "Status", align: "left" },
-                  { label: "Spend", align: "right" },
-                  { label: "Leads", align: "right" },
-                  { label: "Verified", align: "right" },
-                  { label: "CPL", align: "right" },
-                  { label: "Health", align: "center" },
-                ].map((h) => (
+                <th className="px-4 py-3 text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] text-left">
+                  Campaign
+                </th>
+                <th className="px-4 py-3 text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] text-left">
+                  Status
+                </th>
+                {activeMetrics.map((m) => (
                   <th
-                    key={h.label}
-                    className={`px-4 py-3 text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] text-${h.align}`}
+                    key={m.key}
+                    className="px-4 py-3 text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] text-right"
                   >
-                    {h.label}
+                    {m.label}
                   </th>
                 ))}
+                <th className="px-4 py-3 text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] text-center">
+                  Health
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -226,27 +312,16 @@ export default function CampaignsPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <TypeBadge type={c.type} />
-                  </td>
-                  <td className="px-4 py-3 text-[13px] text-text-secondary">{c.client}</td>
-                  <td className="px-4 py-3">
                     <StatusBadge status={c.status} />
                   </td>
-                  <td className="px-4 py-3 text-[13px] text-text-primary text-right tabular-nums">
-                    {formatCurrency(c.spend)}
-                  </td>
-                  <td className="px-4 py-3 text-[13px] text-text-primary text-right tabular-nums">
-                    {c.leads}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    <span className="text-[13px] text-text-primary">{c.verifiedLeads}</span>
-                    <span className="text-[11px] text-text-tertiary ml-1">
-                      ({Math.round((c.verifiedLeads / c.leads) * 100)}%)
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-[13px] text-text-primary text-right tabular-nums">
-                    ₹{c.cpl.toLocaleString("en-IN")}
-                  </td>
+                  {activeMetrics.map((m) => (
+                    <td
+                      key={m.key}
+                      className="px-4 py-3 text-[13px] text-text-primary text-right tabular-nums"
+                    >
+                      {formatMetricValue(m.getValue(c), m.format)}
+                    </td>
+                  ))}
                   <td className="px-4 py-3 text-center">
                     <HealthBadge health={c.health} />
                   </td>
