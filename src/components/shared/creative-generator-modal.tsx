@@ -23,6 +23,8 @@ export interface GeneratedCreative {
   size: string;
   label: string;
   postText: string;
+  headline: string;
+  description: string;
 }
 
 interface CreativeGeneratorModalProps {
@@ -41,21 +43,47 @@ interface CreativeGeneratorModalProps {
 
 interface OptionData {
   style: string;
-  postText: string;
+  primaryText: string;
+  headline: string;
+  description: string;
 }
 
 const OPTION_DATA: OptionData[] = [
-  { style: "Bold typography with lifestyle imagery", postText: "🏡 Your dream home is closer than you think.\n\nPremium 3BHK apartments in Whitefield, starting at ₹1.8Cr. Smart homes with world-class amenities, just 2 mins from the IT corridor.\n\n📍 Book your free site visit this weekend.\n\n#GodrejAir #Whitefield #LuxuryLiving" },
-  { style: "Minimalist with price anchor", postText: "₹1.8 Cr.\nThat's all it takes to own a Godrej home in Whitefield.\n\n3BHK | Smart Home Ready | RERA Registered\n\nLimited units in Phase 3. Don't wait.\n\n👉 Get the brochure now." },
-  { style: "Testimonial-style with social proof", postText: "\"We moved into Godrej Air 6 months ago and it changed our lives.\"\n— Rajesh & Priya, 3BHK owners\n\n1200+ families already call Godrej Air home. Phase 3 is now open.\n\n🏠 See what they're talking about →" },
-  { style: "Premium dark theme with gold accents", postText: "Luxury isn't just a word. It's an address.\n\nGodrej Air, Phase 3 — Where Japanese-inspired architecture meets Bangalore's most coveted location.\n\nStarting ₹1.8Cr | 3 & 4 BHK\n\n✨ Experience the walkthrough →" },
+  { style: "Bold typography with lifestyle imagery",
+    primaryText: "🏡 Your dream home is closer than you think.\n\nPremium 3BHK apartments in Whitefield, starting at ₹1.8Cr. Smart homes with world-class amenities, just 2 mins from the IT corridor.\n\n📍 Book your free site visit this weekend.",
+    headline: "Premium 3BHK in Whitefield — Starting ₹1.8Cr",
+    description: "RERA registered. Smart home ready. 3-acre zen gardens." },
+  { style: "Minimalist with price anchor",
+    primaryText: "₹1.8 Cr.\nThat's all it takes to own a Godrej home in Whitefield.\n\n3BHK | Smart Home Ready | RERA Registered\n\nLimited units in Phase 3. Don't wait.\n\n👉 Get the brochure now.",
+    headline: "₹1.8Cr — Own a Godrej Home in Whitefield",
+    description: "Limited Phase 3 units. 3BHK smart homes with zen gardens." },
+  { style: "Testimonial-style with social proof",
+    primaryText: "\"We moved into Godrej Air 6 months ago and it changed our lives.\"\n— Rajesh & Priya, 3BHK owners\n\n1200+ families already call Godrej Air home. Phase 3 is now open.\n\n🏠 See what they're talking about →",
+    headline: "1200+ Families Chose Godrej Air — Phase 3 Now Open",
+    description: "Join India's most loved residential community in Whitefield." },
+  { style: "Premium dark theme with gold accents",
+    primaryText: "Luxury isn't just a word. It's an address.\n\nGodrej Air, Phase 3 — Where Japanese-inspired architecture meets Bangalore's most coveted location.\n\nStarting ₹1.8Cr | 3 & 4 BHK\n\n✨ Experience the walkthrough →",
+    headline: "Godrej Air Phase 3 — Luxury Redefined",
+    description: "Japanese-inspired architecture. Starting ₹1.8Cr." },
 ];
 
 const ALT_OPTION_DATA: OptionData[] = [
-  { style: "Clean layout with gradient background", postText: "Stop scrolling. Start living.\n\nGodrej Air Phase 3 brings you 3BHK homes designed for modern families. Zen gardens, infinity pool, and a location that puts everything within reach.\n\n📞 Talk to our team today." },
-  { style: "Photo-centric with text overlay", postText: "This could be your morning view. ☀️\n\nWake up to 3 acres of landscaped gardens at Godrej Air, Whitefield. Phase 3 now open for bookings.\n\nStarting ₹1.8Cr.\n\n👉 Book a site visit" },
-  { style: "Split-screen comparison style", postText: "Rent: ₹45K/month. Zero ownership.\nEMI: ₹1.1L/month. 100% yours.\n\nThe math is simple. Make the switch to Godrej Air.\n\n3BHK in Whitefield | RERA Approved\n\n🏡 Get started →" },
-  { style: "Aspirational lifestyle with soft tones", postText: "Home is where your story begins.\n\nAt Godrej Air, every detail is designed to make life beautiful — from the zen-inspired gardens to the smartly crafted living spaces.\n\nPhase 3 | Starting ₹1.8Cr\n\n💫 Explore now" },
+  { style: "Clean layout with gradient background",
+    primaryText: "Stop scrolling. Start living.\n\nGodrej Air Phase 3 brings you 3BHK homes designed for modern families. Zen gardens, infinity pool, and a location that puts everything within reach.\n\n📞 Talk to our team today.",
+    headline: "Stop Scrolling. Start Living — Godrej Air",
+    description: "3BHK homes for modern families. Zen gardens & infinity pool." },
+  { style: "Photo-centric with text overlay",
+    primaryText: "This could be your morning view. ☀️\n\nWake up to 3 acres of landscaped gardens at Godrej Air, Whitefield. Phase 3 now open for bookings.\n\nStarting ₹1.8Cr.\n\n👉 Book a site visit",
+    headline: "Wake Up to 3 Acres of Gardens — Godrej Air",
+    description: "Phase 3 now open. Starting ₹1.8Cr in Whitefield." },
+  { style: "Split-screen comparison style",
+    primaryText: "Rent: ₹45K/month. Zero ownership.\nEMI: ₹1.1L/month. 100% yours.\n\nThe math is simple. Make the switch to Godrej Air.\n\n3BHK in Whitefield | RERA Approved\n\n🏡 Get started →",
+    headline: "Rent vs Own — The Math is Simple",
+    description: "3BHK in Whitefield. RERA Approved. EMI from ₹1.1L/month." },
+  { style: "Aspirational lifestyle with soft tones",
+    primaryText: "Home is where your story begins.\n\nAt Godrej Air, every detail is designed to make life beautiful — from the zen-inspired gardens to the smartly crafted living spaces.\n\nPhase 3 | Starting ₹1.8Cr\n\n💫 Explore now",
+    headline: "Home Is Where Your Story Begins",
+    description: "Zen-inspired gardens. Smartly crafted living spaces." },
 ];
 
 interface SizeOption {
@@ -165,7 +193,9 @@ export function CreativeGeneratorModal({
             id: `creative-${sId}-${Date.now()}`,
             size: so.dimensions,
             label: so.label,
-            postText: selectedOption ? optionData[selectedOption - 1].postText : `${hook}\n\n${cta}`,
+            postText: selectedOption ? optionData[selectedOption - 1].primaryText : `${hook}\n\n${cta}`,
+            headline: selectedOption ? optionData[selectedOption - 1].headline : hook,
+            description: selectedOption ? optionData[selectedOption - 1].description : cta,
           };
         });
         setGeneratedCreatives(creatives);
@@ -193,7 +223,9 @@ export function CreativeGeneratorModal({
             i === idx
               ? {
                   style: `${ALT_OPTION_DATA[idx]?.style || opt.style}${feedbackSuffix}`,
-                  postText: ALT_OPTION_DATA[idx]?.postText || opt.postText,
+                  primaryText: ALT_OPTION_DATA[idx]?.primaryText || opt.primaryText,
+                  headline: ALT_OPTION_DATA[idx]?.headline || opt.headline,
+                  description: ALT_OPTION_DATA[idx]?.description || opt.description,
                 }
               : opt
           )
@@ -350,33 +382,47 @@ export function CreativeGeneratorModal({
                   </div>
                   {/* Style description */}
                   <p className="text-[11px] text-text-tertiary mb-2">{opt.style}</p>
-                  {/* Post text with edit */}
-                  <div className="relative">
-                    <div className="flex items-start justify-between gap-1">
-                      <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Post Text</span>
-                      <button
-                        type="button"
-                        onClick={(e) => { e.stopPropagation(); setEditingPostText(isEditingThis ? null : n); }}
-                        className="p-0.5 text-text-tertiary hover:text-accent transition-colors"
-                        title="Edit post text"
-                      >
-                        <Pencil size={10} strokeWidth={1.5} />
-                      </button>
+                  {/* Ad copy fields */}
+                  <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
+                    {/* Primary Text */}
+                    <div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Primary Text</span>
+                        <button type="button" onClick={() => setEditingPostText(isEditingThis ? null : n)}
+                          className="p-0.5 text-text-tertiary hover:text-accent transition-colors">
+                          <Pencil size={9} strokeWidth={1.5} />
+                        </button>
+                      </div>
+                      {isEditingThis ? (
+                        <textarea value={opt.primaryText}
+                          onChange={(e) => setOptionData((prev) => prev.map((o, i) => i === n - 1 ? { ...o, primaryText: e.target.value } : o))}
+                          rows={3} className="w-full mt-0.5 px-2 py-1 text-[10px] border border-accent/30 rounded-input bg-white text-text-primary focus:outline-none focus:border-accent resize-none leading-relaxed" />
+                      ) : (
+                        <p className="text-[10px] text-text-secondary leading-relaxed mt-0.5 line-clamp-3 whitespace-pre-line">{opt.primaryText}</p>
+                      )}
                     </div>
-                    {isEditingThis ? (
-                      <textarea
-                        value={opt.postText}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setOptionData((prev) => prev.map((o, i) => i === n - 1 ? { ...o, postText: val } : o));
-                        }}
-                        onClick={(e) => e.stopPropagation()}
-                        rows={4}
-                        className="w-full mt-1 px-2 py-1.5 text-[11px] border border-accent/30 rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 resize-none leading-relaxed"
-                      />
-                    ) : (
-                      <p className="text-[11px] text-text-secondary leading-relaxed mt-1 line-clamp-4 whitespace-pre-line">{opt.postText}</p>
-                    )}
+                    {/* Headline */}
+                    <div>
+                      <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Headline</span>
+                      {isEditingThis ? (
+                        <input type="text" value={opt.headline}
+                          onChange={(e) => setOptionData((prev) => prev.map((o, i) => i === n - 1 ? { ...o, headline: e.target.value } : o))}
+                          className="w-full mt-0.5 h-6 px-2 text-[10px] border border-accent/30 rounded-input bg-white text-text-primary focus:outline-none focus:border-accent" />
+                      ) : (
+                        <p className="text-[10px] text-text-primary font-medium mt-0.5 line-clamp-1">{opt.headline}</p>
+                      )}
+                    </div>
+                    {/* Description */}
+                    <div>
+                      <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Description</span>
+                      {isEditingThis ? (
+                        <input type="text" value={opt.description}
+                          onChange={(e) => setOptionData((prev) => prev.map((o, i) => i === n - 1 ? { ...o, description: e.target.value } : o))}
+                          className="w-full mt-0.5 h-6 px-2 text-[10px] border border-accent/30 rounded-input bg-white text-text-primary focus:outline-none focus:border-accent" />
+                      ) : (
+                        <p className="text-[10px] text-text-secondary mt-0.5 line-clamp-1">{opt.description}</p>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
