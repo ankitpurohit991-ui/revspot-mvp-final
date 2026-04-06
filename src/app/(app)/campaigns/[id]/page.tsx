@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { ArrowLeft, Calendar, ArrowRight, Sparkles, Lightbulb, X, Check } from "lucide-react";
+import { ArrowLeft, Calendar, ArrowRight, Sparkles, Lightbulb, X, Check, Bot, AlertTriangle } from "lucide-react";
 import { campaignDetail, campaignDiagnosis, leadDistributionData } from "@/lib/campaign-data";
 import { LeadsTab } from "@/components/campaigns/leads-tab";
 import { AnalysisTab } from "@/components/campaigns/analysis-tab";
@@ -162,6 +162,23 @@ export default function CampaignDetailPage() {
             </div>
           </div>
         </>
+      )}
+
+      {/* No Agent Connected Banner (shown when agentConnected is false) */}
+      {!campaign.agentConnected && (
+        <div className="mb-4 flex items-start gap-3 bg-[#FEF3C7] border border-[#F59E0B]/20 rounded-card px-5 py-4">
+          <AlertTriangle size={16} strokeWidth={1.5} className="text-[#92400E] mt-0.5 shrink-0" />
+          <div className="flex-1">
+            <h4 className="text-[13px] font-semibold text-[#92400E]">No Agent Connected</h4>
+            <p className="text-[12px] text-[#92400E]/80 mt-0.5 leading-relaxed">
+              Qualification metrics (Qualified Leads, CPQL, Qualification Rate) are unavailable. Connect an agent to start qualifying leads from this campaign.
+            </p>
+          </div>
+          <button onClick={() => router.push("/agents")}
+            className="inline-flex items-center gap-1.5 h-8 px-3.5 text-[12px] font-medium bg-[#92400E] text-white rounded-button hover:bg-[#78350F] transition-colors shrink-0">
+            <Bot size={13} strokeWidth={1.5} /> Connect Agent
+          </button>
+        </div>
       )}
 
       {/* Merged Diagnosis Summary + AI Recommendations Bar */}
