@@ -233,26 +233,6 @@ export function LeadDetailPanel({ lead, onClose }: LeadDetailPanelProps) {
               </button>
             )}
 
-            {isSentToCRM ? (
-              <button
-                disabled
-                className="inline-flex items-center gap-1.5 h-8 px-3.5 text-[12px] font-medium rounded-button bg-[#F0FDF4] text-[#15803D] border border-[#BBF7D0] cursor-default"
-              >
-                <Check size={13} strokeWidth={2} /> Sent to CRM
-              </button>
-            ) : (
-              <button
-                onClick={handlePushCRM}
-                disabled={isPushing}
-                className="inline-flex items-center gap-1.5 h-8 px-3.5 text-[12px] font-medium rounded-button bg-white text-text-primary border border-border hover:bg-surface-secondary transition-colors duration-150 disabled:opacity-60"
-              >
-                {isPushing ? (
-                  <><Loader2 size={13} strokeWidth={2} className="animate-spin" /> Pushing...</>
-                ) : (
-                  "Send to CRM"
-                )}
-              </button>
-            )}
           </div>
         </div>
 

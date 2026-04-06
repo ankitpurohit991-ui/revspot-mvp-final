@@ -156,14 +156,14 @@ const leadTrends: Record<string, MetricChartDef> = {
   verified: { key: "verified", label: "Verified", unit: "number", data: Array.from({ length: 14 }, (_, i) => Math.round(120 + i * 1.5 + Math.random() * 5)) },
   qualified: { key: "qualified", label: "Qualified", unit: "number", data: Array.from({ length: 14 }, (_, i) => Math.round(105 + i * 1.5 + Math.random() * 5)) },
   notQualified: { key: "notQualified", label: "Not Qualified", unit: "number", data: Array.from({ length: 14 }, (_, i) => Math.round(380 + i * 2 + Math.random() * 10)) },
-  pending: { key: "pending", label: "Pending", unit: "number", data: Array.from({ length: 14 }, (_, i) => Math.round(280 + i * 2 + Math.random() * 8)) },
+  pending: { key: "pending", label: "Follow Up", unit: "number", data: Array.from({ length: 14 }, (_, i) => Math.round(280 + i * 2 + Math.random() * 8)) },
 };
 const leadMetricOptions: MetricOption[] = [
   { key: "total", label: "Total Leads", category: "Leads", currentValue: "845" },
   { key: "verified", label: "Verified", category: "Leads", currentValue: "142" },
   { key: "qualified", label: "Qualified", category: "Leads", currentValue: "127" },
   { key: "notQualified", label: "Not Qualified", category: "Leads", currentValue: "412" },
-  { key: "pending", label: "Pending", category: "Leads", currentValue: "306" },
+  { key: "pending", label: "Follow Up", category: "Leads", currentValue: "306" },
 ];
 
 export default function EnquiriesPage() {
@@ -260,7 +260,7 @@ export default function EnquiriesPage() {
           chartKey="qualified" isSelected={selectedMetrics.includes("qualified")} onToggle={toggleMetric} />
         <MetricCard label="Not Qualified" value={enquiryStats.notQualified}
           chartKey="notQualified" isSelected={selectedMetrics.includes("notQualified")} onToggle={toggleMetric} />
-        <MetricCard label="Pending" value={enquiryStats.pending}
+        <MetricCard label="Follow Up" value={enquiryStats.pending}
           chartKey="pending" isSelected={selectedMetrics.includes("pending")} onToggle={toggleMetric} />
       </div>
 
@@ -312,6 +312,8 @@ export default function EnquiriesPage() {
                   ? "All"
                   : s === "not_qualified"
                   ? "Not Qualified"
+                  : s === "pending"
+                  ? "Follow Up"
                   : s.charAt(0).toUpperCase() + s.slice(1)}
               </button>
             )
