@@ -141,7 +141,8 @@ export default function ProjectDetailPage() {
           chartKey="verifiedLeads" isSelected={selectedMetrics.includes("verifiedLeads")} onToggle={toggleMetric} />
         <MetricCard label="Qualified" value={project.qualifiedLeads.toString()}
           subMetric={`${qualifiedRate}% qualification rate`}
-          chartKey="qualifiedLeads" isSelected={selectedMetrics.includes("qualifiedLeads")} onToggle={toggleMetric} />
+          chartKey="qualifiedLeads" isSelected={selectedMetrics.includes("qualifiedLeads")} onToggle={toggleMetric}
+          warning="1 campaign without agent" />
         <MetricCard label="Avg CPL" value={`₹${project.avgCPL.toLocaleString("en-IN")}`}
           chartKey="avgCPL" isSelected={selectedMetrics.includes("avgCPL")} onToggle={toggleMetric} />
         <MetricCard label="CPVL" value={`₹${project.costPerVerifiedLead.toLocaleString("en-IN")}`}

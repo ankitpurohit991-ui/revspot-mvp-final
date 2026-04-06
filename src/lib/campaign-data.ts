@@ -160,7 +160,7 @@ export const campaignDetail: CampaignDetail = {
   targetCPL: 1200,
   dailyBudget: 8000,
   createdAt: "2025-11-20",
-  agentConnected: true,
+  agentConnected: false,
 };
 
 // ── Leads Tab Data ──────────────────────────────────────────

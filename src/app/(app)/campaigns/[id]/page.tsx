@@ -261,7 +261,7 @@ export default function CampaignDetailPage() {
 
       {/* Tab Content */}
       <div>
-        {activeTab === "analysis" && <AnalysisTab />}
+        {activeTab === "analysis" && <AnalysisTab agentConnected={campaign.agentConnected} />}
         {activeTab === "leads" && <LeadsTab />}
         {activeTab === "insights" && (
           <LeadInsights

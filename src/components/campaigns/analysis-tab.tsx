@@ -19,7 +19,7 @@ const funnelStages = [
 
 // ══════════════════════════════════════════════════════════════
 
-export function AnalysisTab() {
+export function AnalysisTab({ agentConnected = true }: { agentConnected?: boolean }) {
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>(["cpl"]);
 
   const toggleMetric = (key: string) => {
@@ -51,21 +51,37 @@ export function AnalysisTab() {
           delta="+20" tooltip="Total lead form submissions."
           trend={{ value: 12, direction: "up" }}
           chartKey="leads" isSelected={selectedMetrics.includes("leads")} onToggle={toggleMetric} />
-        <MetricCard label="Qualified" value="22" previous={20}
-          delta="+2" tooltip="Leads that passed all qualification criteria."
-          subMetric="11.8% qualification rate"
-          trend={{ value: 7.9, direction: "up" }}
-          chartKey="qualified" isSelected={selectedMetrics.includes("qualified")} onToggle={toggleMetric} />
+        {agentConnected ? (
+          <MetricCard label="Qualified" value="22" previous={20}
+            delta="+2" tooltip="Leads that passed all qualification criteria."
+            subMetric="11.8% qualification rate"
+            trend={{ value: 7.9, direction: "up" }}
+            chartKey="qualified" isSelected={selectedMetrics.includes("qualified")} onToggle={toggleMetric} />
+        ) : (
+          <div className="bg-[#FEF3C7]/50 border border-[#F59E0B]/20 rounded-card p-4 flex flex-col items-center justify-center text-center">
+            <span className="text-[11px] font-medium text-[#92400E] uppercase tracking-[0.4px]">Qualified</span>
+            <span className="text-[20px] font-bold text-[#92400E]/40 mt-1">—</span>
+            <a href="/agents" className="text-[10px] font-medium text-[#92400E] underline mt-1 hover:text-[#78350F]">Connect agent</a>
+          </div>
+        )}
         <MetricCard label="CPL vs Target" value="-₹17" previous="₹1,245"
           delta="₹1,183" tooltip="Actual CPL ₹1,183 vs target ₹1,200. ₹17 below target."
           subMetric="₹1,183 vs ₹1,200 target"
           status="good"
           trend={{ value: 1.4, direction: "down", positive: true }}
           chartKey="cpl" isSelected={selectedMetrics.includes("cpl")} onToggle={toggleMetric} />
-        <MetricCard label="CPQL" value="₹10,000" previous="₹9,524"
-          delta="+₹476" tooltip="True cost of acquiring a sales-ready lead."
-          trend={{ value: 5, direction: "up", positive: false }}
-          chartKey="cpql" isSelected={selectedMetrics.includes("cpql")} onToggle={toggleMetric} />
+        {agentConnected ? (
+          <MetricCard label="CPQL" value="₹10,000" previous="₹9,524"
+            delta="+₹476" tooltip="True cost of acquiring a sales-ready lead."
+            trend={{ value: 5, direction: "up", positive: false }}
+            chartKey="cpql" isSelected={selectedMetrics.includes("cpql")} onToggle={toggleMetric} />
+        ) : (
+          <div className="bg-[#FEF3C7]/50 border border-[#F59E0B]/20 rounded-card p-4 flex flex-col items-center justify-center text-center">
+            <span className="text-[11px] font-medium text-[#92400E] uppercase tracking-[0.4px]">CPQL</span>
+            <span className="text-[20px] font-bold text-[#92400E]/40 mt-1">—</span>
+            <a href="/agents" className="text-[10px] font-medium text-[#92400E] underline mt-1 hover:text-[#78350F]">Connect agent</a>
+          </div>
+        )}
       </div>
 
       {/* Unified: Funnel + Health in one strip */}

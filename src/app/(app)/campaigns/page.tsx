@@ -334,14 +334,22 @@ export default function CampaignsPage() {
                   <td className="px-4 py-3">
                     <StatusBadge status={c.status} />
                   </td>
-                  {activeMetrics.map((m) => (
-                    <td
-                      key={m.key}
-                      className="px-4 py-3 text-[13px] text-text-primary text-right tabular-nums"
-                    >
-                      {formatMetricValue(m.getValue(c), m.format)}
-                    </td>
-                  ))}
+                  {activeMetrics.map((m) => {
+                    const isQualMetric = ["qualifiedLeads", "costPerQualifiedLead", "qualificationRate"].includes(m.key);
+                    const noAgent = !c.agentConnected && isQualMetric;
+                    return (
+                      <td key={m.key} className="px-4 py-3 text-[13px] text-right tabular-nums">
+                        {noAgent ? (
+                          <span className="inline-flex items-center gap-1 text-text-tertiary" title="No agent connected">
+                            <AlertTriangle size={11} strokeWidth={2} className="text-[#F59E0B]" />
+                            —
+                          </span>
+                        ) : (
+                          <span className="text-text-primary">{formatMetricValue(m.getValue(c), m.format)}</span>
+                        )}
+                      </td>
+                    );
+                  })}
                   <td className="px-4 py-3 text-center">
                     <HealthBadge health={c.health} />
                   </td>

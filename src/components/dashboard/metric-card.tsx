@@ -31,6 +31,8 @@ interface MetricCardProps {
   /** Icon component */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   icon?: React.ComponentType<any>;
+  /** Warning note shown below the card */
+  warning?: string;
 }
 
 function getCardBg(status: CardStatus) {
@@ -44,7 +46,7 @@ function getCardBorder(status: CardStatus, isSelected: boolean) {
 
 export function MetricCard({
   label, value, previous, delta, previousLabel, tooltip, trend, subMetric,
-  status = "neutral", chartKey, isSelected = false, onToggle, icon: Icon,
+  status = "neutral", chartKey, isSelected = false, onToggle, icon: Icon, warning,
 }: MetricCardProps) {
   const [showTooltip, setShowTooltip] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -104,6 +106,11 @@ export function MetricCard({
           </div>
         )}
       </div>
+
+      {/* Warning note */}
+      {warning && (
+        <div className="text-[9px] text-[#92400E] mt-1 leading-tight">{warning}</div>
+      )}
 
       {/* Selected indicator */}
       {isSelected && <div className="absolute bottom-0 left-2 right-2 h-[2px] bg-accent rounded-full" />}
