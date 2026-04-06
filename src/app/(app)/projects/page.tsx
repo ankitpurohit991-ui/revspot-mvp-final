@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import {
-  Plus, ArrowRight, ShieldCheck, ChevronDown, ChevronRight, X, Upload, FileText,
+  Plus, ArrowRight, ChevronDown, ChevronRight, X, Upload, FileText,
 } from "lucide-react";
 import { campaignsList, projectsList } from "@/lib/campaign-data";
 import type { ProjectItem, CampaignListItem } from "@/lib/campaign-data";
@@ -29,10 +29,23 @@ function StatusBadge({ status }: { status: ProjectItem["status"] }) {
 }
 
 // ── Project Card ────────────────────────────────────────────
+function HealthIndicator({ health }: { health: ProjectItem["healthSummary"] }) {
+  const config = {
+    "on-track": { label: "On Track", dotCls: "bg-[#15803D]", textCls: "text-[#15803D]" },
+    "needs-attention": { label: "Needs Attention", dotCls: "bg-[#D97706]", textCls: "text-[#D97706]" },
+    underperforming: { label: "Underperforming", dotCls: "bg-[#DC2626]", textCls: "text-[#DC2626]" },
+  };
+  const { label, dotCls, textCls } = config[health];
+  return (
+    <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${textCls}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dotCls}`} />
+      {label}
+    </span>
+  );
+}
+
 function ProjectCard({ project }: { project: ProjectItem }) {
   const router = useRouter();
-  const verifiedRate = project.totalLeads > 0 ? Math.round((project.verifiedLeads / project.totalLeads) * 100) : 0;
-  const qualifiedRate = project.totalLeads > 0 ? Math.round((project.qualifiedLeads / project.totalLeads) * 100) : 0;
 
   return (
     <button
@@ -48,27 +61,47 @@ function ProjectCard({ project }: { project: ProjectItem }) {
         </div>
         <StatusBadge status={project.status} />
       </div>
-      <div className="text-[12px] text-text-secondary mb-4">{project.campaignIds.length} campaign{project.campaignIds.length !== 1 ? "s" : ""}</div>
-      <div className="grid grid-cols-2 gap-x-6 gap-y-3">
+      <div className="text-[12px] text-text-secondary mb-4">{project.campaignIds.length} campaign{project.campaignIds.length !== 1 ? "s" : ""} ({project.activeCampaigns} active)</div>
+      <div className="grid grid-cols-3 gap-x-4 gap-y-3">
         <div>
-          <div className="text-[11px] text-text-tertiary uppercase tracking-[0.3px]">Spend</div>
-          <div className="text-[16px] font-semibold text-text-primary tabular-nums mt-0.5">{formatCurrency(project.totalSpend)}</div>
+          <div className="text-[10px] text-text-tertiary">Spend</div>
+          <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">{formatCurrency(project.totalSpend)}</div>
         </div>
         <div>
-          <div className="text-[11px] text-text-tertiary uppercase tracking-[0.3px]">Leads</div>
-          <div className="text-[16px] font-semibold text-text-primary tabular-nums mt-0.5">{project.totalLeads}</div>
+          <div className="text-[10px] text-text-tertiary">Leads</div>
+          <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">{project.totalLeads}</div>
         </div>
         <div>
-          <div className="text-[11px] text-text-tertiary uppercase tracking-[0.3px] flex items-center gap-1"><ShieldCheck size={10} strokeWidth={2} /> Verified</div>
-          <div className="text-[16px] font-semibold text-text-primary tabular-nums mt-0.5">{project.verifiedLeads}<span className="text-[11px] font-normal text-text-tertiary ml-1">({verifiedRate}%)</span></div>
+          <div className="text-[10px] text-text-tertiary">Verified ({project.verificationRate}%)</div>
+          <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">{project.verifiedLeads}</div>
         </div>
         <div>
-          <div className="text-[11px] text-text-tertiary uppercase tracking-[0.3px]">Avg CPL</div>
-          <div className="text-[16px] font-semibold text-text-primary tabular-nums mt-0.5">₹{project.avgCPL.toLocaleString("en-IN")}</div>
+          <div className="text-[10px] text-text-tertiary">Qualified</div>
+          <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">{project.qualifiedLeads}</div>
+        </div>
+        <div>
+          <div className="text-[10px] text-text-tertiary">CPL</div>
+          <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">₹{project.avgCPL.toLocaleString("en-IN")}</div>
+        </div>
+        <div>
+          <div className="text-[10px] text-text-tertiary">CPVL</div>
+          <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">₹{project.costPerVerifiedLead.toLocaleString("en-IN")}</div>
+        </div>
+        <div>
+          <div className="text-[10px] text-text-tertiary">CPQL</div>
+          <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">₹{project.costPerQualifiedLead.toLocaleString("en-IN")}</div>
+        </div>
+        <div>
+          <div className="text-[10px] text-text-tertiary">CTR</div>
+          <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">{project.ctr}%</div>
+        </div>
+        <div>
+          <div className="text-[10px] text-text-tertiary">CPM</div>
+          <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">₹{project.cpm}</div>
         </div>
       </div>
       <div className="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between">
-        <span className="text-[11px] text-text-tertiary">Qualified: {project.qualifiedLeads} ({qualifiedRate}%)</span>
+        <HealthIndicator health={project.healthSummary} />
         <ArrowRight size={14} strokeWidth={1.5} className="text-text-tertiary group-hover:text-text-primary transition-colors duration-150" />
       </div>
     </button>

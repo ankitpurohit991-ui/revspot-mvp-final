@@ -659,6 +659,14 @@ export interface ProjectItem {
   qualifiedLeads: number;
   avgCPL: number;
   createdAt: string;
+  costPerVerifiedLead: number;
+  costPerQualifiedLead: number;
+  verificationRate: number;
+  qualificationRate: number;
+  ctr: number;
+  cpm: number;
+  healthSummary: "on-track" | "needs-attention" | "underperforming";
+  activeCampaigns: number;
 }
 
 export const projectsList: ProjectItem[] = [
@@ -675,6 +683,14 @@ export const projectsList: ProjectItem[] = [
     qualifiedLeads: 22,
     avgCPL: 838,
     createdAt: "2025-12-01",
+    costPerVerifiedLead: 5065,
+    costPerQualifiedLead: 10590,
+    verificationRate: 16.5,
+    qualificationRate: 7.9,
+    ctr: 1.8,
+    cpm: 285,
+    healthSummary: "on-track",
+    activeCampaigns: 2,
   },
   {
     id: "proj-2",
@@ -689,6 +705,14 @@ export const projectsList: ProjectItem[] = [
     qualifiedLeads: 22,
     avgCPL: 1183,
     createdAt: "2025-11-15",
+    costPerVerifiedLead: 5238,
+    costPerQualifiedLead: 10000,
+    verificationRate: 22.6,
+    qualificationRate: 8.1,
+    ctr: 2.1,
+    cpm: 320,
+    healthSummary: "needs-attention",
+    activeCampaigns: 1,
   },
   {
     id: "proj-3",
@@ -703,6 +727,14 @@ export const projectsList: ProjectItem[] = [
     qualifiedLeads: 11,
     avgCPL: 910,
     createdAt: "2026-01-08",
+    costPerVerifiedLead: 6454,
+    costPerQualifiedLead: 12800,
+    verificationRate: 14.1,
+    qualificationRate: 6.4,
+    ctr: 1.5,
+    cpm: 245,
+    healthSummary: "on-track",
+    activeCampaigns: 1,
   },
   {
     id: "proj-4",
@@ -717,6 +749,14 @@ export const projectsList: ProjectItem[] = [
     qualifiedLeads: 29,
     avgCPL: 912,
     createdAt: "2025-09-10",
+    costPerVerifiedLead: 5344,
+    costPerQualifiedLead: 11200,
+    verificationRate: 17.1,
+    qualificationRate: 8.2,
+    ctr: 1.9,
+    cpm: 310,
+    healthSummary: "on-track",
+    activeCampaigns: 0,
   },
 ];
 

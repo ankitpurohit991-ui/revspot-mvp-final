@@ -61,6 +61,8 @@ export default function ProjectDetailPage() {
 
   const verifiedRate = project.totalLeads > 0
     ? ((project.verifiedLeads / project.totalLeads) * 100).toFixed(1) : "0";
+  const qualifiedRate = project.totalLeads > 0
+    ? ((project.qualifiedLeads / project.totalLeads) * 100).toFixed(1) : "0";
 
   const projectTrends: Record<string, MetricChartDef> = {
     totalSpend: { key: "totalSpend", label: "Total Spend", unit: "currency", data: makeTrend(180000, project.totalSpend) },
@@ -68,6 +70,9 @@ export default function ProjectDetailPage() {
     verifiedLeads: { key: "verifiedLeads", label: "Verified Leads", unit: "number", data: makeTrend(35, project.verifiedLeads) },
     qualifiedLeads: { key: "qualifiedLeads", label: "Qualified", unit: "number", data: makeTrend(16, project.qualifiedLeads) },
     avgCPL: { key: "avgCPL", label: "Avg CPL", unit: "currency", data: makeTrend(920, project.avgCPL) },
+    cpvl: { key: "cpvl", label: "CPVL", unit: "currency", data: makeTrend(4800, project.costPerVerifiedLead) },
+    cpql: { key: "cpql", label: "CPQL", unit: "currency", data: makeTrend(9500, project.costPerQualifiedLead) },
+    avgCTR: { key: "avgCTR", label: "Avg CTR", unit: "percentage", data: makeTrend(1.4, project.ctr) },
   };
 
   const toggleMetric = useCallback((key: string) => {
@@ -86,6 +91,9 @@ export default function ProjectDetailPage() {
     { key: "verifiedLeads", label: "Verified Leads", category: "Leads", currentValue: project.verifiedLeads.toString() },
     { key: "qualifiedLeads", label: "Qualified", category: "Leads", currentValue: project.qualifiedLeads.toString() },
     { key: "avgCPL", label: "Avg CPL", category: "Cost", currentValue: `₹${project.avgCPL.toLocaleString("en-IN")}` },
+    { key: "cpvl", label: "CPVL", category: "Cost", currentValue: `₹${project.costPerVerifiedLead.toLocaleString("en-IN")}` },
+    { key: "cpql", label: "CPQL", category: "Cost", currentValue: `₹${project.costPerQualifiedLead.toLocaleString("en-IN")}` },
+    { key: "avgCTR", label: "Avg CTR", category: "Overview", currentValue: `${project.ctr}%` },
   ];
 
   return (
@@ -120,7 +128,7 @@ export default function ProjectDetailPage() {
       </div>
 
       {/* Metric Cards — clickable for charting */}
-      <div className="grid grid-cols-5 gap-3 mb-3">
+      <div className="grid grid-cols-4 gap-3 mb-3">
         <MetricCard label="Total spend" value={formatCurrency(project.totalSpend)}
           chartKey="totalSpend" isSelected={selectedMetrics.includes("totalSpend")} onToggle={toggleMetric} />
         <MetricCard label="Total leads" value={project.totalLeads.toLocaleString()}
@@ -129,9 +137,16 @@ export default function ProjectDetailPage() {
           subMetric={`${verifiedRate}% verification rate`}
           chartKey="verifiedLeads" isSelected={selectedMetrics.includes("verifiedLeads")} onToggle={toggleMetric} />
         <MetricCard label="Qualified" value={project.qualifiedLeads.toString()}
+          subMetric={`${qualifiedRate}% qualification rate`}
           chartKey="qualifiedLeads" isSelected={selectedMetrics.includes("qualifiedLeads")} onToggle={toggleMetric} />
         <MetricCard label="Avg CPL" value={`₹${project.avgCPL.toLocaleString("en-IN")}`}
           chartKey="avgCPL" isSelected={selectedMetrics.includes("avgCPL")} onToggle={toggleMetric} />
+        <MetricCard label="CPVL" value={`₹${project.costPerVerifiedLead.toLocaleString("en-IN")}`}
+          chartKey="cpvl" isSelected={selectedMetrics.includes("cpvl")} onToggle={toggleMetric} />
+        <MetricCard label="CPQL" value={`₹${project.costPerQualifiedLead.toLocaleString("en-IN")}`}
+          chartKey="cpql" isSelected={selectedMetrics.includes("cpql")} onToggle={toggleMetric} />
+        <MetricCard label="Avg CTR" value={`${project.ctr}%`}
+          chartKey="avgCTR" isSelected={selectedMetrics.includes("avgCTR")} onToggle={toggleMetric} />
       </div>
 
       {/* Chart */}
