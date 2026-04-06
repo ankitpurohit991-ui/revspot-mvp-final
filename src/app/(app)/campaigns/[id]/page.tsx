@@ -6,18 +6,19 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
 import { ArrowLeft, Calendar, ArrowRight, Sparkles, Lightbulb, X, Check } from "lucide-react";
-import { campaignDetail, campaignDiagnosis } from "@/lib/campaign-data";
+import { campaignDetail, campaignDiagnosis, leadDistributionData } from "@/lib/campaign-data";
 import { LeadsTab } from "@/components/campaigns/leads-tab";
 import { AnalysisTab } from "@/components/campaigns/analysis-tab";
 import { SettingsTab } from "@/components/campaigns/settings-tab";
 import { DiagnosisTab } from "@/components/campaigns/diagnosis-tab";
+import { LeadInsights } from "@/components/campaigns/lead-insights";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
   show: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
 };
 
-type Tab = "analysis" | "leads" | "diagnosis" | "settings";
+type Tab = "analysis" | "leads" | "insights" | "diagnosis" | "settings";
 
 // Diagnosis status badge config
 const diagnosisStatusConfig = {
@@ -99,6 +100,7 @@ export default function CampaignDetailPage() {
   const tabs: { key: Tab; label: string; count?: number }[] = [
     { key: "analysis", label: "Analysis" },
     { key: "leads", label: "Leads", count: 186 },
+    { key: "insights", label: "Insights" },
     { key: "diagnosis", label: "Diagnosis" },
     { key: "settings", label: "Settings" },
   ];
@@ -137,43 +139,6 @@ export default function CampaignDetailPage() {
         </div>
       </div>
 
-      {/* AI Recommendations */}
-      {suggestions.length > 0 && (
-        <div className="mb-4 bg-[#EFF6FF] border border-[#3B82F6]/20 rounded-card p-4">
-          <div className="flex items-center gap-2 mb-3">
-            <Lightbulb size={14} strokeWidth={2} className="text-[#3B82F6]" />
-            <span className="text-[13px] font-semibold text-text-primary">AI Recommendations</span>
-            <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-[#3B82F6]/10 text-[#1D4ED8]">{suggestions.length}</span>
-          </div>
-          <div className="space-y-2">
-            {suggestions.map((sug) => (
-              <div key={sug.id} className="flex items-start gap-3 bg-white rounded-[8px] px-4 py-3 border border-[#3B82F6]/10">
-                <Lightbulb size={14} strokeWidth={1.5} className="text-[#3B82F6] mt-0.5 shrink-0" />
-                <p className="text-[12px] text-text-secondary leading-relaxed flex-1">{sug.text}</p>
-                <div className="flex items-center gap-2 shrink-0">
-                  {appliedId === sug.id ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#15803D]">
-                      <Check size={12} strokeWidth={2} /> Applied!
-                    </span>
-                  ) : (
-                    <>
-                      <button onClick={() => applySuggestion(sug)}
-                        className="h-7 px-3 text-[11px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors">
-                        {sug.cta}
-                      </button>
-                      <button onClick={() => dismissSuggestion(sug.id)}
-                        className="p-1 text-text-tertiary hover:text-text-primary rounded-button hover:bg-surface-secondary transition-colors">
-                        <X size={14} strokeWidth={1.5} />
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Navigation Confirmation Popup */}
       {navigationConfirm && (
         <>
@@ -199,21 +164,62 @@ export default function CampaignDetailPage() {
         </>
       )}
 
-      {/* Diagnosis Summary Bar */}
-      <div className="flex items-center gap-3 mb-5 px-4 py-2.5 bg-white border border-border rounded-card">
-        <div className="w-5 h-5 rounded-[5px] bg-accent flex items-center justify-center shrink-0">
-          <Sparkles size={11} strokeWidth={1.5} className="text-white" />
+      {/* Merged Diagnosis Summary + AI Recommendations Bar */}
+      <div className="mb-5 bg-white border border-border rounded-card">
+        {/* Diagnosis row */}
+        <div className="flex items-center gap-3 px-4 py-2.5">
+          <div className="w-5 h-5 rounded-[5px] bg-accent flex items-center justify-center shrink-0">
+            <Sparkles size={11} strokeWidth={1.5} className="text-white" />
+          </div>
+          <span className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-badge ${diagCfg.cls}`}>
+            {diagCfg.label}
+          </span>
+          <p className="text-[12px] text-text-secondary flex-1 truncate">
+            CPL ₹1,183 vs target ₹1,200 — improving trend visible in second half of the flight
+          </p>
+          <button onClick={() => setActiveTab("diagnosis")}
+            className="inline-flex items-center gap-1 text-[11px] font-medium text-text-secondary hover:text-text-primary transition-colors duration-150 shrink-0">
+            View details <ArrowRight size={11} strokeWidth={1.5} />
+          </button>
         </div>
-        <span className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-badge ${diagCfg.cls}`}>
-          {diagCfg.label}
-        </span>
-        <p className="text-[12px] text-text-secondary flex-1 truncate">
-          CPL ₹1,183 vs target ₹1,200 — improving trend visible in second half of the flight
-        </p>
-        <button onClick={() => setActiveTab("diagnosis")}
-          className="inline-flex items-center gap-1 text-[11px] font-medium text-text-secondary hover:text-text-primary transition-colors duration-150 shrink-0">
-          View details <ArrowRight size={11} strokeWidth={1.5} />
-        </button>
+
+        {/* Inline recommendations (max 2) */}
+        {suggestions.length > 0 && (
+          <div className="border-t border-border-subtle">
+            {suggestions.slice(0, 2).map((sug) => (
+              <div key={sug.id} className="flex items-center gap-3 px-4 py-2.5 border-b border-border-subtle last:border-b-0">
+                <Lightbulb size={13} strokeWidth={1.5} className="text-[#3B82F6] shrink-0" />
+                <p className="text-[12px] text-text-secondary flex-1 truncate">{sug.text}</p>
+                <div className="flex items-center gap-2 shrink-0">
+                  {appliedId === sug.id ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#15803D]">
+                      <Check size={12} strokeWidth={2} /> Applied!
+                    </span>
+                  ) : (
+                    <>
+                      <button onClick={() => applySuggestion(sug)}
+                        className="h-7 px-3 text-[11px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors">
+                        {sug.cta}
+                      </button>
+                      <button onClick={() => dismissSuggestion(sug.id)}
+                        className="p-1 text-text-tertiary hover:text-text-primary rounded-button hover:bg-surface-secondary transition-colors">
+                        <X size={14} strokeWidth={1.5} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
+            ))}
+            {suggestions.length > 2 && (
+              <div className="px-4 py-2">
+                <button onClick={() => setActiveTab("diagnosis")}
+                  className="text-[11px] font-medium text-text-secondary hover:text-text-primary transition-colors duration-150">
+                  See {suggestions.length - 2} more recommendations <ArrowRight size={11} strokeWidth={1.5} className="inline" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
@@ -240,6 +246,13 @@ export default function CampaignDetailPage() {
       <div>
         {activeTab === "analysis" && <AnalysisTab />}
         {activeTab === "leads" && <LeadsTab />}
+        {activeTab === "insights" && (
+          <LeadInsights
+            totalLeads={186}
+            verifiedLeads={142}
+            distributions={leadDistributionData}
+          />
+        )}
         {activeTab === "diagnosis" && <DiagnosisTab />}
         {activeTab === "settings" && <SettingsTab />}
       </div>

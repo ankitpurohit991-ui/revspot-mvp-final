@@ -754,3 +754,46 @@ export const settingsData = {
     dailyDigest: true,
   },
 };
+
+// ── Lead Distribution / Verification Dashboard Data ────────
+
+export const leadDistributionData = {
+  ageGroups: [
+    { label: "18-24", count: 42 },
+    { label: "25-34", count: 89 },
+    { label: "35-44", count: 67 },
+    { label: "45-54", count: 34 },
+    { label: "55+", count: 12 },
+  ],
+  locations: [
+    { label: "Bangalore", count: 98 },
+    { label: "Mumbai", count: 34 },
+    { label: "Delhi NCR", count: 22 },
+    { label: "Hyderabad", count: 18 },
+    { label: "Other", count: 14 },
+  ],
+  budgetRanges: [
+    { label: "Below ₹1Cr", count: 45 },
+    { label: "₹1-2Cr", count: 72 },
+    { label: "₹2-3Cr", count: 48 },
+    { label: "₹3Cr+", count: 21 },
+  ],
+  temperatures: [
+    { label: "Hot", count: 34 },
+    { label: "Warm", count: 67 },
+    { label: "Lukewarm", count: 56 },
+    { label: "Cold", count: 29 },
+  ],
+  netWorth: [
+    { label: "0-50L", count: 52 },
+    { label: "50L-1Cr", count: 38 },
+    { label: "1-2Cr", count: 65 },
+    { label: "2-5Cr", count: 31 },
+  ],
+  seniorityLevel: [
+    { label: "Senior", count: 42 },
+    { label: "Management", count: 56 },
+    { label: "Executive", count: 34 },
+    { label: "Other", count: 54 },
+  ],
+};

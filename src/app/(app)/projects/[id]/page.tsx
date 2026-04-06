@@ -8,12 +8,13 @@ import {
   ArrowLeft, Plus, CircleCheck, AlertTriangle, XCircle,
 } from "lucide-react";
 import {
-  projectsList, getProjectCampaigns,
+  projectsList, getProjectCampaigns, leadDistributionData,
 } from "@/lib/campaign-data";
 import type { CampaignHealth } from "@/lib/campaign-data";
 import { MetricCard } from "@/components/dashboard/metric-card";
 import { MetricChart } from "@/components/shared/metric-chart";
 import type { MetricChartDef, MetricOption } from "@/components/shared/metric-chart";
+import { LeadInsights } from "@/components/campaigns/lead-insights";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
@@ -193,6 +194,15 @@ export default function ProjectDetailPage() {
             </tbody>
           </table>
         </div>
+      </div>
+      {/* Lead Insights */}
+      <div className="mt-6">
+        <h3 className="text-section-header text-text-primary mb-4">Lead Insights</h3>
+        <LeadInsights
+          totalLeads={project.totalLeads}
+          verifiedLeads={project.verifiedLeads}
+          distributions={leadDistributionData}
+        />
       </div>
     </motion.div>
   );
