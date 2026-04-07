@@ -82,6 +82,7 @@ export function AgentTab({ agent }: AgentTabProps) {
     extensions: [StarterKit],
     content: markdownContent,
     editable: false,
+    immediatelyRender: false,
     editorProps: {
       attributes: {
         class: "prose prose-sm max-w-none focus:outline-none text-[13px] leading-relaxed text-text-primary [&_h3]:text-[14px] [&_h3]:font-bold [&_h3]:text-text-primary [&_h3]:mt-5 [&_h3]:mb-2 [&_h3]:uppercase [&_h3]:tracking-wide [&_p]:mb-2 [&_ul]:mb-3 [&_ul]:pl-4 [&_li]:mb-1 [&_li]:text-text-secondary",
