@@ -6,13 +6,8 @@ import {
   LayoutGrid,
   FolderKanban,
   Monitor,
-  Activity,
-  Workflow,
-  Image,
-  Bot,
   Zap,
   FileText,
-  Users,
   Globe,
   Plug,
   Settings,
@@ -26,25 +21,20 @@ const navSections = [
     items: [
       { name: "Projects", href: "/projects", icon: FolderKanban },
       { name: "Campaigns", href: "/campaigns", icon: Monitor },
-      { name: "Outreach", href: "/outreach", icon: Activity },
     ],
   },
   {
     label: "CRM",
     items: [
       { name: "Leads", href: "/enquiries", icon: FileText },
-      { name: "Contacts", href: "/contacts", icon: Users },
     ],
   },
   {
     label: "Tools",
     items: [
-      { name: "Creatives", href: "/creatives", icon: Image },
-      { name: "Agents MVP", href: "/agents-mvp", icon: Zap },
-      { name: "Agents", href: "/agents", icon: Bot },
-      { name: "Sequences", href: "/workflows", icon: Workflow },
-      { name: "Audiences", href: "/audiences", icon: Globe },
-      { name: "Integrations", href: "/integrations", icon: Plug },
+      { name: "Agents", href: "/agents-mvp", icon: Zap },
+      { name: "Audiences", href: "/audiences", icon: Globe, comingSoon: true },
+      { name: "Integrations", href: "/integrations", icon: Plug, comingSoon: true },
     ],
   },
 ];
@@ -106,17 +96,29 @@ export function Sidebar() {
           <div key={section.label} className="mb-3">
             <div className="label-section px-2 mb-1">{section.label}</div>
             <div className="space-y-0.5">
-              {section.items.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={navLinkClass(item.href)}
-                  style={{ fontSize: "13.5px" }}
-                >
-                  <item.icon size={16} strokeWidth={1.5} />
-                  <span>{item.name}</span>
-                </Link>
-              ))}
+              {section.items.map((item) => {
+                const cs = "comingSoon" in item && item.comingSoon;
+                if (cs) {
+                  return (
+                    <div key={item.href} className="relative flex items-center gap-2.5 px-2 h-8 rounded-[6px] text-text-tertiary cursor-default" style={{ fontSize: "13.5px" }}>
+                      <item.icon size={16} strokeWidth={1.5} />
+                      <span>{item.name}</span>
+                      <span className="ml-auto text-[8px] font-medium px-1 py-0.5 rounded bg-surface-secondary text-text-tertiary">Soon</span>
+                    </div>
+                  );
+                }
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={navLinkClass(item.href)}
+                    style={{ fontSize: "13.5px" }}
+                  >
+                    <item.icon size={16} strokeWidth={1.5} />
+                    <span>{item.name}</span>
+                  </Link>
+                );
+              })}
             </div>
           </div>
         ))}
