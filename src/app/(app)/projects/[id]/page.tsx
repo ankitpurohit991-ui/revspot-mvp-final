@@ -148,7 +148,8 @@ export default function ProjectDetailPage() {
         <MetricCard label="CPVL" value={`₹${project.costPerVerifiedLead.toLocaleString("en-IN")}`}
           chartKey="cpvl" isSelected={selectedMetrics.includes("cpvl")} onToggle={toggleMetric} />
         <MetricCard label="CPQL" value={`₹${project.costPerQualifiedLead.toLocaleString("en-IN")}`}
-          chartKey="cpql" isSelected={selectedMetrics.includes("cpql")} onToggle={toggleMetric} />
+          chartKey="cpql" isSelected={selectedMetrics.includes("cpql")} onToggle={toggleMetric}
+          warning="1 campaign without agent" />
       </div>
 
       {/* Chart */}

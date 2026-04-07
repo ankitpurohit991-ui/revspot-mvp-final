@@ -46,6 +46,9 @@ function HealthIndicator({ health }: { health: ProjectItem["healthSummary"] }) {
 
 function ProjectCard({ project }: { project: ProjectItem }) {
   const router = useRouter();
+  const hasDisconnectedAgent = project.campaignIds.some(
+    (cid) => campaignsList.find((c) => c.id === cid)?.agentConnected === false
+  );
 
   return (
     <button
@@ -78,6 +81,7 @@ function ProjectCard({ project }: { project: ProjectItem }) {
         <div>
           <div className="text-[10px] text-text-tertiary">Qualified</div>
           <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">{project.qualifiedLeads}</div>
+          {hasDisconnectedAgent && <div className="text-[8px] text-[#92400E] mt-0.5">1 campaign without agent</div>}
         </div>
         <div>
           <div className="text-[10px] text-text-tertiary">CPL</div>
