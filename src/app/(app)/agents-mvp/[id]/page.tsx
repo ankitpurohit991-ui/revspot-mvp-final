@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { ArrowLeft, Phone, FlaskConical, PhoneCall } from "lucide-react";
+import { ArrowLeft, Phone, FlaskConical, PhoneCall, Check, X } from "lucide-react";
 import { agentMvpDetails } from "@/lib/voice-agent-data";
 import { AgentTab } from "@/components/agents-mvp/agent-tab";
 import { ConfigurationTab } from "@/components/agents-mvp/configuration-tab";
@@ -29,8 +29,22 @@ export default function AgentMvpDetailPage() {
   const params = useParams();
   const agentId = params.id as string;
   const [activeTab, setActiveTab] = useState<Tab>("agent");
+  const [showTestCall, setShowTestCall] = useState(false);
+  const [testPhone, setTestPhone] = useState("");
+  const [isTesting, setIsTesting] = useState(false);
+  const [testSuccess, setTestSuccess] = useState(false);
 
   const agent = agentMvpDetails[agentId];
+
+  const handleTestCall = () => {
+    if (!testPhone.trim()) return;
+    setIsTesting(true);
+    setTimeout(() => {
+      setIsTesting(false);
+      setTestSuccess(true);
+      setTimeout(() => setTestSuccess(false), 3000);
+    }, 2000);
+  };
 
   if (!agent) {
     return (
@@ -93,12 +107,46 @@ export default function AgentMvpDetailPage() {
               <FlaskConical size={14} strokeWidth={1.5} />
               Test Agent
             </button>
-            <button className="h-9 px-4 text-[13px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors inline-flex items-center gap-1.5">
+            <button onClick={() => setShowTestCall(!showTestCall)}
+              className={`h-9 px-4 text-[13px] font-medium rounded-button transition-colors inline-flex items-center gap-1.5 ${
+                showTestCall ? "bg-accent/10 text-accent border border-accent/30" : "bg-accent text-white hover:bg-accent-hover"
+              }`}>
               <PhoneCall size={14} strokeWidth={1.5} />
               Test Call
             </button>
           </div>
         </div>
+
+        {/* Test Call Section */}
+        {showTestCall && (
+          <div className="mt-3 bg-surface-page border border-border-subtle rounded-card p-4">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-1.5 flex-1">
+                <span className="text-[13px] text-text-secondary shrink-0">+91</span>
+                <input type="tel" value={testPhone} onChange={(e) => setTestPhone(e.target.value)}
+                  placeholder="Enter phone number"
+                  className="flex-1 h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent placeholder:text-text-tertiary" />
+              </div>
+              <button onClick={handleTestCall} disabled={!testPhone.trim() || isTesting}
+                className="h-9 px-4 text-[13px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors disabled:opacity-40 inline-flex items-center gap-1.5">
+                {isTesting ? (
+                  <><div className="h-3.5 w-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Calling...</>
+                ) : (
+                  <><PhoneCall size={13} strokeWidth={1.5} /> Make Test Call</>
+                )}
+              </button>
+              <button onClick={() => { setShowTestCall(false); setTestPhone(""); setTestSuccess(false); }}
+                className="p-1.5 text-text-tertiary hover:text-text-primary rounded-button hover:bg-surface-secondary">
+                <X size={14} strokeWidth={1.5} />
+              </button>
+            </div>
+            {testSuccess && (
+              <div className="mt-2 flex items-center gap-1.5 text-[12px] text-[#15803D] font-medium">
+                <Check size={13} strokeWidth={2} /> Test call initiated to +91 {testPhone}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Tab bar */}
