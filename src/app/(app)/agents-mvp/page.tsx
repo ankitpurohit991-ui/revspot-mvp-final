@@ -72,6 +72,7 @@ export default function AgentsMvpPage() {
     setTimeout(() => {
       setIsCreating(false);
       setShowCreateForm(false);
+      router.push("/agents-mvp/amvp-1");
     }, 3000);
   };
 
@@ -108,7 +109,7 @@ export default function AgentsMvpPage() {
                   </div>
                   <p className="text-[12px] text-text-tertiary">Describe what you want and AI will set up the agent, objectives, knowledge base, and calling sequence automatically.</p>
                 </button>
-                <button onClick={() => router.push("/agents-mvp/create")}
+                <button onClick={() => router.push("/agents-mvp/amvp-1")}
                   className="text-left p-5 rounded-card border border-border bg-white hover:border-accent hover:bg-accent/5 transition-colors duration-150">
                   <div className="flex items-center gap-2 mb-1.5">
                     <Pencil size={16} strokeWidth={1.5} className="text-accent" />
