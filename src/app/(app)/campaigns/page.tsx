@@ -340,9 +340,9 @@ export default function CampaignsPage() {
                     return (
                       <td key={m.key} className="px-4 py-3 text-[13px] text-right tabular-nums">
                         {noAgent ? (
-                          <span className="inline-flex items-center gap-1 text-text-tertiary" title="No agent connected">
-                            <AlertTriangle size={11} strokeWidth={2} className="text-[#F59E0B]" />
-                            —
+                          <span className="inline-flex items-center gap-1 text-[11px] text-[#92400E]" title="Connect an agent to see qualification data">
+                            <AlertTriangle size={10} strokeWidth={2} className="text-[#F59E0B]" />
+                            No agent
                           </span>
                         ) : (
                           <span className="text-text-primary">{formatMetricValue(m.getValue(c), m.format)}</span>
