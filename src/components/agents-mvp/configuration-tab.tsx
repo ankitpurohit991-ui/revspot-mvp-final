@@ -69,7 +69,7 @@ export function ConfigurationTab({ agent }: ConfigurationTabProps) {
     <div className="space-y-5">
       {/* LLM Configuration */}
       <SectionCard title="LLM Configuration">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <SelectField
             label="Provider"
             value={agent.llmConfig.provider}
@@ -80,28 +80,26 @@ export function ConfigurationTab({ agent }: ConfigurationTabProps) {
             value={agent.llmConfig.model}
             options={[agent.llmConfig.model, "GPT-4o", "GPT-4o-mini", "Claude 3.5 Sonnet"]}
           />
-        </div>
-        <div>
-          <FieldLabel label="Temperature" />
-          <div className="flex items-center gap-3">
-            <span className="text-[11px] text-text-secondary w-12">
-              Precise
-            </span>
-            <input
-              type="range"
-              min={0}
-              max={2}
-              step={0.1}
-              value={temperature}
-              onChange={(e) => setTemperature(parseFloat(e.target.value))}
-              className="flex-1 h-1.5 accent-accent cursor-pointer"
-            />
-            <span className="text-[11px] text-text-secondary w-14">
-              Creative
-            </span>
-            <span className="text-[13px] font-medium text-text-primary tabular-nums w-8 text-right">
-              {temperature.toFixed(1)}
-            </span>
+          <div>
+            <FieldLabel label="Temperature" />
+            <div className="flex items-center gap-2 mt-1">
+              <input
+                type="range"
+                min={0}
+                max={2}
+                step={0.1}
+                value={temperature}
+                onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                className="flex-1 h-1.5 accent-accent cursor-pointer"
+              />
+              <span className="text-[13px] font-semibold text-accent tabular-nums w-8 text-right">
+                {temperature.toFixed(1)}
+              </span>
+            </div>
+            <div className="flex justify-between mt-1">
+              <span className="text-[10px] text-text-tertiary">Precise</span>
+              <span className="text-[10px] text-text-tertiary">Creative</span>
+            </div>
           </div>
         </div>
       </SectionCard>
