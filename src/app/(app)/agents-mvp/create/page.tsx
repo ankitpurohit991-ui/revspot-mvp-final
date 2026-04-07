@@ -20,7 +20,8 @@ import {
   Check,
   Settings,
   BookOpen,
-  Eye,
+  FileEdit,
+  FlaskConical,
   Phone,
   List,
 } from "lucide-react";
@@ -103,7 +104,8 @@ interface FaqItem {
 const wizardSteps = [
   { key: "configure", label: "Configure", icon: Settings },
   { key: "knowledge", label: "Knowledge Base", icon: BookOpen },
-  { key: "review", label: "Review & Test", icon: Eye },
+  { key: "prompt", label: "Prompt & FAQs", icon: FileEdit },
+  { key: "test", label: "Test Agent", icon: FlaskConical },
 ] as const;
 
 /* ------------------------------------------------------------------ */
@@ -214,6 +216,14 @@ export default function CreateAgentPage() {
   const [timezone, setTimezone] = useState("Asia/Kolkata (IST)");
   const [concurrency, setConcurrency] = useState(2);
   const [speakingSpeed, setSpeakingSpeed] = useState(1.0);
+
+  /* ---- Prompt & FAQs sidebar ---- */
+  const [promptSection, setPromptSection] = useState<"prompt" | "faqs">("prompt");
+
+  const selectedVoiceObj = useMemo(
+    () => newVoiceOptions.find((v) => v.id === selectedVoice),
+    [selectedVoice]
+  );
 
   /* ---- Step 2: Knowledge Base ---- */
   const [files, setFiles] = useState<KbFile[]>([]);
@@ -452,7 +462,7 @@ export default function CreateAgentPage() {
   /*  Navigation                                                       */
   /* ---------------------------------------------------------------- */
 
-  const goNext = () => setStep((s) => Math.min(s + 1, 2));
+  const goNext = () => setStep((s) => Math.min(s + 1, 3));
   const goBack = () => setStep((s) => Math.max(s - 1, 0));
 
   /* ================================================================ */
@@ -930,7 +940,7 @@ export default function CreateAgentPage() {
             )}
 
             {/* ====================================================== */}
-            {/*  STEP 3: Review & Test                                  */}
+            {/*  STEP 3: Prompt & FAQs                                 */}
             {/* ====================================================== */}
 
             {step === 2 && (
@@ -965,281 +975,324 @@ export default function CreateAgentPage() {
                     ))}
                   </div>
                 ) : (
-                  <>
-                    {/* 1. System Prompt (Tiptap) */}
-                    <div className="bg-white border border-border rounded-card">
-                      {/* Header */}
-                      <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
-                        <h3 className="text-[14px] font-semibold text-text-primary">
-                          System Prompt
-                        </h3>
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => setShowSections(!showSections)}
-                            className={`h-8 px-3 text-[12px] font-medium border rounded-button inline-flex items-center gap-1.5 transition-colors ${
-                              showSections
-                                ? "border-accent bg-accent/5 text-accent"
-                                : "border-border bg-white text-text-secondary hover:bg-surface-page"
-                            }`}
-                          >
-                            <List size={13} strokeWidth={1.5} />
-                            Sections{" "}
-                            <span className="text-[10px] font-medium px-1 py-0.5 rounded bg-surface-secondary text-text-tertiary">
-                              {sections.length}
-                            </span>
-                          </button>
-                          <button
-                            onClick={() => setIsEditing(!isEditing)}
-                            className={`h-8 px-3 text-[12px] font-medium border rounded-button inline-flex items-center gap-1.5 transition-colors ${
-                              isEditing
-                                ? "border-accent bg-accent/5 text-accent"
-                                : "border-border bg-white text-text-secondary hover:bg-surface-page"
-                            }`}
-                          >
-                            <Pencil size={12} strokeWidth={1.5} />
-                            {isEditing ? "Editing" : "Edit"}
-                          </button>
-                        </div>
-                      </div>
+                  <div className="flex gap-0 min-h-[500px]">
+                    {/* Left sidebar */}
+                    <div className="w-[150px] shrink-0 border-r border-border pr-0">
+                      <button
+                        onClick={() => setPromptSection("prompt")}
+                        className={`w-full text-left px-4 py-3 text-[13px] font-medium transition-colors ${
+                          promptSection === "prompt"
+                            ? "text-accent border-l-2 border-l-accent bg-accent/5"
+                            : "text-text-secondary hover:text-text-primary hover:bg-surface-page"
+                        }`}
+                      >
+                        System Prompt
+                      </button>
+                      <button
+                        onClick={() => setPromptSection("faqs")}
+                        className={`w-full text-left px-4 py-3 text-[13px] font-medium transition-colors ${
+                          promptSection === "faqs"
+                            ? "text-accent border-l-2 border-l-accent bg-accent/5"
+                            : "text-text-secondary hover:text-text-primary hover:bg-surface-page"
+                        }`}
+                      >
+                        FAQs
+                      </button>
+                    </div>
 
-                      {/* Section Navigation */}
-                      {showSections && (
-                        <div className="px-5 py-3 border-b border-border-subtle bg-surface-page/50">
-                          <div className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">
-                            Navigate Sections
-                          </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {sections.map((section) => (
+                    {/* Right content */}
+                    <div className="flex-1 pl-5">
+                      {promptSection === "prompt" && (
+                        <div className="bg-white border border-border rounded-card">
+                          {/* Header */}
+                          <div className="flex items-center justify-between px-5 py-3.5 border-b border-border">
+                            <h3 className="text-[14px] font-semibold text-text-primary">
+                              System Prompt
+                            </h3>
+                            <div className="flex items-center gap-2">
                               <button
-                                key={section.id}
-                                onClick={() => scrollToSection(section.id)}
-                                className={`px-2.5 py-1 text-[11px] font-medium rounded-badge transition-colors ${
-                                  activeSection === section.id
-                                    ? "bg-accent text-white"
-                                    : "bg-white text-text-secondary border border-border hover:border-accent/30 hover:text-text-primary"
+                                onClick={() => setShowSections(!showSections)}
+                                className={`h-8 px-3 text-[12px] font-medium border rounded-button inline-flex items-center gap-1.5 transition-colors ${
+                                  showSections
+                                    ? "border-accent bg-accent/5 text-accent"
+                                    : "border-border bg-white text-text-secondary hover:bg-surface-page"
                                 }`}
                               >
-                                {section.title.length > 30
-                                  ? section.title.slice(0, 30) + "..."
-                                  : section.title}
+                                <List size={13} strokeWidth={1.5} />
+                                Sections{" "}
+                                <span className="text-[10px] font-medium px-1 py-0.5 rounded bg-surface-secondary text-text-tertiary">
+                                  {sections.length}
+                                </span>
                               </button>
-                            ))}
+                              <button
+                                onClick={() => setIsEditing(!isEditing)}
+                                className={`h-8 px-3 text-[12px] font-medium border rounded-button inline-flex items-center gap-1.5 transition-colors ${
+                                  isEditing
+                                    ? "border-accent bg-accent/5 text-accent"
+                                    : "border-border bg-white text-text-secondary hover:bg-surface-page"
+                                }`}
+                              >
+                                <Pencil size={12} strokeWidth={1.5} />
+                                {isEditing ? "Editing" : "Edit"}
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Section Navigation */}
+                          {showSections && (
+                            <div className="px-5 py-3 border-b border-border-subtle bg-surface-page/50">
+                              <div className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">
+                                Navigate Sections
+                              </div>
+                              <div className="flex flex-wrap gap-1.5">
+                                {sections.map((section) => (
+                                  <button
+                                    key={section.id}
+                                    onClick={() => scrollToSection(section.id)}
+                                    className={`px-2.5 py-1 text-[11px] font-medium rounded-badge transition-colors ${
+                                      activeSection === section.id
+                                        ? "bg-accent text-white"
+                                        : "bg-white text-text-secondary border border-border hover:border-accent/30 hover:text-text-primary"
+                                    }`}
+                                  >
+                                    {section.title.length > 30
+                                      ? section.title.slice(0, 30) + "..."
+                                      : section.title}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Tiptap Editor */}
+                          <div className="p-5">
+                            <div className="w-full min-h-[200px] max-h-[400px] overflow-y-auto p-4 bg-surface-page border border-border rounded-card">
+                              <EditorContent editor={editor} />
+                            </div>
                           </div>
                         </div>
                       )}
 
-                      {/* Tiptap Editor */}
-                      <div className="p-5">
-                        <div className="w-full min-h-[200px] max-h-[400px] overflow-y-auto p-4 bg-surface-page border border-border rounded-card">
-                          <EditorContent editor={editor} />
-                        </div>
-                      </div>
-                    </div>
+                      {promptSection === "faqs" && (
+                        <div className="space-y-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <div>
+                              <h3 className="text-[16px] font-semibold text-text-primary mb-1">
+                                Frequently Asked Questions
+                              </h3>
+                              <p className="text-[13px] text-text-secondary">
+                                Generated FAQs based on your configuration. Edit or
+                                add more as needed.
+                              </p>
+                            </div>
+                            <button
+                              onClick={openAddFaq}
+                              className="h-9 px-4 text-[13px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors inline-flex items-center gap-1.5 shrink-0"
+                            >
+                              <Plus size={14} strokeWidth={1.5} />
+                              Add FAQ
+                            </button>
+                          </div>
 
-                    {/* 2. FAQs */}
-                    <div className="space-y-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <h3 className="text-[16px] font-semibold text-text-primary mb-1">
-                            Frequently Asked Questions
-                          </h3>
-                          <p className="text-[13px] text-text-secondary">
-                            Generated FAQs based on your configuration. Edit or
-                            add more as needed.
-                          </p>
-                        </div>
-                        <button
-                          onClick={openAddFaq}
-                          className="h-9 px-4 text-[13px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors inline-flex items-center gap-1.5 shrink-0"
-                        >
-                          <Plus size={14} strokeWidth={1.5} />
-                          Add FAQ
-                        </button>
-                      </div>
-
-                      {/* Search */}
-                      <div className="relative">
-                        <Search
-                          size={14}
-                          strokeWidth={1.5}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary"
-                        />
-                        <input
-                          type="text"
-                          placeholder="Search FAQs..."
-                          value={faqSearch}
-                          onChange={(e) => setFaqSearch(e.target.value)}
-                          className="w-full h-9 pl-9 pr-3 text-[13px] bg-white border border-border rounded-button text-text-primary placeholder:text-text-tertiary"
-                        />
-                      </div>
-
-                      {/* Inline Add/Edit Form */}
-                      {showAddFaq && (
-                        <div className="bg-white border border-border rounded-card p-5 space-y-3">
-                          <h4 className="text-[13px] font-semibold text-text-primary">
-                            {editingFaqId ? "Edit FAQ" : "Add FAQ"}
-                          </h4>
-                          <div>
-                            <label className="block text-[12px] font-medium text-text-secondary mb-1">
-                              Question
-                            </label>
+                          {/* Search */}
+                          <div className="relative">
+                            <Search
+                              size={14}
+                              strokeWidth={1.5}
+                              className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary"
+                            />
                             <input
                               type="text"
-                              value={newFaqQ}
-                              onChange={(e) => setNewFaqQ(e.target.value)}
-                              placeholder="Enter the question..."
-                              className="w-full h-9 px-3 text-[13px] bg-white border border-border rounded-button text-text-primary placeholder:text-text-tertiary"
+                              placeholder="Search FAQs..."
+                              value={faqSearch}
+                              onChange={(e) => setFaqSearch(e.target.value)}
+                              className="w-full h-9 pl-9 pr-3 text-[13px] bg-white border border-border rounded-button text-text-primary placeholder:text-text-tertiary"
                             />
                           </div>
-                          <div>
-                            <label className="block text-[12px] font-medium text-text-secondary mb-1">
-                              Answer
-                            </label>
-                            <textarea
-                              value={newFaqA}
-                              onChange={(e) => setNewFaqA(e.target.value)}
-                              placeholder="Enter the answer..."
-                              rows={3}
-                              className="w-full px-3 py-2 text-[13px] bg-white border border-border rounded-button text-text-primary placeholder:text-text-tertiary resize-none"
-                            />
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              onClick={saveFaq}
-                              className="h-8 px-3.5 text-[12px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors"
-                            >
-                              Save
-                            </button>
-                            <button
-                              onClick={cancelFaqForm}
-                              className="h-8 px-3.5 text-[12px] font-medium border border-border rounded-button bg-white text-text-secondary hover:bg-surface-page transition-colors inline-flex items-center gap-1"
-                            >
-                              <X size={12} strokeWidth={1.5} />
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      )}
 
-                      {/* FAQ Table */}
-                      <div className="bg-white border border-border rounded-card overflow-hidden">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b border-border">
-                              <th className="text-left text-[11px] font-semibold text-text-secondary uppercase tracking-wider px-5 py-3">
-                                Question &amp; Answer
-                              </th>
-                              <th className="text-right text-[11px] font-semibold text-text-secondary uppercase tracking-wider px-5 py-3 w-[100px]">
-                                Actions
-                              </th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {filteredFaqs.length === 0 ? (
-                              <tr>
-                                <td
-                                  colSpan={2}
-                                  className="text-center text-[13px] text-text-secondary py-10"
+                          {/* Inline Add/Edit Form */}
+                          {showAddFaq && (
+                            <div className="bg-white border border-border rounded-card p-5 space-y-3">
+                              <h4 className="text-[13px] font-semibold text-text-primary">
+                                {editingFaqId ? "Edit FAQ" : "Add FAQ"}
+                              </h4>
+                              <div>
+                                <label className="block text-[12px] font-medium text-text-secondary mb-1">
+                                  Question
+                                </label>
+                                <input
+                                  type="text"
+                                  value={newFaqQ}
+                                  onChange={(e) => setNewFaqQ(e.target.value)}
+                                  placeholder="Enter the question..."
+                                  className="w-full h-9 px-3 text-[13px] bg-white border border-border rounded-button text-text-primary placeholder:text-text-tertiary"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[12px] font-medium text-text-secondary mb-1">
+                                  Answer
+                                </label>
+                                <textarea
+                                  value={newFaqA}
+                                  onChange={(e) => setNewFaqA(e.target.value)}
+                                  placeholder="Enter the answer..."
+                                  rows={3}
+                                  className="w-full px-3 py-2 text-[13px] bg-white border border-border rounded-button text-text-primary placeholder:text-text-tertiary resize-none"
+                                />
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={saveFaq}
+                                  className="h-8 px-3.5 text-[12px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors"
                                 >
-                                  No FAQs found.
-                                </td>
-                              </tr>
-                            ) : (
-                              filteredFaqs.map((faq) => (
-                                <tr
-                                  key={faq.id}
-                                  className="border-b border-border last:border-b-0 hover:bg-surface-page/50 transition-colors"
+                                  Save
+                                </button>
+                                <button
+                                  onClick={cancelFaqForm}
+                                  className="h-8 px-3.5 text-[12px] font-medium border border-border rounded-button bg-white text-text-secondary hover:bg-surface-page transition-colors inline-flex items-center gap-1"
                                 >
-                                  <td className="px-5 py-3.5">
-                                    <p className="text-[13px] font-medium text-text-primary mb-0.5">
-                                      {faq.question}
-                                    </p>
-                                    <p className="text-[12px] text-text-secondary leading-relaxed">
-                                      {faq.answer}
-                                    </p>
-                                  </td>
-                                  <td className="px-5 py-3.5 text-right">
-                                    <div className="inline-flex items-center gap-1">
-                                      <button
-                                        onClick={() => openEditFaq(faq)}
-                                        className="p-1.5 rounded-button text-text-tertiary hover:text-text-primary hover:bg-surface-secondary transition-colors"
-                                        title="Edit"
-                                      >
-                                        <Pencil size={14} strokeWidth={1.5} />
-                                      </button>
-                                      <button
-                                        onClick={() => deleteFaq(faq.id)}
-                                        className="p-1.5 rounded-button text-text-tertiary hover:text-red-600 hover:bg-red-50 transition-colors"
-                                        title="Delete"
-                                      >
-                                        <Trash2 size={14} strokeWidth={1.5} />
-                                      </button>
-                                    </div>
-                                  </td>
+                                  <X size={12} strokeWidth={1.5} />
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* FAQ Table */}
+                          <div className="bg-white border border-border rounded-card overflow-hidden">
+                            <table className="w-full">
+                              <thead>
+                                <tr className="border-b border-border">
+                                  <th className="text-left text-[11px] font-semibold text-text-secondary uppercase tracking-wider px-5 py-3">
+                                    Question &amp; Answer
+                                  </th>
+                                  <th className="text-right text-[11px] font-semibold text-text-secondary uppercase tracking-wider px-5 py-3 w-[100px]">
+                                    Actions
+                                  </th>
                                 </tr>
-                              ))
-                            )}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-
-                    {/* 3. Test Agent */}
-                    <div className="bg-white border border-border rounded-card p-5">
-                      <h3 className="text-[14px] font-semibold text-text-primary mb-4">
-                        Test your agent
-                      </h3>
-                      <div className="flex items-end gap-3">
-                        <div className="flex-1">
-                          <FieldLabel label="Phone Number" />
-                          <div className="flex items-center gap-0">
-                            <span className="h-9 px-3 flex items-center text-[13px] font-medium bg-surface-secondary border border-border border-r-0 rounded-l-button text-text-secondary">
-                              +91
-                            </span>
-                            <input
-                              type="tel"
-                              value={testPhone}
-                              onChange={(e) => setTestPhone(e.target.value)}
-                              placeholder="98765 43210"
-                              className="flex-1 h-9 px-3 text-[13px] bg-white border border-border rounded-r-button text-text-primary placeholder:text-text-tertiary"
-                            />
+                              </thead>
+                              <tbody>
+                                {filteredFaqs.length === 0 ? (
+                                  <tr>
+                                    <td
+                                      colSpan={2}
+                                      className="text-center text-[13px] text-text-secondary py-10"
+                                    >
+                                      No FAQs found.
+                                    </td>
+                                  </tr>
+                                ) : (
+                                  filteredFaqs.map((faq) => (
+                                    <tr
+                                      key={faq.id}
+                                      className="border-b border-border last:border-b-0 hover:bg-surface-page/50 transition-colors"
+                                    >
+                                      <td className="px-5 py-3.5">
+                                        <p className="text-[13px] font-medium text-text-primary mb-0.5">
+                                          {faq.question}
+                                        </p>
+                                        <p className="text-[12px] text-text-secondary leading-relaxed">
+                                          {faq.answer}
+                                        </p>
+                                      </td>
+                                      <td className="px-5 py-3.5 text-right">
+                                        <div className="inline-flex items-center gap-1">
+                                          <button
+                                            onClick={() => openEditFaq(faq)}
+                                            className="p-1.5 rounded-button text-text-tertiary hover:text-text-primary hover:bg-surface-secondary transition-colors"
+                                            title="Edit"
+                                          >
+                                            <Pencil size={14} strokeWidth={1.5} />
+                                          </button>
+                                          <button
+                                            onClick={() => deleteFaq(faq.id)}
+                                            className="p-1.5 rounded-button text-text-tertiary hover:text-red-600 hover:bg-red-50 transition-colors"
+                                            title="Delete"
+                                          >
+                                            <Trash2 size={14} strokeWidth={1.5} />
+                                          </button>
+                                        </div>
+                                      </td>
+                                    </tr>
+                                  ))
+                                )}
+                              </tbody>
+                            </table>
                           </div>
-                        </div>
-                        <button
-                          onClick={handleTestCall}
-                          disabled={isTesting || !testPhone.trim()}
-                          className="h-9 px-5 text-[13px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
-                        >
-                          {isTesting ? (
-                            <>
-                              <Loader2
-                                size={14}
-                                strokeWidth={1.5}
-                                className="animate-spin"
-                              />
-                              Calling...
-                            </>
-                          ) : (
-                            <>
-                              <Phone size={14} strokeWidth={1.5} />
-                              Make Test Call
-                            </>
-                          )}
-                        </button>
-                      </div>
-                      {testSuccess && (
-                        <div className="mt-3 flex items-center gap-2 text-[13px] font-medium text-green-600">
-                          <Check size={14} strokeWidth={2} />
-                          Test call initiated to +91{" "}
-                          {testPhone.replace(
-                            /(\d{5})(\d{5})/,
-                            "$1 $2"
-                          )}
                         </div>
                       )}
                     </div>
-                  </>
+                  </div>
                 )}
+              </div>
+            )}
+
+            {/* ====================================================== */}
+            {/*  STEP 4: Test Agent                                     */}
+            {/* ====================================================== */}
+
+            {step === 3 && (
+              <div className="space-y-6">
+                {/* Agent Summary Card */}
+                <div className="bg-surface-page border border-border-subtle rounded-card p-5">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1">Agent Name</span>
+                      <span className="block text-[13px] text-text-primary font-medium">{name || "Untitled Agent"}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1">Voice</span>
+                      <span className="block text-[13px] text-text-primary font-medium">{selectedVoiceObj?.name || "Not selected"}</span>
+                    </div>
+                    <div>
+                      <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1">Languages</span>
+                      <span className="block text-[13px] text-text-primary font-medium">{selectedLanguages.join(", ")}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Test Call Card */}
+                <div className="bg-white border border-border rounded-card p-6">
+                  <h3 className="text-[16px] font-semibold text-text-primary mb-2">Test Your Agent</h3>
+                  <p className="text-[12px] text-text-secondary mb-5">Make a test call to verify your agent is working correctly before going live.</p>
+
+                  <div className="flex items-center gap-3 max-w-[400px]">
+                    <div className="flex items-center gap-1.5 flex-1">
+                      <span className="text-[13px] text-text-secondary shrink-0">+91</span>
+                      <input
+                        type="tel"
+                        value={testPhone}
+                        onChange={(e) => setTestPhone(e.target.value)}
+                        placeholder="Enter phone number"
+                        className="flex-1 h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary placeholder:text-text-tertiary"
+                      />
+                    </div>
+                    <button
+                      onClick={handleTestCall}
+                      disabled={!testPhone.trim() || isTesting}
+                      className="h-10 px-5 text-[13px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-2"
+                    >
+                      {isTesting ? (
+                        <>
+                          <Loader2
+                            size={14}
+                            strokeWidth={1.5}
+                            className="animate-spin"
+                          />
+                          Calling...
+                        </>
+                      ) : (
+                        "Make Test Call"
+                      )}
+                    </button>
+                  </div>
+
+                  {testSuccess && (
+                    <div className="mt-3 text-[12px] text-[#15803D] font-medium flex items-center gap-1.5">
+                      <Check size={13} /> Test call initiated to +91 {testPhone}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </motion.div>
@@ -1270,19 +1323,37 @@ export default function CreateAgentPage() {
           </button>
         )}
 
-        {step < 2 && (
+        {step === 0 && (
           <button
             onClick={goNext}
             className="h-9 px-5 text-[13px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors inline-flex items-center gap-1.5"
           >
-            {step === 0
-              ? "Continue to Knowledge Base"
-              : "Generate Agent"}
+            Continue to Knowledge Base
+            <span className="text-white/70">&rarr;</span>
+          </button>
+        )}
+
+        {step === 1 && (
+          <button
+            onClick={goNext}
+            className="h-9 px-5 text-[13px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors inline-flex items-center gap-1.5"
+          >
+            Generate Agent
             <span className="text-white/70">&rarr;</span>
           </button>
         )}
 
         {step === 2 && !isGenerating && (
+          <button
+            onClick={goNext}
+            className="h-9 px-5 text-[13px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors inline-flex items-center gap-1.5"
+          >
+            Continue to Test
+            <span className="text-white/70">&rarr;</span>
+          </button>
+        )}
+
+        {step === 3 && (
           <button
             onClick={handleCreate}
             disabled={isCreating || !name.trim()}
