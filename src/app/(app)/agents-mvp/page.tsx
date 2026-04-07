@@ -157,18 +157,16 @@ export default function AgentsMvpPage() {
                 <h3 className="text-[16px] font-semibold text-text-primary">Create Manually</h3>
               </div>
               <p className="text-[12px] text-text-secondary mb-4 leading-relaxed">
-                You&apos;ll configure the agent step-by-step. The wizard combines agent creation + sequence setup into one flow.
+                Configure your agent with system prompt, voice, knowledge base, and FAQs.
               </p>
               <div className="bg-surface-page border border-border-subtle rounded-[8px] p-4 mb-4">
                 <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">What you&apos;ll configure</div>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    "Agent identity & persona",
-                    "Voice & WhatsApp channels",
-                    "Knowledge base & FAQs",
-                    "Conversation flow steps",
-                    "Qualification objectives",
-                    "Calling cadence & schedule",
+                    "System prompt & voice",
+                    "LLM & STT configuration",
+                    "Knowledge base files",
+                    "FAQs",
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-1.5 text-[12px] text-text-secondary">
                       <span className="w-4 h-4 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
@@ -180,9 +178,9 @@ export default function AgentsMvpPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button onClick={() => router.push("/agents/create")}
+                <button onClick={() => router.push("/agents-mvp/create")}
                   className="inline-flex items-center gap-2 h-9 px-5 text-[13px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors">
-                  <ArrowRight size={14} strokeWidth={1.5} /> Start Agent Wizard
+                  <ArrowRight size={14} strokeWidth={1.5} /> Start Creating
                 </button>
                 <button onClick={() => setCreateMode("select")}
                   className="h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors">
