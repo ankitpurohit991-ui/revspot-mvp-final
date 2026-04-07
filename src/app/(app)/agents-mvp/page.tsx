@@ -197,7 +197,8 @@ export default function AgentsMvpPage() {
       {/* Agent Cards */}
       <motion.div variants={fadeUp} className="space-y-4">
         {agentsMvp.map((agent) => (
-          <div key={agent.id} className="bg-white border border-border rounded-card overflow-hidden">
+          <div key={agent.id} onClick={() => router.push(`/agents-mvp/${agent.id}`)}
+            className="bg-white border border-border rounded-card overflow-hidden cursor-pointer hover:shadow-card-hover transition-shadow duration-150">
             {/* Agent Header */}
             <div className="p-5 pb-4">
               <div className="flex items-start justify-between">
@@ -220,7 +221,7 @@ export default function AgentsMvpPage() {
                     Created by: <span className="text-accent font-medium">{agent.createdBy}</span>
                   </div>
                 </div>
-                <button className="p-1.5 rounded-button text-text-tertiary hover:text-[#92400E] hover:bg-[#FEF3C7] transition-colors" title="Pause">
+                <button onClick={(e) => e.stopPropagation()} className="p-1.5 rounded-button text-text-tertiary hover:text-[#92400E] hover:bg-[#FEF3C7] transition-colors" title="Pause">
                   <Pause size={13} strokeWidth={1.5} />
                 </button>
               </div>

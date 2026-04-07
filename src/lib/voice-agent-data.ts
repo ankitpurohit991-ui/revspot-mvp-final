@@ -105,9 +105,9 @@ export const conversationSteps = [
 export const defaultSystemPrompt = `You are a professional real estate qualification agent for Godrej Properties. You call leads who have expressed interest in luxury properties in Bangalore. Be warm, professional, and consultative. Your goal is to understand the caller's budget, timeline, and property preferences. Never be pushy. If the lead is qualified, offer to schedule a site visit. If not, thank them politely and note the reason.`;
 
 export const defaultFAQs = [
-  { question: "What is the price range?", answer: "4 & 5 BHK villas starting from ₹6.5 Crore" },
-  { question: "Is it RERA registered?", answer: "Yes, fully RERA registered with clear title" },
-  { question: "Where is the project located?", answer: "IVC Road, near Kempegowda International Airport, North Bangalore" },
+  { id: "dfaq-1", question: "What is the price range?", answer: "4 & 5 BHK villas starting from ₹6.5 Crore" },
+  { id: "dfaq-2", question: "Is it RERA registered?", answer: "Yes, fully RERA registered with clear title" },
+  { id: "dfaq-3", question: "Where is the project located?", answer: "IVC Road, near Kempegowda International Airport, North Bangalore" },
 ];
 
 // ── Agent Performance Data ───────────────────────────────────
@@ -416,3 +416,77 @@ export const newVoiceOptions: VoiceOption[] = [
   { id: "v-5", name: "Ananya", gender: "Female", languages: ["English", "Hindi", "Marathi"] },
   { id: "v-6", name: "Kiran", gender: "Male", languages: ["English", "Hindi", "Telugu"] },
 ];
+
+// ═══════════════════════════════════════════════════════════════════
+// Agents MVP — Detail page mock data
+// ═══════════════════════════════════════════════════════════════════
+
+export interface AgentMvpDetail {
+  id: string;
+  name: string;
+  status: "active" | "draft" | "paused";
+  agentType: string;
+  agentId: string;
+  phoneNumber: string;
+  systemPrompt: string;
+  systemPromptSections: number;
+  greetingTemplate: string;
+  voiceId: string;
+  voiceName: string;
+  llmConfig: { provider: string; model: string; temperature: number };
+  sttConfig: { provider: string; model: string; language: string };
+  languageConfig: { primary: string; additional: string[] };
+  otherConfig: { timezone: string; concurrency: number; speakingSpeed: number };
+  knowledgeFiles: { id: string; name: string; type: string }[];
+  faqs: { id: string; question: string; answer: string }[];
+}
+
+export const agentMvpDetails: Record<string, AgentMvpDetail> = {
+  "amvp-1": {
+    id: "amvp-1",
+    name: "Godrej Air — Lead Qualifier",
+    status: "active",
+    agentType: "AI Call",
+    agentId: "livekit_godrej_air_outbound",
+    phoneNumber: "+918065481615",
+    systemPrompt: defaultSystemPrompt,
+    systemPromptSections: 22,
+    greetingTemplate: "Good {{greeting_time}}, am I speaking with {{salutation}} {{customer_name}}?",
+    voiceId: "v-1",
+    voiceName: "Ekta (Revspot)",
+    llmConfig: { provider: "Groq", model: "GPT-OSS 120B", temperature: 0.2 },
+    sttConfig: { provider: "Deepgram", model: "Nova 3", language: "Hindi (hi)" },
+    languageConfig: { primary: "English", additional: ["Hindi", "Kannada"] },
+    otherConfig: { timezone: "Asia/Kolkata (IST)", concurrency: 2, speakingSpeed: 1.0 },
+    knowledgeFiles: [
+      { id: "kf-1", name: "Godrej Air Brochure.pdf", type: "pdf" },
+      { id: "kf-2", name: "Pricing Sheet Q1 2026.pdf", type: "pdf" },
+    ],
+    faqs: [
+      ...defaultFAQs,
+      { id: "faq-4", question: "What are the payment terms?", answer: "Flexible payment plans available with 10% booking amount and construction-linked payments." },
+      { id: "faq-5", question: "Is home loan available?", answer: "Yes, pre-approved home loans from SBI, HDFC, ICICI, and Axis Bank at competitive rates." },
+    ],
+  },
+  "amvp-2": {
+    id: "amvp-2",
+    name: "Godrej Reflections — Re-engagement",
+    status: "active",
+    agentType: "AI Call",
+    agentId: "livekit_godrej_reflections_outbound",
+    phoneNumber: "+918065481620",
+    systemPrompt: "You are a friendly follow-up agent for Godrej Properties. You are calling leads who previously expressed interest in Godrej Reflections but haven't taken the next step. Your goal is to understand what held them back, address concerns, and help them move forward. Be empathetic and never pushy.",
+    systemPromptSections: 15,
+    greetingTemplate: "Hi {{customer_name}}, this is Priya from Godrej Properties. We spoke earlier about Godrej Reflections — do you have a moment?",
+    voiceId: "v-1",
+    voiceName: "Priya (Revspot)",
+    llmConfig: { provider: "OpenAI", model: "GPT-4o", temperature: 0.3 },
+    sttConfig: { provider: "Deepgram", model: "Nova 3", language: "English (en)" },
+    languageConfig: { primary: "English", additional: ["Hindi"] },
+    otherConfig: { timezone: "Asia/Kolkata (IST)", concurrency: 3, speakingSpeed: 1.0 },
+    knowledgeFiles: [
+      { id: "kf-3", name: "Godrej Reflections Offerings.pdf", type: "pdf" },
+    ],
+    faqs: defaultFAQs,
+  },
+};
