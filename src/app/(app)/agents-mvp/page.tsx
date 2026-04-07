@@ -103,7 +103,7 @@ export default function AgentsMvpPage() {
                   </div>
                   <p className="text-[12px] text-text-tertiary">Describe what you want and AI will set up the agent, objectives, knowledge base, and calling sequence automatically.</p>
                 </button>
-                <button onClick={() => setCreateMode("manual")}
+                <button onClick={() => router.push("/agents-mvp/create")}
                   className="text-left p-5 rounded-card border border-border bg-white hover:border-accent hover:bg-accent/5 transition-colors duration-150">
                   <div className="flex items-center gap-2 mb-1.5">
                     <Pencil size={16} strokeWidth={1.5} className="text-accent" />
@@ -150,45 +150,6 @@ export default function AgentsMvpPage() {
             </>
           )}
 
-          {createMode === "manual" && (
-            <>
-              <div className="flex items-center gap-2 mb-4">
-                <Pencil size={16} strokeWidth={1.5} className="text-accent" />
-                <h3 className="text-[16px] font-semibold text-text-primary">Create Manually</h3>
-              </div>
-              <p className="text-[12px] text-text-secondary mb-4 leading-relaxed">
-                Configure your agent with system prompt, voice, knowledge base, and FAQs.
-              </p>
-              <div className="bg-surface-page border border-border-subtle rounded-[8px] p-4 mb-4">
-                <div className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">What you&apos;ll configure</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    "System prompt & voice",
-                    "LLM & STT configuration",
-                    "Knowledge base files",
-                    "FAQs",
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-1.5 text-[12px] text-text-secondary">
-                      <span className="w-4 h-4 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
-                        <span className="text-[9px] font-bold text-accent">{i + 1}</span>
-                      </span>
-                      {item}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <button onClick={() => router.push("/agents-mvp/create")}
-                  className="inline-flex items-center gap-2 h-9 px-5 text-[13px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors">
-                  <ArrowRight size={14} strokeWidth={1.5} /> Start Creating
-                </button>
-                <button onClick={() => setCreateMode("select")}
-                  className="h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors">
-                  Back
-                </button>
-              </div>
-            </>
-          )}
         </motion.div>
       )}
 
