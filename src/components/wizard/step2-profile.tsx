@@ -50,6 +50,19 @@ export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
   const [isAiTyping, setIsAiTyping] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
+  // Editable brief fields
+  const [briefFields, setBriefFields] = useState({
+    positioning: extractedProfile.positioning,
+    offerSummary: extractedProfile.offerSummary,
+  });
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [coreUSPs, setCoreUSPs] = useState([...extractedProfile.coreUSPs]);
+  const [keyBenefits, setKeyBenefits] = useState([...extractedProfile.keyBenefits]);
+  const [newUSP, setNewUSP] = useState("");
+  const [addingUSP, setAddingUSP] = useState(false);
+  const [newBenefit, setNewBenefit] = useState("");
+  const [addingBenefit, setAddingBenefit] = useState(false);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsGenerating(false);
@@ -150,15 +163,13 @@ export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
           </button>
         </div>
 
-        {/* Project + Campaign Details */}
-        <div className="grid grid-cols-3 gap-4 mb-5">
+        {/* Row 1: Short fields */}
+        <div className="grid grid-cols-4 gap-4 mb-4">
           {[
             { label: "Project Name", value: extractedProfile.projectName },
             { label: "Location", value: `${extractedProfile.city} — ${extractedProfile.geography}` },
             { label: "Price Range", value: extractedProfile.pricePositioning },
-            { label: "Positioning", value: extractedProfile.positioning },
             { label: "Campaign Objective", value: "Lead Generation" },
-            { label: "Core USPs", value: extractedProfile.coreUSPs.join(" · ") },
           ].map((field) => (
             <div key={field.label}>
               <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1">{field.label}</span>
@@ -167,21 +178,137 @@ export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
           ))}
         </div>
 
-        {/* Offer Summary */}
+        {/* Row 2: Positioning (editable) */}
         <div className="mb-4">
-          <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1.5">Offer Summary</span>
-          <p className="text-[13px] text-text-secondary leading-relaxed">{extractedProfile.offerSummary}</p>
+          <div className="flex items-center gap-1.5 mb-1">
+            <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px]">Positioning</span>
+            {editingField !== "positioning" && (
+              <button onClick={() => setEditingField("positioning")} className="p-0.5 text-text-tertiary hover:text-accent transition-colors">
+                <Pencil size={10} strokeWidth={1.5} />
+              </button>
+            )}
+          </div>
+          {editingField === "positioning" ? (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={briefFields.positioning}
+                onChange={(e) => setBriefFields({ ...briefFields, positioning: e.target.value })}
+                autoFocus
+                className="flex-1 h-8 px-3 text-[13px] bg-white border border-accent rounded-button text-text-primary focus:outline-none"
+              />
+              <button onClick={() => setEditingField(null)} className="h-8 px-3 text-[12px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors">
+                Done
+              </button>
+            </div>
+          ) : (
+            <p className="text-[13px] text-text-primary font-medium">{briefFields.positioning}</p>
+          )}
         </div>
 
-        {/* Key Benefits */}
-        <div>
-          <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">Key Benefits</span>
-          <div className="flex flex-wrap gap-1.5">
-            {extractedProfile.keyBenefits.map((benefit) => (
-              <span key={benefit} className="inline-flex items-center text-[11px] font-medium px-2.5 py-1 rounded-badge bg-surface-page text-text-secondary border border-border">
-                {benefit}
+        {/* Row 3: Offer Summary (editable) */}
+        <div className="mb-4">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px]">Offer Summary</span>
+            {editingField !== "offerSummary" && (
+              <button onClick={() => setEditingField("offerSummary")} className="p-0.5 text-text-tertiary hover:text-accent transition-colors">
+                <Pencil size={10} strokeWidth={1.5} />
+              </button>
+            )}
+          </div>
+          {editingField === "offerSummary" ? (
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={briefFields.offerSummary}
+                onChange={(e) => setBriefFields({ ...briefFields, offerSummary: e.target.value })}
+                autoFocus
+                className="flex-1 h-8 px-3 text-[13px] bg-white border border-accent rounded-button text-text-primary focus:outline-none"
+              />
+              <button onClick={() => setEditingField(null)} className="h-8 px-3 text-[12px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors">
+                Done
+              </button>
+            </div>
+          ) : (
+            <p className="text-[13px] text-text-secondary leading-relaxed">{briefFields.offerSummary}</p>
+          )}
+        </div>
+
+        {/* Row 4: Core USPs as chips (add/remove) */}
+        <div className="mb-4">
+          <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">Core USPs</span>
+          <div className="flex flex-wrap gap-1.5 items-center">
+            {coreUSPs.map((usp, i) => (
+              <span key={i} className="inline-flex items-center gap-1 text-[11px] font-medium pl-2.5 pr-1.5 py-1 rounded-badge bg-accent/5 text-accent border border-accent/20">
+                {usp}
+                <button onClick={() => setCoreUSPs(coreUSPs.filter((_, idx) => idx !== i))} className="p-0.5 hover:bg-accent/10 rounded-full transition-colors">
+                  <X size={10} strokeWidth={2} />
+                </button>
               </span>
             ))}
+            {addingUSP ? (
+              <span className="inline-flex items-center gap-1">
+                <input
+                  type="text"
+                  value={newUSP}
+                  onChange={(e) => setNewUSP(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newUSP.trim()) { setCoreUSPs([...coreUSPs, newUSP.trim()]); setNewUSP(""); setAddingUSP(false); }
+                    if (e.key === "Escape") { setNewUSP(""); setAddingUSP(false); }
+                  }}
+                  autoFocus
+                  placeholder="Type USP..."
+                  className="h-7 w-40 px-2 text-[11px] bg-white border border-accent rounded-button text-text-primary focus:outline-none placeholder:text-text-tertiary"
+                />
+                <button onClick={() => { if (newUSP.trim()) { setCoreUSPs([...coreUSPs, newUSP.trim()]); } setNewUSP(""); setAddingUSP(false); }} className="p-1 text-accent hover:bg-accent/10 rounded-full transition-colors">
+                  <Plus size={12} strokeWidth={2} />
+                </button>
+              </span>
+            ) : (
+              <button onClick={() => setAddingUSP(true)} className="inline-flex items-center gap-0.5 text-[11px] font-medium px-2 py-1 rounded-badge border border-dashed border-accent/30 text-accent hover:bg-accent/5 transition-colors">
+                <Plus size={11} strokeWidth={2} />
+                Add
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Row 5: Key Benefits as chips (add/remove) */}
+        <div>
+          <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">Key Benefits</span>
+          <div className="flex flex-wrap gap-1.5 items-center">
+            {keyBenefits.map((benefit, i) => (
+              <span key={i} className="inline-flex items-center gap-1 text-[11px] font-medium pl-2.5 pr-1.5 py-1 rounded-badge bg-surface-page text-text-secondary border border-border">
+                {benefit}
+                <button onClick={() => setKeyBenefits(keyBenefits.filter((_, idx) => idx !== i))} className="p-0.5 hover:bg-surface-secondary rounded-full transition-colors">
+                  <X size={10} strokeWidth={2} />
+                </button>
+              </span>
+            ))}
+            {addingBenefit ? (
+              <span className="inline-flex items-center gap-1">
+                <input
+                  type="text"
+                  value={newBenefit}
+                  onChange={(e) => setNewBenefit(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && newBenefit.trim()) { setKeyBenefits([...keyBenefits, newBenefit.trim()]); setNewBenefit(""); setAddingBenefit(false); }
+                    if (e.key === "Escape") { setNewBenefit(""); setAddingBenefit(false); }
+                  }}
+                  autoFocus
+                  placeholder="Type benefit..."
+                  className="h-7 w-44 px-2 text-[11px] bg-white border border-border rounded-button text-text-primary focus:outline-none placeholder:text-text-tertiary"
+                />
+                <button onClick={() => { if (newBenefit.trim()) { setKeyBenefits([...keyBenefits, newBenefit.trim()]); } setNewBenefit(""); setAddingBenefit(false); }} className="p-1 text-text-secondary hover:bg-surface-secondary rounded-full transition-colors">
+                  <Plus size={12} strokeWidth={2} />
+                </button>
+              </span>
+            ) : (
+              <button onClick={() => setAddingBenefit(true)} className="inline-flex items-center gap-0.5 text-[11px] font-medium px-2 py-1 rounded-badge border border-dashed border-border text-text-secondary hover:bg-surface-page transition-colors">
+                <Plus size={11} strokeWidth={2} />
+                Add
+              </button>
+            )}
           </div>
         </div>
       </div>
