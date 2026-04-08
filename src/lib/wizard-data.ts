@@ -55,6 +55,12 @@ export const extractedProfile = {
   offerSummary:
     "Premium 3 & 4 BHK apartments starting ₹1.8Cr in Whitefield. Phase 3 launch with exclusive pre-launch pricing. RERA approved. Possession by Dec 2027.",
   pricePositioning: "Premium (₹1.8Cr – ₹3.5Cr)",
+  positioning: "Premium lifestyle apartments for modern professionals in East Bangalore's fastest-growing tech corridor",
+  coreUSPs: [
+    "Japanese-inspired architecture",
+    "2 mins from ITPL & Whitefield Metro",
+    "IGBC Gold pre-certified",
+  ],
   keyBenefits: [
     "Japanese-inspired architecture with zen gardens",
     "3-acre central landscaped deck",

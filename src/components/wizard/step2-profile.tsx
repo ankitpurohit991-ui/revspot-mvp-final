@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import {
-  AlertTriangle,
   ArrowRight,
   ArrowLeft,
   Pencil,
@@ -151,33 +150,15 @@ export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
           </button>
         </div>
 
-        {/* Target Numbers — highlighted */}
-        <div className="bg-accent/5 border border-accent/20 rounded-[8px] p-4 mb-5">
-          <div className="grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <span className="block text-[22px] font-bold text-text-primary">500</span>
-              <span className="block text-[11px] text-text-secondary mt-0.5">Target Leads</span>
-            </div>
-            <div className="text-center">
-              <span className="block text-[22px] font-bold text-text-primary">30</span>
-              <span className="block text-[11px] text-text-secondary mt-0.5">Days</span>
-            </div>
-            <div className="text-center">
-              <span className="block text-[22px] font-bold text-accent">₹2.5L</span>
-              <span className="block text-[11px] text-text-secondary mt-0.5">Budget</span>
-            </div>
-          </div>
-        </div>
-
         {/* Project + Campaign Details */}
         <div className="grid grid-cols-3 gap-4 mb-5">
           {[
-            { label: "Project", value: extractedProfile.projectName },
-            { label: "Brand", value: extractedProfile.builderName },
+            { label: "Project Name", value: extractedProfile.projectName },
             { label: "Location", value: `${extractedProfile.city} — ${extractedProfile.geography}` },
             { label: "Price Range", value: extractedProfile.pricePositioning },
-            { label: "Objective", value: "Lead Generation" },
-            { label: "Languages", value: "English, Hindi, Kannada" },
+            { label: "Positioning", value: extractedProfile.positioning },
+            { label: "Campaign Objective", value: "Lead Generation" },
+            { label: "Core USPs", value: extractedProfile.coreUSPs.join(" · ") },
           ].map((field) => (
             <div key={field.label}>
               <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1">{field.label}</span>
@@ -193,7 +174,7 @@ export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
         </div>
 
         {/* Key Benefits */}
-        <div className="mb-4">
+        <div>
           <span className="block text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">Key Benefits</span>
           <div className="flex flex-wrap gap-1.5">
             {extractedProfile.keyBenefits.map((benefit) => (
@@ -203,14 +184,6 @@ export function Step2BusinessProfile({ onNext, onBack }: Step2Props) {
             ))}
           </div>
         </div>
-
-        {/* Special Ad Category */}
-        {extractedProfile.specialAdCategory && (
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-medium px-2.5 py-1 rounded-badge bg-[#FEF3C7] text-[#92400E]">
-            <AlertTriangle size={11} strokeWidth={2} />
-            Special Category: {extractedProfile.specialAdCategory}
-          </div>
-        )}
       </div>
 
       {/* Section 2: AI Persona Generation */}
