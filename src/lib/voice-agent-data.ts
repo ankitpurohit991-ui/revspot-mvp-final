@@ -418,6 +418,90 @@ export const newVoiceOptions: VoiceOption[] = [
 ];
 
 // ═══════════════════════════════════════════════════════════════════
+// Agents MVP — Qualification Criteria types & mock data
+// ═══════════════════════════════════════════════════════════════════
+
+export const POST_CALL_METRICS = [
+  "location_fit",
+  "budget_fit",
+  "configuration_fit",
+  "possession_fit",
+  "site_visit_interest",
+  "timeline_fit",
+  "decision_maker",
+  "loan_eligibility",
+] as const;
+
+export type PostCallMetric = (typeof POST_CALL_METRICS)[number];
+
+export interface QualificationCondition {
+  id: string;
+  field: PostCallMetric;
+  value: string;
+}
+
+export interface QualificationRule {
+  id: string;
+  description: string;
+  conditions: QualificationCondition[];
+}
+
+export interface QualificationCriteriaConfig {
+  qualified: QualificationRule[];
+  disqualified: QualificationRule[];
+}
+
+const defaultQualificationCriteria: QualificationCriteriaConfig = {
+  qualified: [
+    {
+      id: "q-rule-1",
+      description: "location_fit, budget_fit, configuration_fit, possession_fit",
+      conditions: [
+        { id: "qc-1", field: "location_fit", value: "yes" },
+        { id: "qc-2", field: "budget_fit", value: "yes" },
+        { id: "qc-3", field: "configuration_fit", value: "yes" },
+        { id: "qc-4", field: "possession_fit", value: "yes" },
+      ],
+    },
+    {
+      id: "q-rule-2",
+      description: "location_fit, budget_fit, site_visit_interest",
+      conditions: [
+        { id: "qc-5", field: "location_fit", value: "yes" },
+        { id: "qc-6", field: "budget_fit", value: "yes" },
+        { id: "qc-7", field: "site_visit_interest", value: "yes" },
+      ],
+    },
+    {
+      id: "q-rule-3",
+      description: "budget_fit, timeline_fit, decision_maker",
+      conditions: [
+        { id: "qc-8", field: "budget_fit", value: "yes" },
+        { id: "qc-9", field: "timeline_fit", value: "yes" },
+        { id: "qc-10", field: "decision_maker", value: "yes" },
+      ],
+    },
+  ],
+  disqualified: [
+    {
+      id: "d-rule-1",
+      description: "if budget_fit is no",
+      conditions: [
+        { id: "dc-1", field: "budget_fit", value: "no" },
+      ],
+    },
+    {
+      id: "d-rule-2",
+      description: "if location_fit is no and site_visit_interest is no",
+      conditions: [
+        { id: "dc-2", field: "location_fit", value: "no" },
+        { id: "dc-3", field: "site_visit_interest", value: "no" },
+      ],
+    },
+  ],
+};
+
+// ═══════════════════════════════════════════════════════════════════
 // Agents MVP — Detail page mock data
 // ═══════════════════════════════════════════════════════════════════
 
@@ -439,6 +523,7 @@ export interface AgentMvpDetail {
   otherConfig: { timezone: string; concurrency: number; speakingSpeed: number };
   knowledgeFiles: { id: string; name: string; type: string }[];
   faqs: { id: string; question: string; answer: string }[];
+  qualificationCriteria: QualificationCriteriaConfig;
 }
 
 export const agentMvpDetails: Record<string, AgentMvpDetail> = {
@@ -467,6 +552,7 @@ export const agentMvpDetails: Record<string, AgentMvpDetail> = {
       { id: "faq-4", question: "What are the payment terms?", answer: "Flexible payment plans available with 10% booking amount and construction-linked payments." },
       { id: "faq-5", question: "Is home loan available?", answer: "Yes, pre-approved home loans from SBI, HDFC, ICICI, and Axis Bank at competitive rates." },
     ],
+    qualificationCriteria: defaultQualificationCriteria,
   },
   "amvp-2": {
     id: "amvp-2",
@@ -488,5 +574,26 @@ export const agentMvpDetails: Record<string, AgentMvpDetail> = {
       { id: "kf-3", name: "Godrej Reflections Offerings.pdf", type: "pdf" },
     ],
     faqs: defaultFAQs,
+    qualificationCriteria: {
+      qualified: [
+        {
+          id: "q-rule-r1",
+          description: "budget_fit, location_fit",
+          conditions: [
+            { id: "qc-r1", field: "budget_fit", value: "yes" },
+            { id: "qc-r2", field: "location_fit", value: "yes" },
+          ],
+        },
+      ],
+      disqualified: [
+        {
+          id: "d-rule-r1",
+          description: "if budget_fit is no",
+          conditions: [
+            { id: "dc-r1", field: "budget_fit", value: "no" },
+          ],
+        },
+      ],
+    },
   },
 };

@@ -10,13 +10,14 @@ import { AgentTab } from "@/components/agents-mvp/agent-tab";
 import { ConfigurationTab } from "@/components/agents-mvp/configuration-tab";
 import { KnowledgeBaseTab } from "@/components/agents-mvp/knowledge-base-tab";
 import { FaqsTab } from "@/components/agents-mvp/faqs-tab";
+import { QualificationCriteriaTab } from "@/components/agents-mvp/qualification-criteria-tab";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
   show: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
 };
 
-type Tab = "agent" | "configuration" | "knowledge" | "faqs";
+type Tab = "agent" | "configuration" | "knowledge" | "faqs" | "qualification";
 
 const statusConfig: Record<string, { label: string; cls: string }> = {
   active: { label: "Ready To Use", cls: "bg-[#F0FDF4] text-[#15803D]" },
@@ -61,6 +62,7 @@ export default function AgentMvpDetailPage() {
     { key: "configuration", label: "Configuration" },
     { key: "knowledge", label: "Knowledge Base" },
     { key: "faqs", label: "FAQs" },
+    { key: "qualification", label: "Qualification Criteria" },
   ];
 
   return (
@@ -179,6 +181,7 @@ export default function AgentMvpDetailPage() {
         {activeTab === "configuration" && <ConfigurationTab agent={agent} />}
         {activeTab === "knowledge" && <KnowledgeBaseTab agent={agent} />}
         {activeTab === "faqs" && <FaqsTab agent={agent} />}
+        {activeTab === "qualification" && <QualificationCriteriaTab agent={agent} />}
       </div>
     </motion.div>
   );
