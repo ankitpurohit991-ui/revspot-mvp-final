@@ -265,8 +265,6 @@ export default function CampaignDetailPage() {
         {activeTab === "leads" && <LeadsTab />}
         {activeTab === "insights" && (
           <LeadInsights
-            totalLeads={186}
-            verifiedLeads={142}
             distributions={leadDistributionData}
           />
         )}

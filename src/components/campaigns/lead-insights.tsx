@@ -1,6 +1,6 @@
 "use client";
 
-import { Users, ShieldCheck, TrendingUp } from "lucide-react";
+
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
@@ -14,8 +14,6 @@ interface DistributionItem {
 }
 
 interface LeadInsightsProps {
-  totalLeads: number;
-  verifiedLeads: number;
   distributions: {
     ageGroups: DistributionItem[];
     locations: DistributionItem[];
@@ -58,36 +56,9 @@ function ChartCard({ title, count, children }: { title: string; count: number; c
 
 // ── Component ──────────────────────────────────────────────
 
-export function LeadInsights({ totalLeads, verifiedLeads, distributions }: LeadInsightsProps) {
-  const verificationRate = totalLeads > 0 ? ((verifiedLeads / totalLeads) * 100).toFixed(1) : "0";
-
+export function LeadInsights({ distributions }: LeadInsightsProps) {
   return (
     <div className="space-y-5">
-      {/* Critical Numbers */}
-      <div className="grid grid-cols-3 gap-5">
-        <div className="bg-white border border-border rounded-card p-5">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Users size={13} strokeWidth={1.5} className="text-text-secondary" />
-            <span className="text-[12px] text-text-secondary">Total Leads</span>
-          </div>
-          <div className="text-[28px] font-bold text-text-primary tabular-nums">{totalLeads.toLocaleString()}</div>
-        </div>
-        <div className="bg-white border border-border rounded-card p-5">
-          <div className="flex items-center gap-1.5 mb-2">
-            <ShieldCheck size={13} strokeWidth={1.5} className="text-text-secondary" />
-            <span className="text-[12px] text-text-secondary">Verified Leads</span>
-          </div>
-          <div className="text-[28px] font-bold text-text-primary tabular-nums">{verifiedLeads.toLocaleString()}</div>
-        </div>
-        <div className="bg-white border border-border rounded-card p-5">
-          <div className="flex items-center gap-1.5 mb-2">
-            <TrendingUp size={13} strokeWidth={1.5} className="text-text-secondary" />
-            <span className="text-[12px] text-text-secondary">Verification Rate</span>
-          </div>
-          <div className="text-[28px] font-bold text-text-primary tabular-nums">{verificationRate}%</div>
-        </div>
-      </div>
-
       {/* Section header */}
       <h4 className="text-[14px] font-semibold text-text-primary">Lead Distribution</h4>
 

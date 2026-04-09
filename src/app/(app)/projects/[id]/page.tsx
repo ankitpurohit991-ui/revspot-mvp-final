@@ -132,13 +132,13 @@ export default function ProjectDetailPage() {
 
       {/* Metric Cards — clickable for charting */}
       <div className="grid grid-cols-4 gap-3 mb-3">
-        <MetricCard label="Total spend" value={formatCurrency(project.totalSpend)}
-          chartKey="totalSpend" isSelected={selectedMetrics.includes("totalSpend")} onToggle={toggleMetric} />
-        <MetricCard label="Total leads" value={project.totalLeads.toLocaleString()}
-          chartKey="totalLeads" isSelected={selectedMetrics.includes("totalLeads")} onToggle={toggleMetric} />
         <MetricCard label="Verified leads" value={project.verifiedLeads.toString()}
           subMetric={`${verifiedRate}% verification rate`}
           chartKey="verifiedLeads" isSelected={selectedMetrics.includes("verifiedLeads")} onToggle={toggleMetric} />
+        <MetricCard label="Total leads" value={project.totalLeads.toLocaleString()}
+          chartKey="totalLeads" isSelected={selectedMetrics.includes("totalLeads")} onToggle={toggleMetric} />
+        <MetricCard label="Total spend" value={formatCurrency(project.totalSpend)}
+          chartKey="totalSpend" isSelected={selectedMetrics.includes("totalSpend")} onToggle={toggleMetric} />
         <MetricCard label="Qualified" value={project.qualifiedLeads.toString()}
           subMetric={`${qualifiedRate}% qualification rate`}
           chartKey="qualifiedLeads" isSelected={selectedMetrics.includes("qualifiedLeads")} onToggle={toggleMetric}
@@ -217,8 +217,6 @@ export default function ProjectDetailPage() {
       <div className="mt-6">
         <h3 className="text-section-header text-text-primary mb-4">Lead Insights</h3>
         <LeadInsights
-          totalLeads={project.totalLeads}
-          verifiedLeads={project.verifiedLeads}
           distributions={leadDistributionData}
         />
       </div>
