@@ -668,7 +668,6 @@ export interface ProjectItem {
   qualificationRate: number;
   ctr: number;
   cpm: number;
-  healthSummary: "on-track" | "needs-attention" | "underperforming";
   activeCampaigns: number;
 }
 
@@ -692,7 +691,7 @@ export const projectsList: ProjectItem[] = [
     qualificationRate: 7.9,
     ctr: 1.8,
     cpm: 285,
-    healthSummary: "on-track",
+
     activeCampaigns: 2,
   },
   {
@@ -714,7 +713,7 @@ export const projectsList: ProjectItem[] = [
     qualificationRate: 8.1,
     ctr: 2.1,
     cpm: 320,
-    healthSummary: "needs-attention",
+
     activeCampaigns: 1,
   },
   {
@@ -736,7 +735,7 @@ export const projectsList: ProjectItem[] = [
     qualificationRate: 6.4,
     ctr: 1.5,
     cpm: 245,
-    healthSummary: "on-track",
+
     activeCampaigns: 1,
   },
   {
@@ -758,7 +757,7 @@ export const projectsList: ProjectItem[] = [
     qualificationRate: 8.2,
     ctr: 1.9,
     cpm: 310,
-    healthSummary: "on-track",
+
     activeCampaigns: 0,
   },
 ];

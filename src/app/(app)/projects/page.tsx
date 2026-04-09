@@ -29,21 +29,6 @@ function StatusBadge({ status }: { status: ProjectItem["status"] }) {
 }
 
 // ── Project Card ────────────────────────────────────────────
-function HealthIndicator({ health }: { health: ProjectItem["healthSummary"] }) {
-  const config = {
-    "on-track": { label: "On Track", dotCls: "bg-[#15803D]", textCls: "text-[#15803D]" },
-    "needs-attention": { label: "Needs Attention", dotCls: "bg-[#D97706]", textCls: "text-[#D97706]" },
-    underperforming: { label: "Underperforming", dotCls: "bg-[#DC2626]", textCls: "text-[#DC2626]" },
-  };
-  const { label, dotCls, textCls } = config[health];
-  return (
-    <span className={`inline-flex items-center gap-1.5 text-[11px] font-medium ${textCls}`}>
-      <span className={`w-1.5 h-1.5 rounded-full ${dotCls}`} />
-      {label}
-    </span>
-  );
-}
-
 function ProjectCard({ project }: { project: ProjectItem }) {
   const router = useRouter();
   const hasDisconnectedAgent = project.campaignIds.some(
@@ -96,8 +81,7 @@ function ProjectCard({ project }: { project: ProjectItem }) {
           <div className="text-[14px] font-semibold text-text-primary tabular-nums mt-0.5">₹{project.costPerQualifiedLead.toLocaleString("en-IN")}</div>
         </div>
       </div>
-      <div className="mt-4 pt-3 border-t border-border-subtle flex items-center justify-between">
-        <HealthIndicator health={project.healthSummary} />
+      <div className="mt-4 pt-3 border-t border-border-subtle flex items-center justify-end">
         <ArrowRight size={14} strokeWidth={1.5} className="text-text-tertiary group-hover:text-text-primary transition-colors duration-150" />
       </div>
     </button>
