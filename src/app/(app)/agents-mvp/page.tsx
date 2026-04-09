@@ -6,7 +6,7 @@ import type { Variants } from "framer-motion";
 import { useRouter } from "next/navigation";
 import {
   Zap, Bot, Phone, MessageCircle, Plus, Sparkles, Play, Pause,
-  ShieldCheck, Clock, Target, ArrowRight, Pencil, Upload, FileText, X,
+  Clock, ArrowRight, Pencil, Upload, FileText, X,
   FolderKanban, Monitor,
 } from "lucide-react";
 import { projectsList, campaignsList } from "@/lib/campaign-data";
@@ -272,20 +272,7 @@ export default function AgentsMvpPage() {
             <div className="grid grid-cols-2 border-t border-border-subtle">
               {/* Left: Agent Details */}
               <div className="p-5 border-r border-border-subtle">
-                <div className="flex items-center gap-1.5 mb-3">
-                  <Target size={13} strokeWidth={1.5} className="text-text-tertiary" />
-                  <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px]">Qualification Objectives</span>
-                </div>
-                <ul className="space-y-1.5">
-                  {agent.objectives.map((obj, i) => (
-                    <li key={i} className="flex items-start gap-2 text-[12px] text-text-secondary">
-                      <ShieldCheck size={12} strokeWidth={1.5} className="text-accent mt-0.5 shrink-0" />
-                      {obj}
-                    </li>
-                  ))}
-                </ul>
-
-                <div className="mt-4 pt-3 border-t border-border-subtle">
+                <div>
                   <div className="flex items-center gap-1.5 mb-2">
                     <Clock size={13} strokeWidth={1.5} className="text-text-tertiary" />
                     <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px]">Sequence (Built-in)</span>
