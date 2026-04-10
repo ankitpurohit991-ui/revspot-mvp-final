@@ -36,6 +36,9 @@ import type {
   LeadTemperature,
   LeadQualification,
 } from "@/lib/campaign-data";
+import { EmptyState } from "@/components/layout/empty-state";
+import { IllustrationLeads, IllustrationSearchEmpty } from "@/components/illustrations/empty-states";
+import { useDemoMode } from "@/lib/demo-mode";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
@@ -167,6 +170,7 @@ const leadMetricOptions: MetricOption[] = [
 ];
 
 export default function EnquiriesPage() {
+  const { isEmpty } = useDemoMode();
   const [search, setSearch] = useState("");
   const [campaignFilter, setCampaignFilter] = useState("All Campaigns");
   const [statusFilter, setStatusFilter] = useState<
@@ -184,6 +188,7 @@ export default function EnquiriesPage() {
   }, []);
 
   const filtered = useMemo(() => {
+    if (isEmpty) return [];
     return allLeads.filter((l) => {
       if (
         campaignFilter !== "All Campaigns" &&
@@ -201,7 +206,7 @@ export default function EnquiriesPage() {
         return false;
       return true;
     });
-  }, [search, campaignFilter, statusFilter]);
+  }, [search, campaignFilter, statusFilter, isEmpty]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice(
@@ -347,7 +352,32 @@ export default function EnquiriesPage() {
               </tr>
             </thead>
             <tbody>
-              {paginated.map((lead, i) => {
+              {paginated.length === 0 ? (
+                <tr>
+                  <td colSpan={8}>
+                    {search || campaignFilter !== "All Campaigns" || statusFilter !== "all" ? (
+                      <EmptyState
+                        illustration={<IllustrationSearchEmpty />}
+                        title="No leads match your filters"
+                        description="Try adjusting your search, campaign, or qualification filter."
+                        action={
+                          <button onClick={() => { setSearch(""); setCampaignFilter("All Campaigns"); setStatusFilter("all"); }}
+                            className="h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">
+                            Clear filters
+                          </button>
+                        }
+                        compact
+                      />
+                    ) : (
+                      <EmptyState
+                        illustration={<IllustrationLeads />}
+                        title="No leads yet"
+                        description="Leads from all your campaigns will appear here once they start coming in."
+                      />
+                    )}
+                  </td>
+                </tr>
+              ) : paginated.map((lead, i) => {
                 const globalIndex = (page - 1) * PAGE_SIZE + i;
                 const initials = lead.name
                   .split(" ")

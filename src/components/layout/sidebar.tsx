@@ -11,7 +11,10 @@ import {
   Globe,
   Plug,
   Settings,
+  Eye,
+  EyeOff,
 } from "lucide-react";
+import { useDemoMode } from "@/lib/demo-mode";
 
 const dashboardItem = { name: "Dashboard", href: "/dashboard", icon: LayoutGrid };
 
@@ -60,6 +63,7 @@ function RevspotLogo() {
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { isEmpty, toggle } = useDemoMode();
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard" || pathname === "/";
@@ -123,6 +127,21 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
+
+      {/* Demo mode toggle */}
+      <div className="px-3 pb-2">
+        <button
+          onClick={toggle}
+          className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-[6px] text-[11px] font-medium transition-all duration-150 ${
+            isEmpty
+              ? "bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]"
+              : "bg-surface-secondary text-text-tertiary hover:text-text-secondary"
+          }`}
+        >
+          {isEmpty ? <EyeOff size={12} strokeWidth={2} /> : <Eye size={12} strokeWidth={2} />}
+          {isEmpty ? "Empty State Mode ON" : "Preview Empty States"}
+        </button>
+      </div>
 
       {/* User section */}
       <div className="border-t border-border px-3 py-2">

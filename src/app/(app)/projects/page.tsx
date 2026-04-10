@@ -9,6 +9,9 @@ import {
 } from "lucide-react";
 import { campaignsList, projectsList } from "@/lib/campaign-data";
 import type { ProjectItem, CampaignListItem } from "@/lib/campaign-data";
+import { EmptyState } from "@/components/layout/empty-state";
+import { IllustrationProjects } from "@/components/illustrations/empty-states";
+import { useDemoMode } from "@/lib/demo-mode";
 
 const stagger: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.05 } } };
 const fadeUp: Variants = { hidden: { opacity: 0, y: 4 }, show: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } } };
@@ -227,11 +230,13 @@ function CreateProjectModal({ onClose, unassignedCampaigns, preSelectedCampaign 
 // ── Main Page ───────────────────────────────────────────────
 export default function ProjectsPage() {
   const router = useRouter();
+  const { isEmpty } = useDemoMode();
   const [showModal, setShowModal] = useState(false);
   const [preSelectedCampaign, setPreSelectedCampaign] = useState<string | undefined>();
   const [unassignedCollapsed, setUnassignedCollapsed] = useState(false);
 
-  const unassigned = useMemo(() => campaignsList.filter((c) => c.projectId === null), []);
+  const unassigned = useMemo(() => isEmpty ? [] : campaignsList.filter((c) => c.projectId === null), [isEmpty]);
+  const projects = isEmpty ? [] : projectsList;
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="show">
@@ -293,7 +298,21 @@ export default function ProjectsPage() {
 
       {/* Project Cards Grid */}
       <motion.div variants={fadeUp} className="grid grid-cols-2 gap-4">
-        {projectsList.map((project) => (
+        {projects.length === 0 && unassigned.length === 0 ? (
+          <div className="col-span-2">
+            <EmptyState
+              illustration={<IllustrationProjects />}
+              title="No projects yet"
+              description="Group your campaigns into projects for better organization and reporting."
+              action={
+                <button onClick={() => { setPreSelectedCampaign(undefined); setShowModal(true); }}
+                  className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
+                  Create project
+                </button>
+              }
+            />
+          </div>
+        ) : projects.map((project) => (
           <ProjectCard key={project.id} project={project} />
         ))}
       </motion.div>

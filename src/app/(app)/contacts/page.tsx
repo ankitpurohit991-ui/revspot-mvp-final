@@ -27,6 +27,9 @@ import {
   sourceFilterOptions,
 } from "@/lib/contacts-data";
 import type { Contact, ContactSource, ActivityItem } from "@/lib/contacts-data";
+import { EmptyState } from "@/components/layout/empty-state";
+import { IllustrationContacts, IllustrationSearchEmpty } from "@/components/illustrations/empty-states";
+import { useDemoMode } from "@/lib/demo-mode";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
@@ -275,6 +278,7 @@ const selectStyle = {
 };
 
 export default function ContactsPage() {
+  const { isEmpty } = useDemoMode();
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<"all" | ContactSource>("all");
   const [page, setPage] = useState(1);
@@ -282,6 +286,7 @@ export default function ContactsPage() {
   const [showImport, setShowImport] = useState(false);
 
   const filtered = useMemo(() => {
+    if (isEmpty) return [];
     return contacts.filter((c) => {
       if (sourceFilter !== "all" && c.source !== sourceFilter) return false;
       if (
@@ -293,7 +298,7 @@ export default function ContactsPage() {
         return false;
       return true;
     });
-  }, [search, sourceFilter]);
+  }, [search, sourceFilter, isEmpty]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -373,7 +378,38 @@ export default function ContactsPage() {
               </tr>
             </thead>
             <tbody>
-              {paginated.map((c, i) => (
+              {paginated.length === 0 ? (
+                <tr>
+                  <td colSpan={8}>
+                    {search || sourceFilter !== "all" ? (
+                      <EmptyState
+                        illustration={<IllustrationSearchEmpty />}
+                        title="No contacts found"
+                        description="Try a different name, phone number, or email."
+                        action={
+                          <button onClick={() => { setSearch(""); setSourceFilter("all"); }}
+                            className="h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">
+                            Clear search
+                          </button>
+                        }
+                        compact
+                      />
+                    ) : (
+                      <EmptyState
+                        illustration={<IllustrationContacts />}
+                        title="No contacts yet"
+                        description="Import contacts from a CSV or let them flow in from your campaigns."
+                        action={
+                          <button onClick={() => setShowImport(true)}
+                            className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
+                            Import Contacts
+                          </button>
+                        }
+                      />
+                    )}
+                  </td>
+                </tr>
+              ) : paginated.map((c, i) => (
                 <tr
                   key={c.id}
                   onClick={() => setSelected(c)}

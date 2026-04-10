@@ -6,6 +6,9 @@ import type { Variants } from "framer-motion";
 import { Plus, ChevronRight } from "lucide-react";
 import { outreachList } from "@/lib/outreach-data";
 import type { OutreachStatus } from "@/lib/outreach-data";
+import { EmptyState } from "@/components/layout/empty-state";
+import { IllustrationOutreach } from "@/components/illustrations/empty-states";
+import { useDemoMode } from "@/lib/demo-mode";
 
 const stagger: Variants = {
   hidden: {},
@@ -37,6 +40,8 @@ function StatusBadge({ status, progress }: { status: OutreachStatus; progress: n
 
 export default function OutreachPage() {
   const router = useRouter();
+  const { isEmpty } = useDemoMode();
+  const outreach = isEmpty ? [] : outreachList;
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="show">
@@ -80,7 +85,23 @@ export default function OutreachPage() {
               </tr>
             </thead>
             <tbody>
-              {outreachList.map((o, i) => (
+              {outreach.length === 0 ? (
+                <tr>
+                  <td colSpan={7}>
+                    <EmptyState
+                      illustration={<IllustrationOutreach />}
+                      title="No outreach campaigns"
+                      description="Create an outreach campaign to call your contact lists with voice agents."
+                      action={
+                        <button onClick={() => router.push("/outreach/create")}
+                          className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
+                          New outreach
+                        </button>
+                      }
+                    />
+                  </td>
+                </tr>
+              ) : outreach.map((o, i) => (
                 <tr
                   key={o.id}
                   onClick={() => router.push(`/outreach/${o.id}`)}

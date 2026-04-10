@@ -16,6 +16,10 @@ import {
   Sliders,
 } from "lucide-react";
 
+import { EmptyState } from "@/components/layout/empty-state";
+import { IllustrationAudiences } from "@/components/illustrations/empty-states";
+import { useDemoMode } from "@/lib/demo-mode";
+
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
   show: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
@@ -196,7 +200,9 @@ function CreateAudienceModal({ onClose }: { onClose: () => void }) {
 
 // ── Main Page ───────────────────────────────────────────────
 export default function AudiencesPage() {
+  const { isEmpty } = useDemoMode();
   const [showCreate, setShowCreate] = useState(false);
+  const audienceList = isEmpty ? [] : audiences;
 
   return (
     <motion.div initial="hidden" animate="show" variants={fadeUp}>
@@ -232,7 +238,21 @@ export default function AudiencesPage() {
 
       {/* Cards */}
       <div className="grid grid-cols-2 gap-4">
-        {audiences.map((aud) => (
+        {audienceList.length === 0 ? (
+          <div className="col-span-2">
+            <EmptyState
+              illustration={<IllustrationAudiences />}
+              title="No audiences created"
+              description="Build targeted audiences from your database, CRM, or CSV uploads."
+              action={
+                <button onClick={() => setShowCreate(true)}
+                  className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
+                  Create Audience
+                </button>
+              }
+            />
+          </div>
+        ) : audienceList.map((aud) => (
           <div key={aud.id} className="bg-white border border-border rounded-card p-5 hover:shadow-card-hover hover:-translate-y-px transition-all duration-150 cursor-pointer">
             <div className="flex items-start justify-between mb-3">
               <div>

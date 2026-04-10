@@ -6,6 +6,9 @@ import type { Variants } from "framer-motion";
 import { Plus, Phone, MessageCircle, Play, Pause, Copy, Pencil, Target, Variable, FlaskConical } from "lucide-react";
 import { newAgentsList } from "@/lib/voice-agent-data";
 import type { AgentListItem } from "@/lib/types/agent";
+import { EmptyState } from "@/components/layout/empty-state";
+import { IllustrationAgents } from "@/components/illustrations/empty-states";
+import { useDemoMode } from "@/lib/demo-mode";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
@@ -63,6 +66,8 @@ function TemplateBadge({ template }: { template: AgentListItem["template"] }) {
 
 export default function AgentsPage() {
   const router = useRouter();
+  const { isEmpty } = useDemoMode();
+  const agents = isEmpty ? [] : newAgentsList;
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="show">
@@ -80,7 +85,19 @@ export default function AgentsPage() {
       </motion.div>
 
       <motion.div variants={fadeUp} className="grid grid-cols-1 gap-4">
-        {newAgentsList.map((agent) => (
+        {agents.length === 0 ? (
+          <EmptyState
+            illustration={<IllustrationAgents />}
+            title="No agents created"
+            description="Create a voice or WhatsApp agent to start qualifying your leads automatically."
+            action={
+              <button onClick={() => router.push("/agents/create")}
+                className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
+                Create Agent
+              </button>
+            }
+          />
+        ) : agents.map((agent) => (
           <div
             key={agent.id}
             onClick={() => router.push(`/agents/${agent.id}`)}

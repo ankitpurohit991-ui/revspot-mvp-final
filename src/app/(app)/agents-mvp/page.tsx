@@ -10,6 +10,9 @@ import {
   FolderKanban, Monitor,
 } from "lucide-react";
 import { projectsList, campaignsList } from "@/lib/campaign-data";
+import { EmptyState } from "@/components/layout/empty-state";
+import { IllustrationAgents } from "@/components/illustrations/empty-states";
+import { useDemoMode } from "@/lib/demo-mode";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
@@ -59,6 +62,8 @@ const agentsMvp = [
 
 export default function AgentsMvpPage() {
   const router = useRouter();
+  const { isEmpty } = useDemoMode();
+  const agents = isEmpty ? [] : agentsMvp;
   const [isCreating, setIsCreating] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [createMode, setCreateMode] = useState<"select" | "ai" | "manual">("select");
@@ -237,7 +242,19 @@ export default function AgentsMvpPage() {
 
       {/* Agent Cards */}
       <motion.div variants={fadeUp} className="space-y-4">
-        {agentsMvp.map((agent) => (
+        {agents.length === 0 ? (
+          <EmptyState
+            illustration={<IllustrationAgents />}
+            title="No agents created"
+            description="Create a voice or WhatsApp agent to start qualifying your leads automatically."
+            action={
+              <button onClick={() => setShowCreateForm(true)}
+                className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
+                Create Agent
+              </button>
+            }
+          />
+        ) : agents.map((agent) => (
           <div key={agent.id} onClick={() => router.push(`/agents-mvp/${agent.id}`)}
             className="bg-white border border-border rounded-card overflow-hidden cursor-pointer hover:shadow-card-hover transition-shadow duration-150">
             {/* Agent Header */}

@@ -24,6 +24,9 @@ import {
 import { campaignsList } from "@/lib/campaign-data";
 import type { CampaignStatus, CampaignHealth, CampaignListItem } from "@/lib/campaign-data";
 import { agentsList } from "@/lib/voice-agent-data";
+import { EmptyState } from "@/components/layout/empty-state";
+import { IllustrationCampaigns, IllustrationSearchEmpty } from "@/components/illustrations/empty-states";
+import { useDemoMode } from "@/lib/demo-mode";
 
 // ── Metric column definitions ──────────────────────────────
 
@@ -114,6 +117,7 @@ const PAGE_SIZE = 15;
 
 export default function CampaignsPage() {
   const router = useRouter();
+  const { isEmpty } = useDemoMode();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | CampaignStatus>("all");
   const [projectFilter, setProjectFilter] = useState("all");
@@ -143,6 +147,7 @@ export default function CampaignsPage() {
   }, []);
 
   const filtered = useMemo(() => {
+    if (isEmpty) return [];
     return campaignsList.filter((c) => {
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
       if (projectFilter !== "all" && c.client !== projectFilter) return false;
@@ -154,7 +159,7 @@ export default function CampaignsPage() {
         return false;
       return true;
     });
-  }, [search, statusFilter, projectFilter]);
+  }, [search, statusFilter, projectFilter, isEmpty]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -305,7 +310,44 @@ export default function CampaignsPage() {
               </tr>
             </thead>
             <tbody>
-              {paginated.map((c, i) => (
+              {paginated.length === 0 ? (
+                <tr>
+                  <td colSpan={activeMetrics.length + 3}>
+                    {search || statusFilter !== "all" || projectFilter !== "all" ? (
+                      <EmptyState
+                        illustration={<IllustrationSearchEmpty />}
+                        title="No campaigns match your filters"
+                        description="Try adjusting your search or clearing filters."
+                        action={
+                          <button onClick={() => { setSearch(""); setStatusFilter("all"); setProjectFilter("all"); }}
+                            className="h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">
+                            Clear filters
+                          </button>
+                        }
+                        compact
+                      />
+                    ) : (
+                      <EmptyState
+                        illustration={<IllustrationCampaigns />}
+                        title="No campaigns yet"
+                        description="Create your first campaign or import existing ones from Meta Ads."
+                        action={
+                          <div className="flex items-center gap-2">
+                            <button onClick={() => router.push("/campaigns/create")}
+                              className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
+                              Create campaign
+                            </button>
+                            <button onClick={() => setShowImport(true)}
+                              className="h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">
+                              Import Campaigns
+                            </button>
+                          </div>
+                        }
+                      />
+                    )}
+                  </td>
+                </tr>
+              ) : paginated.map((c, i) => (
                 <tr
                   key={c.id}
                   onClick={() => router.push(`/campaigns/${c.id}`)}

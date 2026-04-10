@@ -17,6 +17,9 @@ import {
   disqualificationReasons,
 } from "@/lib/mock-data";
 import { GettingStartedChecklist } from "@/components/dashboard/getting-started";
+import { EmptyState } from "@/components/layout/empty-state";
+import { IllustrationCampaigns, IllustrationAgents, IllustrationChart } from "@/components/illustrations/empty-states";
+import { useDemoMode } from "@/lib/demo-mode";
 
 const stagger: Variants = {
   hidden: {},
@@ -142,6 +145,7 @@ function getPrevLabel(range: string) {
 }
 
 export default function DashboardPage() {
+  const { isEmpty } = useDemoMode();
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState("30");
 
@@ -173,6 +177,87 @@ export default function DashboardPage() {
         <GettingStartedChecklist />
       </motion.div>
 
+      {isEmpty ? (
+        <>
+          {/* Empty Dashboard */}
+          <motion.div variants={fadeUp} className="grid grid-cols-4 gap-3 mb-3">
+            {["Active campaigns", "Spends", "Total leads", "Verified leads", "Qualified leads", "CPL", "CPVL", "CPQL"].map((label) => (
+              <MetricCard key={label} label={label} value="—" />
+            ))}
+          </motion.div>
+
+          <motion.div variants={fadeUp} className="mb-5">
+            <div className="bg-white border border-border rounded-card">
+              <EmptyState
+                illustration={<IllustrationChart />}
+                title="Waiting for data"
+                description="Metrics will populate once your campaigns start delivering impressions and leads."
+                compact
+              />
+            </div>
+          </motion.div>
+
+          <motion.div variants={fadeUp} className="grid grid-cols-[3fr_2fr] gap-5 mb-5">
+            <div className="bg-white border border-border rounded-card">
+              <div className="px-5 py-3 border-b border-border-subtle">
+                <span className="text-card-title text-text-primary">Insights</span>
+              </div>
+              <EmptyState
+                illustration={<IllustrationChart />}
+                title="No insights yet"
+                description="Insights will appear once your campaigns generate enough data."
+                compact
+              />
+            </div>
+            <div className="bg-white border border-border rounded-card">
+              <div className="px-5 py-3 border-b border-border-subtle">
+                <span className="text-card-title text-text-primary">Voice Agent Performance</span>
+              </div>
+              <EmptyState
+                illustration={<IllustrationAgents />}
+                title="No voice agent connected"
+                description="Create an agent to see call analytics and qualification metrics here."
+                action={
+                  <a href="/agents-mvp" className="h-8 px-3 text-[12px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150 inline-flex items-center">
+                    Create Agent
+                  </a>
+                }
+                compact
+              />
+            </div>
+          </motion.div>
+
+          <motion.div variants={fadeUp} className="grid grid-cols-[3fr_2fr] gap-5">
+            <div className="bg-white border border-border rounded-card">
+              <div className="px-5 py-3 border-b border-border-subtle">
+                <span className="text-card-title text-text-primary">Campaign Performance</span>
+              </div>
+              <EmptyState
+                illustration={<IllustrationCampaigns />}
+                title="No active campaigns"
+                description="Create your first campaign to see performance here."
+                action={
+                  <a href="/campaigns/create" className="h-8 px-3 text-[12px] font-medium text-white bg-accent rounded-button hover:bg-accent-hover transition-colors duration-150 inline-flex items-center">
+                    Create campaign
+                  </a>
+                }
+                compact
+              />
+            </div>
+            <div className="bg-white border border-border rounded-card">
+              <div className="px-5 py-3 border-b border-border-subtle">
+                <span className="text-card-title text-text-primary">Recently Qualified</span>
+              </div>
+              <EmptyState
+                title="No qualified leads yet"
+                description="Connect a voice agent to start qualifying leads."
+                compact
+              />
+            </div>
+          </motion.div>
+        </>
+      ) : (
+      <>
       {/* Metric cards — 4x2 grid */}
       <motion.div variants={fadeUp} className="grid grid-cols-4 gap-3 mb-3" key={dateRange}>
         <MetricCard label="Active campaigns" value={m.activeCampaigns.value} previous={m.activeCampaigns.prev} previousLabel={pl}
@@ -228,6 +313,8 @@ export default function DashboardPage() {
         <CampaignTable campaigns={campaignPerformance} />
         <RecentlyQualified />
       </motion.div>
+      </>
+      )}
     </motion.div>
   );
 }

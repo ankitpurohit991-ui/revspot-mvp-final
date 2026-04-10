@@ -17,6 +17,10 @@ import {
   Upload,
 } from "lucide-react";
 
+import { EmptyState } from "@/components/layout/empty-state";
+import { IllustrationCreatives, IllustrationSearchEmpty } from "@/components/illustrations/empty-states";
+import { useDemoMode } from "@/lib/demo-mode";
+
 const fadeIn = { initial: { opacity: 0, y: 4 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.2, ease: "easeOut" as const } };
 
 type CreativeFormat = "image" | "video" | "carousel" | "document";
@@ -64,6 +68,7 @@ function FormatBadge({ format }: { format: CreativeFormat }) {
 }
 
 export default function CreativesPage() {
+  const { isEmpty } = useDemoMode();
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<"all" | CreativeFormat>("all");
   const [campaignFilter, setCampaignFilter] = useState("");
@@ -71,13 +76,14 @@ export default function CreativesPage() {
   const [showUpload, setShowUpload] = useState(false);
 
   const filtered = useMemo(() => {
+    if (isEmpty) return [];
     return creatives.filter((c) => {
       if (typeFilter !== "all" && c.format !== typeFilter) return false;
       if (campaignFilter && c.campaign !== campaignFilter) return false;
       if (search && !c.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [search, typeFilter, campaignFilter]);
+  }, [search, typeFilter, campaignFilter, isEmpty]);
 
   return (
     <motion.div {...fadeIn}>
@@ -164,7 +170,36 @@ export default function CreativesPage() {
       </motion.div>
 
       {/* Content */}
-      {view === "grid" ? (
+      {filtered.length === 0 ? (
+        <div className="bg-white border border-border rounded-card">
+          {search || typeFilter !== "all" || campaignFilter ? (
+            <EmptyState
+              illustration={<IllustrationSearchEmpty />}
+              title="No creatives match your filters"
+              description="Try a different format, campaign, or search term."
+              action={
+                <button onClick={() => { setSearch(""); setTypeFilter("all"); setCampaignFilter(""); }}
+                  className="h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150">
+                  Clear filters
+                </button>
+              }
+              compact
+            />
+          ) : (
+            <EmptyState
+              illustration={<IllustrationCreatives />}
+              title="No creatives uploaded"
+              description="Upload images, videos, or carousels to use in your campaigns."
+              action={
+                <button onClick={() => setShowUpload(true)}
+                  className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
+                  Upload creative
+                </button>
+              }
+            />
+          )}
+        </div>
+      ) : view === "grid" ? (
         <motion.div className="grid grid-cols-4 gap-4">
           {filtered.map((c) => {
             const Icon = formatConfig[c.format].icon;

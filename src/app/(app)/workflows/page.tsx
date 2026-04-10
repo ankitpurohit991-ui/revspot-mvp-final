@@ -6,6 +6,9 @@ import type { Variants } from "framer-motion";
 import { Plus } from "lucide-react";
 import { workflowsList } from "@/lib/workflow-data";
 import type { WorkflowStatus } from "@/lib/types/workflow";
+import { EmptyState } from "@/components/layout/empty-state";
+import { IllustrationSequences } from "@/components/illustrations/empty-states";
+import { useDemoMode } from "@/lib/demo-mode";
 
 const stagger: Variants = {
   hidden: {},
@@ -53,6 +56,8 @@ function TriggerBadge({ type }: { type: string }) {
 
 export default function WorkflowsPage() {
   const router = useRouter();
+  const { isEmpty } = useDemoMode();
+  const workflows = isEmpty ? [] : workflowsList;
 
   return (
     <motion.div variants={stagger} initial="hidden" animate="show">
@@ -95,7 +100,23 @@ export default function WorkflowsPage() {
               </tr>
             </thead>
             <tbody>
-              {workflowsList.map((w, i) => (
+              {workflows.length === 0 ? (
+                <tr>
+                  <td colSpan={6}>
+                    <EmptyState
+                      illustration={<IllustrationSequences />}
+                      title="No sequences created"
+                      description="Build automated multi-step sequences to nurture leads across channels."
+                      action={
+                        <button onClick={() => router.push("/workflows/create")}
+                          className="h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
+                          Create Sequence
+                        </button>
+                      }
+                    />
+                  </td>
+                </tr>
+              ) : workflows.map((w, i) => (
                 <tr
                   key={w.id}
                   onClick={() => router.push(`/workflows/${w.id}`)}

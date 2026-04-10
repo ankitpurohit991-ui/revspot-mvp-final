@@ -2,14 +2,8 @@
 
 export const existingClients = [
   "Godrej Properties",
-  "Godrej Properties",
-  "Godrej Properties",
-  "Godrej Properties",
-  "Godrej Properties",
   "Godrej Ananda",
-  "Godrej Properties",
   "Puravankara",
-  "Godrej Properties",
   "Tata Housing",
 ];
 
