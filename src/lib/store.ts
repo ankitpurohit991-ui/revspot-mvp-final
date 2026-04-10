@@ -60,6 +60,21 @@ export interface VoiceAgent {
   createdAt: string;
 }
 
+export interface CompanyProfile {
+  companyName: string;
+  industry: string;
+  logoUrl?: string;
+  userName: string;
+  userRole?: string;
+}
+
+export interface ChecklistItem {
+  key: string;
+  label: string;
+  completed: boolean;
+  href: string;
+}
+
 interface AppState {
   connectedAccounts: ConnectedAccount[];
   campaigns: Campaign[];
@@ -70,6 +85,12 @@ interface AppState {
   sequences: WorkflowListItem[];
   voiceAgents: VoiceAgent[];
 
+  // Onboarding
+  onboardingComplete: boolean;
+  companyProfile: CompanyProfile | null;
+  gettingStartedChecklist: ChecklistItem[];
+  checklistDismissed: boolean;
+
   setConnectedAccounts: (accounts: ConnectedAccount[]) => void;
   setCampaigns: (campaigns: Campaign[]) => void;
   setProjects: (projects: Project[]) => void;
@@ -78,7 +99,20 @@ interface AppState {
   setAgents: (agents: AgentListItem[]) => void;
   setSequences: (sequences: WorkflowListItem[]) => void;
   setVoiceAgents: (agents: VoiceAgent[]) => void;
+  setOnboardingComplete: (complete: boolean) => void;
+  setCompanyProfile: (profile: CompanyProfile) => void;
+  completeChecklistItem: (key: string) => void;
+  dismissChecklist: () => void;
 }
+
+const defaultChecklist: ChecklistItem[] = [
+  { key: "company", label: "Set up your company profile", completed: false, href: "/onboarding" },
+  { key: "ad_account", label: "Connect ad account", completed: false, href: "/onboarding" },
+  { key: "project", label: "Create your first project", completed: false, href: "/projects" },
+  { key: "campaign", label: "Launch your first campaign", completed: false, href: "/campaigns/create" },
+  { key: "brochure", label: "Upload a brochure", completed: false, href: "/projects" },
+  { key: "agent", label: "Set up a voice agent", completed: false, href: "/agents-mvp" },
+];
 
 export const useAppStore = create<AppState>((set) => ({
   connectedAccounts: [],
@@ -90,6 +124,11 @@ export const useAppStore = create<AppState>((set) => ({
   sequences: [],
   voiceAgents: [],
 
+  onboardingComplete: false,
+  companyProfile: null,
+  gettingStartedChecklist: defaultChecklist,
+  checklistDismissed: false,
+
   setConnectedAccounts: (accounts) => set({ connectedAccounts: accounts }),
   setCampaigns: (campaigns) => set({ campaigns }),
   setProjects: (projects) => set({ projects }),
@@ -98,4 +137,13 @@ export const useAppStore = create<AppState>((set) => ({
   setAgents: (agents) => set({ agents }),
   setSequences: (sequences) => set({ sequences }),
   setVoiceAgents: (agents) => set({ voiceAgents: agents }),
+  setOnboardingComplete: (complete) => set({ onboardingComplete: complete }),
+  setCompanyProfile: (profile) => set({ companyProfile: profile }),
+  completeChecklistItem: (key) =>
+    set((state) => ({
+      gettingStartedChecklist: state.gettingStartedChecklist.map((item) =>
+        item.key === key ? { ...item, completed: true } : item
+      ),
+    })),
+  dismissChecklist: () => set({ checklistDismissed: true }),
 }));

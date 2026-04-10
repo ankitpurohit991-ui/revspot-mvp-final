@@ -16,6 +16,7 @@ import {
   voiceAgentMetrics,
   disqualificationReasons,
 } from "@/lib/mock-data";
+import { GettingStartedChecklist } from "@/components/dashboard/getting-started";
 
 const stagger: Variants = {
   hidden: {},
@@ -165,6 +166,11 @@ export default function DashboardPage() {
           <h1 className="text-page-title text-text-primary">Dashboard</h1>
         </div>
         <DateRangeSelector onChange={setDateRange} />
+      </motion.div>
+
+      {/* Getting Started Checklist */}
+      <motion.div variants={fadeUp}>
+        <GettingStartedChecklist />
       </motion.div>
 
       {/* Metric cards — 4x2 grid */}
