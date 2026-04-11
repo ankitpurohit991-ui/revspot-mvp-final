@@ -429,9 +429,40 @@ const enrichedLeads: EnquiryLead[] = baseLeads.map((lead, i) => ({
     : lead.aiQualification === "not_qualified"
     ? `${lead.name.replace(/\*/g, "")} did not meet the qualification criteria. Budget or timeline did not align with the offering.`
     : `${lead.name.replace(/\*/g, "")} has been contacted but qualification is still pending. Follow-up recommended.`,
-  calls: lead.aiQualification !== "pending" ? [
-    {
-      id: `call-${lead.id}-1`,
+  calls: lead.aiQualification !== "pending" ? (() => {
+    const callRecords: CallRecord[] = [];
+    const baseDate = new Date(lead.updatedAt);
+    // Add 1-2 prior failed attempts for most leads
+    if (i % 3 !== 0) {
+      callRecords.push({
+        id: `call-${lead.id}-1`,
+        date: new Date(baseDate.getTime() - 86400000 * 2).toISOString(),
+        status: "no_answer" as const,
+        duration: "0:00",
+        qualificationCriteria: [],
+      });
+    }
+    if (i % 4 === 0) {
+      callRecords.push({
+        id: `call-${lead.id}-2`,
+        date: new Date(baseDate.getTime() - 86400000).toISOString(),
+        status: "busy" as const,
+        duration: "0:00",
+        qualificationCriteria: [],
+      });
+    }
+    if (i % 5 === 0) {
+      callRecords.push({
+        id: `call-${lead.id}-vm`,
+        date: new Date(baseDate.getTime() - 43200000).toISOString(),
+        status: "voicemail" as const,
+        duration: "0:22",
+        qualificationCriteria: [],
+      });
+    }
+    // Completed call (most recent)
+    callRecords.push({
+      id: `call-${lead.id}-final`,
       date: lead.updatedAt,
       status: "completed" as const,
       duration: `${1 + Math.floor(Math.random() * 4)}:${String(Math.floor(Math.random() * 59)).padStart(2, "0")}`,
@@ -440,8 +471,9 @@ const enrichedLeads: EnquiryLead[] = baseLeads.map((lead, i) => ({
         { key: "True Buying Intent", result: lead.temperature === "hot" ? "Qualified" : "Not Determined", leadResponse: lead.temperature === "hot" ? "Immediate interest" : "Exploring options", reasoning: `Lead temperature is ${lead.temperature}` },
         { key: "Next Action Item", result: lead.sentToCRM ? "Send to CRM" : "Follow up", leadResponse: "N/A", reasoning: lead.sentToCRM ? "Lead pushed to CRM" : "Needs follow-up" },
       ],
-    },
-  ] : [],
+    });
+    return callRecords;
+  })() : [],
   profileIntelligence: {
     gender: genders[i % 3],
     languages: i % 3 === 0 ? ["Kannada", "English"] : i % 3 === 1 ? ["Hindi", "English"] : ["English"],

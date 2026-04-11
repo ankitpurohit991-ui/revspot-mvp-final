@@ -4,12 +4,11 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { Building2, Plug, FolderKanban, Rocket } from "lucide-react";
+import { Building2, Plug, FolderKanban } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { StepCompany } from "@/components/onboarding/step-company";
 import { StepAdAccount } from "@/components/onboarding/step-ad-account";
 import { StepProject } from "@/components/onboarding/step-project";
-import { StepCampaign } from "@/components/onboarding/step-campaign";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
@@ -20,7 +19,6 @@ const steps = [
   { key: "company", label: "Company", icon: Building2 },
   { key: "ad-account", label: "Ad Account", icon: Plug },
   { key: "project", label: "Project", icon: FolderKanban },
-  { key: "campaign", label: "Campaign", icon: Rocket },
 ];
 
 interface ImportedCampaign {
@@ -36,9 +34,7 @@ export default function OnboardingPage() {
   const { setCompanyProfile, setOnboardingComplete, completeChecklistItem } = useAppStore();
 
   const [currentStep, setCurrentStep] = useState(0);
-  const [adAccountName, setAdAccountName] = useState("");
   const [importedCampaigns, setImportedCampaigns] = useState<ImportedCampaign[]>([]);
-  const [projectName, setProjectName] = useState("");
 
   const finishOnboarding = () => {
     setOnboardingComplete(true);
@@ -107,7 +103,6 @@ export default function OnboardingPage() {
       {currentStep === 1 && (
         <StepAdAccount
           onNext={(data) => {
-            setAdAccountName(data.accountName);
             setImportedCampaigns(data.importedCampaigns);
             if (data.accountName) completeChecklistItem("ad_account");
             setCurrentStep(2);
@@ -121,25 +116,11 @@ export default function OnboardingPage() {
           importedCampaigns={importedCampaigns}
           onNext={(data) => {
             if (data.projects.length > 0) {
-              setProjectName(data.projects[0].name);
               completeChecklistItem("project");
             }
-            setCurrentStep(3);
-          }}
-          onBack={() => setCurrentStep(1)}
-        />
-      )}
-
-      {currentStep === 3 && (
-        <StepCampaign
-          projectName={projectName || "My Project"}
-          adAccountName={adAccountName}
-          onNext={() => {
-            completeChecklistItem("campaign");
             finishOnboarding();
           }}
-          onBack={() => setCurrentStep(2)}
-          onSkip={finishOnboarding}
+          onBack={() => setCurrentStep(1)}
         />
       )}
     </motion.div>

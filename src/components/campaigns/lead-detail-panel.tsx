@@ -14,6 +14,10 @@ import {
   Loader2,
   Check,
   ExternalLink,
+  UserPlus,
+  Clock,
+  PhoneOff,
+  PhoneIncoming,
 } from "lucide-react";
 import { format } from "date-fns";
 import type {
@@ -202,6 +206,12 @@ export function LeadDetailPanel({ lead, onClose }: LeadDetailPanelProps) {
                 </span>
               </div>
               <div className="text-[13px] text-text-secondary mt-0.5">{phone}</div>
+              {lead.createdAt && (
+                <div className="text-[11px] text-text-tertiary mt-1 flex items-center gap-1">
+                  <Clock size={10} strokeWidth={1.5} />
+                  Lead created {format(new Date(lead.createdAt), "dd MMM yyyy, HH:mm")}
+                </div>
+              )}
               {aiSummary && (
                 <p className="text-[12px] text-text-tertiary mt-1.5 leading-relaxed line-clamp-2">
                   {aiSummary}
@@ -266,6 +276,7 @@ export function LeadDetailPanel({ lead, onClose }: LeadDetailPanelProps) {
               campaign={lead.campaign ?? ""}
               adset={lead.adset ?? ""}
               adName={lead.adName ?? ""}
+              calls={calls}
             />
           )}
           {activeTab === "profile" && (
@@ -281,6 +292,8 @@ export function LeadDetailPanel({ lead, onClose }: LeadDetailPanelProps) {
               calls={calls}
               expandedCallId={expandedCallId}
               setExpandedCallId={setExpandedCallId}
+              createdAt={lead.createdAt ?? ""}
+              campaign={lead.campaign ?? ""}
             />
           )}
         </div>
@@ -288,6 +301,38 @@ export function LeadDetailPanel({ lead, onClose }: LeadDetailPanelProps) {
     </>,
     document.body
   );
+}
+
+// ── Activity Summary Helper ────────────────────────────────
+function buildActivitySummary(calls: CallRecord[]): string {
+  if (calls.length === 0) return "No contact attempts yet.";
+
+  const total = calls.length;
+  const noAnswer = calls.filter((c) => c.status === "no_answer").length;
+  const busy = calls.filter((c) => c.status === "busy").length;
+  const completed = calls.filter((c) => c.status === "completed").length;
+  const voicemail = calls.filter((c) => c.status === "voicemail").length;
+
+  const parts: string[] = [];
+  if (noAnswer > 0) parts.push(`${noAnswer} no answer`);
+  if (busy > 0) parts.push(`${busy} busy`);
+  if (voicemail > 0) parts.push(`${voicemail} voicemail`);
+  if (completed > 0) {
+    const lastCompleted = calls.find((c) => c.status === "completed");
+    parts.push(`${completed} connected${lastCompleted ? ` (${lastCompleted.duration})` : ""}`);
+  }
+
+  const summary = `Called ${total} time${total > 1 ? "s" : ""} — ${parts.join(", ")}.`;
+
+  if (completed > 0) {
+    const lastCompleted = calls.find((c) => c.status === "completed");
+    if (lastCompleted) {
+      const dateStr = format(new Date(lastCompleted.date), "dd MMM");
+      return `${summary} Last connected on ${dateStr}.`;
+    }
+  }
+
+  return summary;
 }
 
 // ── Overview Tab ────────────────────────────────────────────
@@ -298,6 +343,7 @@ function OverviewTab({
   campaign,
   adset,
   adName,
+  calls,
 }: {
   segmentTags: string[];
   aiSummary: string;
@@ -305,9 +351,27 @@ function OverviewTab({
   campaign: string;
   adset: string;
   adName: string;
+  calls: CallRecord[];
 }) {
+  const activitySummary = buildActivitySummary(calls);
+
   return (
     <div className="space-y-5">
+      {/* Activity Summary */}
+      <div className="bg-surface-page rounded-[8px] p-4">
+        <h3 className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] mb-2">
+          Activity Summary
+        </h3>
+        <div className="flex items-start gap-2.5">
+          {calls.length === 0 ? (
+            <PhoneOff size={14} strokeWidth={1.5} className="text-text-tertiary mt-0.5 shrink-0" />
+          ) : (
+            <PhoneIncoming size={14} strokeWidth={1.5} className="text-accent mt-0.5 shrink-0" />
+          )}
+          <p className="text-[13px] text-text-primary leading-relaxed">{activitySummary}</p>
+        </div>
+      </div>
+
       {/* Source Attribution */}
       {(campaign || adset || adName) && (
         <div>
@@ -605,19 +669,15 @@ function ActivityTab({
   calls,
   expandedCallId,
   setExpandedCallId,
+  createdAt,
+  campaign,
 }: {
   calls: CallRecord[];
   expandedCallId: string | null;
   setExpandedCallId: (id: string | null) => void;
+  createdAt: string;
+  campaign: string;
 }) {
-  if (calls.length === 0) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <p className="text-[13px] text-text-tertiary">No activity recorded yet</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-2">
       {calls.map((call) => {
@@ -660,6 +720,26 @@ function ActivityTab({
           </div>
         );
       })}
+
+      {/* Lead Created — always at the bottom (chronologically first) */}
+      {createdAt && (
+        <div className="bg-surface-page rounded-[8px] px-4 py-3 flex items-center gap-3">
+          <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+            <UserPlus size={12} strokeWidth={1.5} className="text-accent" />
+          </div>
+          <div>
+            <span className="text-[12px] text-text-primary font-medium">Lead created</span>
+            <span className="text-[11px] text-text-tertiary ml-2">
+              {format(new Date(createdAt), "dd MMM yyyy, HH:mm")}
+            </span>
+            {campaign && (
+              <span className="block text-[11px] text-text-tertiary mt-0.5">
+                Source: {campaign} via Meta Ads
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
