@@ -293,7 +293,7 @@ export function LeadDetailPanel({ lead, onClose }: LeadDetailPanelProps) {
               expandedCallId={expandedCallId}
               setExpandedCallId={setExpandedCallId}
               createdAt={lead.createdAt ?? ""}
-              campaign={lead.campaign ?? ""}
+              lead={lead}
             />
           )}
         </div>
@@ -670,13 +670,13 @@ function ActivityTab({
   expandedCallId,
   setExpandedCallId,
   createdAt,
-  campaign,
+  lead,
 }: {
   calls: CallRecord[];
   expandedCallId: string | null;
   setExpandedCallId: (id: string | null) => void;
   createdAt: string;
-  campaign: string;
+  lead: EnquiryLead;
 }) {
   return (
     <div className="space-y-2">
@@ -723,21 +723,74 @@ function ActivityTab({
 
       {/* Lead Created — always at the bottom (chronologically first) */}
       {createdAt && (
-        <div className="bg-surface-page rounded-[8px] px-4 py-3 flex items-center gap-3">
-          <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
-            <UserPlus size={12} strokeWidth={1.5} className="text-accent" />
-          </div>
-          <div>
-            <span className="text-[12px] text-text-primary font-medium">Lead created</span>
-            <span className="text-[11px] text-text-tertiary ml-2">
-              {format(new Date(createdAt), "dd MMM yyyy, HH:mm")}
-            </span>
-            {campaign && (
-              <span className="block text-[11px] text-text-tertiary mt-0.5">
-                Source: {campaign} via Meta Ads
+        <div className="bg-surface-page rounded-[8px] overflow-hidden">
+          <button
+            onClick={() => setExpandedCallId(expandedCallId === "__created" ? null : "__created")}
+            className="w-full flex items-center justify-between px-4 py-3 hover:bg-surface-secondary/50 transition-colors"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+                <UserPlus size={12} strokeWidth={1.5} className="text-accent" />
+              </div>
+              <div className="text-left">
+                <span className="text-[12px] text-text-primary font-medium">Lead created</span>
+                <span className="text-[11px] text-text-tertiary ml-2">
+                  {format(new Date(createdAt), "dd MMM yyyy, HH:mm")}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center text-[10px] font-medium px-2 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8]">
+                Meta Ads
               </span>
-            )}
-          </div>
+              {expandedCallId === "__created" ? (
+                <ChevronUp size={14} strokeWidth={1.5} className="text-text-tertiary" />
+              ) : (
+                <ChevronDown size={14} strokeWidth={1.5} className="text-text-tertiary" />
+              )}
+            </div>
+          </button>
+
+          {expandedCallId === "__created" && (
+            <div className="px-4 pb-4 border-t border-border-subtle">
+              <div className="pt-3 grid grid-cols-2 gap-3">
+                {[
+                  { label: "Name", value: lead.name },
+                  { label: "Phone", value: lead.phone },
+                  { label: "Email", value: lead.email },
+                  { label: "Source", value: "Meta Ads" },
+                  { label: "Medium", value: "Paid" },
+                  { label: "Campaign", value: lead.campaign },
+                  { label: "Ad Set", value: lead.adset },
+                  { label: "Ad", value: lead.adName },
+                ].map((field) => (
+                  <div key={field.label}>
+                    <span className="block text-[10px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-0.5">
+                      {field.label}
+                    </span>
+                    <span className="block text-[12px] text-text-primary">
+                      {field.value || "—"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              {lead.formResponses && lead.formResponses.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-border-subtle">
+                  <span className="block text-[10px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-2">
+                    Form Responses
+                  </span>
+                  <div className="space-y-1.5">
+                    {lead.formResponses.map((fr, i) => (
+                      <div key={i} className="flex items-start gap-2 text-[12px]">
+                        <span className="text-text-tertiary shrink-0">{fr.question}</span>
+                        <span className="text-text-primary font-medium">{fr.answer}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
