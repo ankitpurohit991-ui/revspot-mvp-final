@@ -172,29 +172,11 @@ export default function DashboardPage() {
         <DateRangeSelector onChange={setDateRange} />
       </motion.div>
 
-      {/* Getting Started Checklist */}
-      <motion.div variants={fadeUp}>
-        <GettingStartedChecklist />
-      </motion.div>
-
       {isEmpty ? (
         <>
-          {/* Empty Dashboard */}
-          <motion.div variants={fadeUp} className="grid grid-cols-4 gap-3 mb-3">
-            {["Active campaigns", "Spends", "Total leads", "Verified leads", "Qualified leads", "CPL", "CPVL", "CPQL"].map((label) => (
-              <MetricCard key={label} label={label} value="—" />
-            ))}
-          </motion.div>
-
+          {/* Getting Started Checklist — only in empty state */}
           <motion.div variants={fadeUp} className="mb-5">
-            <div className="bg-white border border-border rounded-card">
-              <EmptyState
-                illustration={<IllustrationChart />}
-                title="Waiting for data"
-                description="Metrics will populate once your campaigns start delivering impressions and leads."
-                compact
-              />
-            </div>
+            <GettingStartedChecklist />
           </motion.div>
 
           <motion.div variants={fadeUp} className="grid grid-cols-[3fr_2fr] gap-5 mb-5">
