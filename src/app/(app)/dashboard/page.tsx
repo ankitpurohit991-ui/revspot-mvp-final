@@ -17,8 +17,9 @@ import {
   disqualificationReasons,
 } from "@/lib/mock-data";
 import { GettingStartedChecklist } from "@/components/dashboard/getting-started";
-import { IllustrationCampaigns, IllustrationAgents, IllustrationContacts, IllustrationLeads } from "@/components/illustrations/empty-states";
+import { IllustrationCampaigns, IllustrationAgents, IllustrationProjects, IllustrationLeads } from "@/components/illustrations/empty-states";
 import { useDemoMode } from "@/lib/demo-mode";
+import { useAppStore } from "@/lib/store";
 
 const stagger: Variants = {
   hidden: {},
@@ -145,6 +146,8 @@ function getPrevLabel(range: string) {
 
 export default function DashboardPage() {
   const { isEmpty } = useDemoMode();
+  const projects = useAppStore((s) => s.projects);
+  const hasProjects = projects.length > 0;
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
   const [dateRange, setDateRange] = useState("30");
 
@@ -178,15 +181,19 @@ export default function DashboardPage() {
             <GettingStartedChecklist />
           </motion.div>
 
-          <motion.div variants={fadeUp} className="grid grid-cols-4 gap-3">
+          <motion.div variants={fadeUp} className="grid grid-cols-3 gap-3">
             {[
-              {
-                illustration: <IllustrationContacts />,
-                title: "Import your leads",
-                description: "Upload a CSV or connect your CRM to bring in existing leads",
-                ctaLabel: "Import leads",
-                href: "/leads",
-              },
+              ...(!hasProjects
+                ? [
+                    {
+                      illustration: <IllustrationProjects />,
+                      title: "Create a project",
+                      description: "Group campaigns and leads by property or development",
+                      ctaLabel: "Create project",
+                      href: "/projects",
+                    },
+                  ]
+                : []),
               {
                 illustration: <IllustrationCampaigns />,
                 title: "Create a campaign",
@@ -201,13 +208,17 @@ export default function DashboardPage() {
                 ctaLabel: "Set up agent",
                 href: "/agents-mvp",
               },
-              {
-                illustration: <IllustrationLeads />,
-                title: "Explore your CRM",
-                description: "Track, filter, and manage all your incoming leads",
-                ctaLabel: "Go to CRM",
-                href: "/enquiries",
-              },
+              ...(hasProjects
+                ? [
+                    {
+                      illustration: <IllustrationLeads />,
+                      title: "Explore your CRM",
+                      description: "Track, filter, and manage all your incoming leads",
+                      ctaLabel: "Go to CRM",
+                      href: "/enquiries",
+                    },
+                  ]
+                : []),
             ].map((card) => (
               <a
                 key={card.href}
