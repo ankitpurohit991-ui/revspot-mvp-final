@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { ArrowRight, Upload, X } from "lucide-react";
-import { industries } from "@/lib/wizard-data";
 
 interface StepCompanyProps {
   onNext: (data: {
@@ -14,12 +13,13 @@ interface StepCompanyProps {
 }
 
 export function StepCompany({ onNext }: StepCompanyProps) {
-  const [companyName, setCompanyName] = useState("");
-  const [industry, setIndustry] = useState("");
   const [logoFile, setLogoFile] = useState("");
   const [userName, setUserName] = useState("");
 
-  const canContinue = companyName.trim() && industry && userName.trim();
+  const companyName = "Godrej Properties";
+  const industry = "Real Estate";
+
+  const canContinue = userName.trim().length > 0;
 
   return (
     <div className="max-w-[560px] mx-auto">
@@ -28,47 +28,29 @@ export function StepCompany({ onNext }: StepCompanyProps) {
           Welcome to Revspot
         </h2>
         <p className="text-[14px] text-text-secondary">
-          Let&apos;s set up your organization. This is a one-time setup.
+          Confirm your organization details and let&apos;s get started.
         </p>
       </div>
 
       <div className="bg-white border border-border rounded-card p-6 space-y-5">
-        {/* Company Name */}
+        {/* Company Name — read-only */}
         <div>
           <label className="block text-[13px] font-medium text-text-primary mb-1.5">
-            Company Name <span className="text-status-error">*</span>
+            Company Name
           </label>
-          <input
-            type="text"
-            value={companyName}
-            onChange={(e) => setCompanyName(e.target.value)}
-            placeholder="e.g., Godrej Properties"
-            className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
-          />
+          <div className="w-full h-10 px-3 flex items-center text-[13px] border border-border rounded-input bg-surface-secondary text-text-primary">
+            {companyName}
+          </div>
         </div>
 
-        {/* Industry */}
+        {/* Industry — read-only */}
         <div>
           <label className="block text-[13px] font-medium text-text-primary mb-1.5">
-            Industry <span className="text-status-error">*</span>
+            Industry
           </label>
-          <select
-            value={industry}
-            onChange={(e) => setIndustry(e.target.value)}
-            className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9B9B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`,
-              backgroundRepeat: "no-repeat",
-              backgroundPosition: "right 12px center",
-            }}
-          >
-            <option value="">Select industry...</option>
-            {industries.map((ind) => (
-              <option key={ind} value={ind}>
-                {ind}
-              </option>
-            ))}
-          </select>
+          <div className="w-full h-10 px-3 flex items-center text-[13px] border border-border rounded-input bg-surface-secondary text-text-primary">
+            {industry}
+          </div>
         </div>
 
         {/* Logo Upload */}
@@ -125,7 +107,7 @@ export function StepCompany({ onNext }: StepCompanyProps) {
         <button
           onClick={() =>
             onNext({
-              companyName: companyName.trim(),
+              companyName,
               industry,
               logoFile: logoFile || undefined,
               userName: userName.trim(),

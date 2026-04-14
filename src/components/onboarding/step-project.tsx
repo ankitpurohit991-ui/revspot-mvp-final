@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { ArrowRight, ArrowLeft, Plus, X, Lightbulb } from "lucide-react";
-import { useAppStore } from "@/lib/store";
 
 interface ImportedCampaign {
   id: string;
@@ -23,34 +22,7 @@ interface StepProjectProps {
   onBack: () => void;
 }
 
-const PROJECT_CONTEXT: Record<string, { term: string; example: string; description: string }> = {
-  "Real Estate": {
-    term: "property",
-    example: "Godrej Air Phase 3",
-    description: "Each project represents a property or development. All campaigns, leads, and voice agents for that property live under one roof.",
-  },
-  "EdTech": {
-    term: "program",
-    example: "Data Science Bootcamp 2026",
-    description: "Each project represents a program or course. All campaigns, leads, and outreach for that program live under one roof.",
-  },
-  "E-commerce": {
-    term: "product line",
-    example: "Summer Collection 2026",
-    description: "Each project represents a product line or collection. All campaigns, leads, and outreach for that line live under one roof.",
-  },
-};
-
-const DEFAULT_CONTEXT = {
-  term: "product",
-  example: "Product Launch Q2",
-  description: "Each project represents a product or offering. All campaigns, leads, and outreach for that product live under one roof.",
-};
-
 export function StepProject({ importedCampaigns, onNext, onBack }: StepProjectProps) {
-  const companyProfile = useAppStore((s) => s.companyProfile);
-  const industry = companyProfile?.industry ?? "";
-  const ctx = PROJECT_CONTEXT[industry] ?? DEFAULT_CONTEXT;
 
   const [projects, setProjects] = useState<ProjectDraft[]>([
     { name: "", campaignIds: new Set(importedCampaigns.map((c) => c.id)) },
@@ -99,8 +71,8 @@ export function StepProject({ importedCampaigns, onNext, onBack }: StepProjectPr
         </h2>
         <p className="text-[14px] text-text-secondary">
           {hasCampaigns
-            ? `Organize your imported campaigns into projects — one per ${ctx.term}.`
-            : `A project groups everything for one ${ctx.term} in one place.`}
+            ? "Organize your imported campaigns into projects — one per property."
+            : "A project groups everything for one property in one place."}
         </p>
       </div>
 
@@ -114,7 +86,7 @@ export function StepProject({ importedCampaigns, onNext, onBack }: StepProjectPr
             What&apos;s a project?
           </p>
           <p className="text-[12px] text-text-secondary leading-[1.5]">
-            {ctx.description}
+            Each project represents a property or development. All campaigns, leads, and voice agents for that property live under one roof.
           </p>
         </div>
       </div>
@@ -134,7 +106,7 @@ export function StepProject({ importedCampaigns, onNext, onBack }: StepProjectPr
                   type="text"
                   value={project.name}
                   onChange={(e) => updateProjectName(pIdx, e.target.value)}
-                  placeholder={`e.g., ${ctx.example}`}
+                  placeholder="e.g., Godrej Air Phase 3"
                   className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
                 />
               </div>

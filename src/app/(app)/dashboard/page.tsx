@@ -17,7 +17,7 @@ import {
   disqualificationReasons,
 } from "@/lib/mock-data";
 import { GettingStartedChecklist } from "@/components/dashboard/getting-started";
-import { IllustrationCampaigns, IllustrationAgents, IllustrationProjects, IllustrationLeads } from "@/components/illustrations/empty-states";
+import { IllustrationCampaigns, IllustrationAgents, IllustrationContacts, IllustrationLeads } from "@/components/illustrations/empty-states";
 import { useDemoMode } from "@/lib/demo-mode";
 
 const stagger: Variants = {
@@ -181,11 +181,11 @@ export default function DashboardPage() {
           <motion.div variants={fadeUp} className="grid grid-cols-4 gap-3">
             {[
               {
-                illustration: <IllustrationProjects />,
-                title: "Set up your first project",
-                description: "Define your product, location, and lead criteria",
-                ctaLabel: "Get started",
-                href: "/projects",
+                illustration: <IllustrationContacts />,
+                title: "Import your leads",
+                description: "Upload a CSV or connect your CRM to bring in existing leads",
+                ctaLabel: "Import leads",
+                href: "/leads",
               },
               {
                 illustration: <IllustrationCampaigns />,
@@ -203,10 +203,10 @@ export default function DashboardPage() {
               },
               {
                 illustration: <IllustrationLeads />,
-                title: "View your leads",
-                description: "Track, filter, and manage incoming leads",
-                ctaLabel: "Go to leads",
-                href: "/leads",
+                title: "Explore your CRM",
+                description: "Track, filter, and manage all your incoming leads",
+                ctaLabel: "Go to CRM",
+                href: "/enquiries",
               },
             ].map((card) => (
               <a
