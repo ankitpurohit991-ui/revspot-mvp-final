@@ -10,7 +10,6 @@ interface StepCompanyProps {
     industry: string;
     logoFile?: string;
     userName: string;
-    userRole?: string;
   }) => void;
 }
 
@@ -19,7 +18,6 @@ export function StepCompany({ onNext }: StepCompanyProps) {
   const [industry, setIndustry] = useState("");
   const [logoFile, setLogoFile] = useState("");
   const [userName, setUserName] = useState("");
-  const [userRole, setUserRole] = useState("");
 
   const canContinue = companyName.trim() && industry && userName.trim();
 
@@ -30,7 +28,7 @@ export function StepCompany({ onNext }: StepCompanyProps) {
           Welcome to Revspot
         </h2>
         <p className="text-[14px] text-text-secondary">
-          Let&apos;s set up your account. This takes about 2 minutes.
+          Let&apos;s set up your organization. This is a one-time setup.
         </p>
       </div>
 
@@ -121,21 +119,6 @@ export function StepCompany({ onNext }: StepCompanyProps) {
             className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
           />
         </div>
-
-        {/* Role */}
-        <div>
-          <label className="block text-[13px] font-medium text-text-primary mb-1.5">
-            Your Role{" "}
-            <span className="text-text-tertiary font-normal">(optional)</span>
-          </label>
-          <input
-            type="text"
-            value={userRole}
-            onChange={(e) => setUserRole(e.target.value)}
-            placeholder="e.g., Head of Marketing"
-            className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
-          />
-        </div>
       </div>
 
       <div className="flex justify-end pt-6">
@@ -146,7 +129,6 @@ export function StepCompany({ onNext }: StepCompanyProps) {
               industry,
               logoFile: logoFile || undefined,
               userName: userName.trim(),
-              userRole: userRole.trim() || undefined,
             })
           }
           disabled={!canContinue}

@@ -92,7 +92,6 @@ export default function OnboardingPage() {
               industry: data.industry,
               logoUrl: data.logoFile,
               userName: data.userName,
-              userRole: data.userRole,
             });
             completeChecklistItem("company");
             setCurrentStep(1);

@@ -65,7 +65,6 @@ export interface CompanyProfile {
   industry: string;
   logoUrl?: string;
   userName: string;
-  userRole?: string;
 }
 
 export interface ChecklistItem {
