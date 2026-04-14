@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, ArrowLeft, Plus, X } from "lucide-react";
+import { ArrowRight, ArrowLeft, Plus, X, Lightbulb } from "lucide-react";
+import { useAppStore } from "@/lib/store";
 
 interface ImportedCampaign {
   id: string;
@@ -22,7 +23,35 @@ interface StepProjectProps {
   onBack: () => void;
 }
 
+const PROJECT_CONTEXT: Record<string, { term: string; example: string; description: string }> = {
+  "Real Estate": {
+    term: "property",
+    example: "Godrej Air Phase 3",
+    description: "Each project represents a property or development. All campaigns, leads, and voice agents for that property live under one roof.",
+  },
+  "EdTech": {
+    term: "program",
+    example: "Data Science Bootcamp 2026",
+    description: "Each project represents a program or course. All campaigns, leads, and outreach for that program live under one roof.",
+  },
+  "E-commerce": {
+    term: "product line",
+    example: "Summer Collection 2026",
+    description: "Each project represents a product line or collection. All campaigns, leads, and outreach for that line live under one roof.",
+  },
+};
+
+const DEFAULT_CONTEXT = {
+  term: "product",
+  example: "Product Launch Q2",
+  description: "Each project represents a product or offering. All campaigns, leads, and outreach for that product live under one roof.",
+};
+
 export function StepProject({ importedCampaigns, onNext, onBack }: StepProjectProps) {
+  const companyProfile = useAppStore((s) => s.companyProfile);
+  const industry = companyProfile?.industry ?? "";
+  const ctx = PROJECT_CONTEXT[industry] ?? DEFAULT_CONTEXT;
+
   const [projects, setProjects] = useState<ProjectDraft[]>([
     { name: "", campaignIds: new Set(importedCampaigns.map((c) => c.id)) },
   ]);
@@ -64,15 +93,30 @@ export function StepProject({ importedCampaigns, onNext, onBack }: StepProjectPr
 
   return (
     <div className="max-w-[640px] mx-auto">
-      <div className="text-center mb-8">
+      <div className="text-center mb-6">
         <h2 className="text-[24px] font-semibold text-text-primary mb-2">
           Create your first project
         </h2>
         <p className="text-[14px] text-text-secondary">
           {hasCampaigns
-            ? "Organize your imported campaigns into projects."
-            : "Projects help you group campaigns by property or product."}
+            ? `Organize your imported campaigns into projects — one per ${ctx.term}.`
+            : `A project groups everything for one ${ctx.term} in one place.`}
         </p>
+      </div>
+
+      {/* Explainer card */}
+      <div className="flex items-start gap-3 bg-[#FFFBEB] border border-[#FDE68A] rounded-card px-4 py-3.5 mb-5">
+        <div className="w-7 h-7 rounded-full bg-[#FEF3C7] flex items-center justify-center shrink-0 mt-0.5">
+          <Lightbulb size={14} strokeWidth={1.5} className="text-[#D97706]" />
+        </div>
+        <div>
+          <p className="text-[13px] font-medium text-text-primary mb-0.5">
+            What&apos;s a project?
+          </p>
+          <p className="text-[12px] text-text-secondary leading-[1.5]">
+            {ctx.description}
+          </p>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -90,7 +134,7 @@ export function StepProject({ importedCampaigns, onNext, onBack }: StepProjectPr
                   type="text"
                   value={project.name}
                   onChange={(e) => updateProjectName(pIdx, e.target.value)}
-                  placeholder={`e.g., Godrej Air Phase 3`}
+                  placeholder={`e.g., ${ctx.example}`}
                   className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
                 />
               </div>

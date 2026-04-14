@@ -17,8 +17,7 @@ import {
   disqualificationReasons,
 } from "@/lib/mock-data";
 import { GettingStartedChecklist } from "@/components/dashboard/getting-started";
-import { EmptyState } from "@/components/layout/empty-state";
-import { IllustrationCampaigns, IllustrationAgents, IllustrationChart } from "@/components/illustrations/empty-states";
+import { IllustrationCampaigns, IllustrationAgents, IllustrationProjects, IllustrationLeads } from "@/components/illustrations/empty-states";
 import { useDemoMode } from "@/lib/demo-mode";
 
 const stagger: Variants = {
@@ -179,63 +178,50 @@ export default function DashboardPage() {
             <GettingStartedChecklist />
           </motion.div>
 
-          <motion.div variants={fadeUp} className="grid grid-cols-[3fr_2fr] gap-5 mb-5">
-            <div className="bg-white border border-border rounded-card">
-              <div className="px-5 py-3 border-b border-border-subtle">
-                <span className="text-card-title text-text-primary">Insights</span>
-              </div>
-              <EmptyState
-                illustration={<IllustrationChart />}
-                title="No insights yet"
-                description="Insights will appear once your campaigns generate enough data."
-                compact
-              />
-            </div>
-            <div className="bg-white border border-border rounded-card">
-              <div className="px-5 py-3 border-b border-border-subtle">
-                <span className="text-card-title text-text-primary">Voice Agent Performance</span>
-              </div>
-              <EmptyState
-                illustration={<IllustrationAgents />}
-                title="No voice agent connected"
-                description="Create an agent to see call analytics and qualification metrics here."
-                action={
-                  <a href="/agents-mvp" className="h-8 px-3 text-[12px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors duration-150 inline-flex items-center">
-                    Create Agent
-                  </a>
-                }
-                compact
-              />
-            </div>
-          </motion.div>
-
-          <motion.div variants={fadeUp} className="grid grid-cols-[3fr_2fr] gap-5">
-            <div className="bg-white border border-border rounded-card">
-              <div className="px-5 py-3 border-b border-border-subtle">
-                <span className="text-card-title text-text-primary">Campaign Performance</span>
-              </div>
-              <EmptyState
-                illustration={<IllustrationCampaigns />}
-                title="No active campaigns"
-                description="Create your first campaign to see performance here."
-                action={
-                  <a href="/campaigns/create" className="h-8 px-3 text-[12px] font-medium text-white bg-accent rounded-button hover:bg-accent-hover transition-colors duration-150 inline-flex items-center">
-                    Create campaign
-                  </a>
-                }
-                compact
-              />
-            </div>
-            <div className="bg-white border border-border rounded-card">
-              <div className="px-5 py-3 border-b border-border-subtle">
-                <span className="text-card-title text-text-primary">Recently Qualified</span>
-              </div>
-              <EmptyState
-                title="No qualified leads yet"
-                description="Connect a voice agent to start qualifying leads."
-                compact
-              />
-            </div>
+          <motion.div variants={fadeUp} className="grid grid-cols-4 gap-3">
+            {[
+              {
+                illustration: <IllustrationProjects />,
+                title: "Set up your first project",
+                description: "Define your product, location, and lead criteria",
+                ctaLabel: "Get started",
+                href: "/projects",
+              },
+              {
+                illustration: <IllustrationCampaigns />,
+                title: "Create a campaign",
+                description: "Launch ads and start capturing leads",
+                ctaLabel: "Create campaign",
+                href: "/campaigns/create",
+              },
+              {
+                illustration: <IllustrationAgents />,
+                title: "Connect a voice agent",
+                description: "Automate lead verification with AI-powered calls",
+                ctaLabel: "Set up agent",
+                href: "/agents-mvp",
+              },
+              {
+                illustration: <IllustrationLeads />,
+                title: "View your leads",
+                description: "Track, filter, and manage incoming leads",
+                ctaLabel: "Go to leads",
+                href: "/leads",
+              },
+            ].map((card) => (
+              <a
+                key={card.href}
+                href={card.href}
+                className="group bg-white border border-border rounded-card p-5 flex flex-col items-center text-center hover:shadow-card-hover hover:border-border-hover transition-all duration-150"
+              >
+                <div className="mb-4">{card.illustration}</div>
+                <h3 className="text-card-title text-text-primary mb-1">{card.title}</h3>
+                <p className="text-meta text-text-secondary mb-5">{card.description}</p>
+                <span className="mt-auto h-8 px-3 text-[12px] font-medium text-white bg-accent rounded-button hover:bg-accent-hover transition-colors duration-150 inline-flex items-center">
+                  {card.ctaLabel}
+                </span>
+              </a>
+            ))}
           </motion.div>
         </>
       ) : (
