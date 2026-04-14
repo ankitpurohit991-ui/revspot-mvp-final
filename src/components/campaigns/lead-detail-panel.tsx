@@ -293,7 +293,7 @@ export function LeadDetailPanel({ lead, onClose }: LeadDetailPanelProps) {
               expandedCallId={expandedCallId}
               setExpandedCallId={setExpandedCallId}
               createdAt={lead.createdAt ?? ""}
-              lead={lead}
+              lead={lead as EnquiryLead}
             />
           )}
         </div>
