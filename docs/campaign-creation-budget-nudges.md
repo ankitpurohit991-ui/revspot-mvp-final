@@ -2,19 +2,43 @@
 
 ## Context
 
-When a user sets their campaign targets in Step 1 of the campaign launcher, they enter:
-- **Target type**: Leads, Verified Leads, or Qualified Leads
-- **Target count**: e.g., 500
-- **Duration**: e.g., 30 days
-- **Budget**: e.g., ₹5,00,000
+When a user sets their campaign targets in Step 1 of the campaign launcher, we evaluate whether their budget makes sense for the property they're selling. The nudge appears in real-time as they fill the fields — a pre-launch sanity check, not a post-launch alert.
 
-From these, we derive the **implied cost per target lead** and **daily budget**, then evaluate whether the targets are realistic based on industry benchmarks.
+### The underlying principle
 
-The nudge appears in real-time as the user fills in these fields — it's a pre-launch sanity check, not a post-launch alert.
+For Indian real estate, **Customer Acquisition Cost (CAC)** scales with property value. The working range is:
+
+| CAC per ₹1Cr of property value | Label |
+|--------------------------------|-------|
+| ~₹75,000 | Good CAC |
+| ~₹97,500 – ₹1,00,000 | Average CAC |
+| ~₹1,30,000+ | High CAC |
+
+All lead-cost benchmarks below are **derived from this CAC envelope** and a standard real estate funnel:
+- 100 raw leads → 60 verified → 20 qualified → 1 closure
+- Raw → Close: 1% | Verified → Close: ~1.67% | Qualified → Close: 5%
+
+So the cost per lead at any funnel stage scales directly with property price. A ₹5Cr property justifies 5× the cost per lead that a ₹1Cr property does.
 
 ---
 
-## 1. Derived Metrics
+## 1. Required Inputs
+
+The nudge needs **five** inputs to evaluate the budget:
+
+| Input | Example | Source |
+|-------|---------|--------|
+| **Property Price (P)** | 2.5 (in crores) | From the selected project in Step 1 |
+| **Target type** | Raw Lead / Verified Lead / Qualified Lead | User picks one |
+| **Target count** | 500 | User enters |
+| **Duration (days)** | 30 | User enters |
+| **Budget** | ₹15,00,000 | User enters |
+
+> **Note on P:** Property price should be captured at the **project level** so every campaign inside that project inherits the same CAC envelope. If the project doesn't have P set, prompt the user to add it before the nudge can be shown.
+
+---
+
+## 2. Derived Metrics
 
 ```
 implied_cost_per_target = budget / target_count
@@ -23,202 +47,262 @@ daily_target            = target_count / duration_days
 ```
 
 The cost label adapts to the target type:
-- Leads → **CPL** (Cost Per Lead)
-- Verified Leads → **CPVL** (Cost Per Verified Lead)
-- Qualified Leads → **CPQL** (Cost Per Qualified Lead)
+- Raw Lead → **CPL** (Cost Per Lead)
+- Verified Lead → **CPVL** (Cost Per Verified Lead)
+- Qualified Lead → **CPQL** (Cost Per Qualified Lead)
 
 ---
 
-## 2. Benchmark Ranges by Target Type
+## 3. Benchmark Ranges — Scaled by Property Price (P)
 
-Benchmarks are for **Indian Real Estate** on **Meta Ads**. These will vary by market, property type, and city — but these are reasonable starting ranges for Tier 1 cities.
+All thresholds are multiplied by **P (property price in crores)**. If P = 2, the ranges double. If P = 0.5, they halve.
 
-| Target Type | Unrealistic | Aggressive | Realistic | Comfortable |
-|-------------|-------------|------------|-----------|-------------|
-| **Leads (CPL)** | < ₹200 | ₹200 – ₹500 | ₹500 – ₹2,000 | > ₹2,000 |
-| **Verified Leads (CPVL)** | < ₹800 | ₹800 – ₹2,000 | ₹2,000 – ₹6,000 | > ₹6,000 |
-| **Qualified Leads (CPQL)** | < ₹2,000 | ₹2,000 – ₹5,000 | ₹5,000 – ₹15,000 | > ₹15,000 |
+| Target Type | Unrealistic (High Risk) | Aggressive (Good CAC) | Optimal (Avg CAC) | Overboard (High CAC) |
+|-------------|-------------------------|-----------------------|-------------------|----------------------|
+| **Raw Lead (CPL)** | < ₹400 × P | ₹400 – ₹750 × P | ₹750 – ₹975 × P | > ₹975 × P |
+| **Verified Lead (CPVL)** | < ₹650 × P | ₹650 – ₹1,250 × P | ₹1,250 – ₹1,625 × P | > ₹1,625 × P |
+| **Qualified Lead (CPQL)** | < ₹2,000 × P | ₹2,000 – ₹3,750 × P | ₹3,750 – ₹4,875 × P | > ₹4,875 × P |
 
-### Daily Budget Minimum
+### What each status means
 
-Regardless of target type, Meta needs a minimum daily budget to deliver effectively:
+- 🔴 **Unrealistic (High Risk)** — Cost per target is below what the market can realistically deliver. Either the budget is too low to acquire the target volume, or expectations are unreasonable. Most campaigns at this level will underdeliver severely.
+- 🟢 **Aggressive (Good CAC)** — Budget implies a **good CAC** (~₹75K/Cr). Ambitious but achievable with disciplined targeting and strong creatives. This is the sweet spot for performance-minded teams.
+- 🟢 **Optimal (Avg CAC)** — Budget implies an **average CAC** (~₹1L/Cr). Comfortably achievable with standard best practices. Most campaigns land here.
+- 🟡 **Overboard (High CAC)** — Budget implies a **high CAC** (₹1.3L+/Cr). Spending more than necessary for the property's value. Either reduce budget or use the extra room to focus on lead quality over volume.
+
+### Worked examples
+
+**Example 1 — ₹1Cr property, targeting 500 Qualified Leads in 30 days**
+
+Qualified lead thresholds (with P = 1):
+- Unrealistic: < ₹2,000
+- Aggressive: ₹2,000 – ₹3,750
+- Optimal: ₹3,750 – ₹4,875
+- Overboard: > ₹4,875
+
+| Budget entered | CPQL = Budget ÷ 500 | Status |
+|----------------|--------------------:|--------|
+| ₹5,00,000 | ₹1,000 | 🔴 Unrealistic |
+| ₹15,00,000 | ₹3,000 | 🟢 Aggressive |
+| ₹22,00,000 | ₹4,400 | 🟢 Optimal |
+| ₹30,00,000 | ₹6,000 | 🟡 Overboard |
+
+**Example 2 — ₹5Cr luxury property, targeting 200 Verified Leads in 30 days**
+
+Verified lead thresholds (with P = 5):
+- Unrealistic: < ₹3,250 (₹650 × 5)
+- Aggressive: ₹3,250 – ₹6,250 (₹650–₹1,250 × 5)
+- Optimal: ₹6,250 – ₹8,125 (₹1,250–₹1,625 × 5)
+- Overboard: > ₹8,125 (₹1,625 × 5)
+
+| Budget entered | CPVL = Budget ÷ 200 | Status |
+|----------------|--------------------:|--------|
+| ₹5,00,000 | ₹2,500 | 🔴 Unrealistic |
+| ₹10,00,000 | ₹5,000 | 🟢 Aggressive |
+| ₹14,00,000 | ₹7,000 | 🟢 Optimal |
+| ₹20,00,000 | ₹10,000 | 🟡 Overboard |
+
+---
+
+## 4. Daily Budget Floor (Independent of CAC)
+
+Meta needs a minimum daily budget to deliver effectively. This check runs **independently** of the CAC-based thresholds — a great CAC doesn't help if the daily budget is too low for Meta to exit the learning phase.
 
 | Daily Budget | Status |
-|-------------|--------|
-| < ₹1,000/day | Unrealistic — Meta won't exit learning phase |
-| ₹1,000 – ₹3,000/day | Aggressive — limited delivery, slow learning |
+|--------------|--------|
+| < ₹1,000/day | **Blocks "Optimal"** — Meta can't exit learning phase |
+| ₹1,000 – ₹3,000/day | **Downgrades by one level** — limited delivery, slow learning |
 | ₹3,000 – ₹5,000/day | Minimum viable — will deliver but learning may be slow |
 | ₹5,000+/day | Good — sufficient for stable delivery |
 
 ---
 
-## 3. Nudge Status Logic
+## 5. Nudge Status Logic
 
 ```
-function evaluateBudget(targetType, targetCount, durationDays, budget):
+function evaluateBudget(propertyPriceCrores P, targetType, targetCount, durationDays, budget):
 
     impliedCost = budget / targetCount
     dailyBudget = budget / durationDays
 
-    // Step 1: Check daily budget minimum
+    // Step 1: Hard floor on daily budget
     if dailyBudget < 1000:
-        return "unrealistic" with reason "daily budget too low"
+        return "unrealistic" with reason "daily budget below Meta's learning-phase floor"
 
-    if dailyBudget < 3000:
-        dailyBudgetWarning = true  // will downgrade status by one level
+    dailyBudgetSoftWarning = (dailyBudget < 3000)  // will downgrade by one level
 
-    // Step 2: Check implied cost against target-type benchmarks
+    // Step 2: Scale thresholds by property price
     benchmarks = BENCHMARKS[targetType]
+    unrealisticCeiling = benchmarks.unrealistic_ceiling * P
+    aggressiveCeiling  = benchmarks.aggressive_ceiling  * P
+    optimalCeiling     = benchmarks.optimal_ceiling     * P
 
-    if impliedCost < benchmarks.unrealistic_ceiling:
+    // Step 3: Classify against CAC-derived ranges
+    if impliedCost < unrealisticCeiling:
         status = "unrealistic"
-    else if impliedCost < benchmarks.aggressive_ceiling:
+    else if impliedCost <= aggressiveCeiling:
         status = "aggressive"
-    else if impliedCost <= benchmarks.realistic_ceiling:
-        status = "realistic"
+    else if impliedCost <= optimalCeiling:
+        status = "optimal"
     else:
-        status = "comfortable"
+        status = "overboard"
 
-    // Step 3: Downgrade if daily budget is too low
-    if dailyBudgetWarning and status == "realistic":
-        status = "aggressive"  // can't be realistic with < ₹3K/day
+    // Step 4: Downgrade one level if daily budget is soft-warning range
+    if dailyBudgetSoftWarning:
+        status = downgrade(status)
+        // optimal → aggressive, aggressive → unrealistic, overboard → optimal
 
     return status
 ```
 
 ---
 
-## 4. Nudge Messages
+## 6. Nudge Messages
 
-### Unrealistic
+All messages include the scaled threshold for context, so the user understands why the status applies to *their* property, not generic real estate.
+
+### 🔴 Unrealistic (High Risk)
 
 **Appearance:** Red background, ⛔ icon
 
-**Messages (varies by reason):**
-
-When implied cost is too low:
-> "A {cost_label} of ₹{implied_cost} is below market rates for real estate in India. At this budget, you'd need ₹{realistic_min_budget} to realistically achieve {target_count} {target_type}. Consider increasing your budget or reducing your target."
+When implied cost is below the floor:
+> "A {cost_label} of ₹{implied_cost} is below the floor for a ₹{P}Cr property — typical real estate campaigns need at least ₹{unrealistic_ceiling} per {target_type} to deliver. Consider increasing your budget or reducing your target."
 
 When daily budget is too low:
-> "A daily budget of ₹{daily_budget} is too low for Meta to deliver effectively. Meta recommends at least ₹1,000/day to exit the learning phase. Consider increasing your budget or extending the duration."
+> "A daily budget of ₹{daily_budget} is too low for Meta to deliver effectively. Meta needs at least ₹1,000/day to exit the learning phase. Consider increasing your budget or extending the duration."
 
-### Aggressive
+### 🟢 Aggressive (Good CAC)
+
+**Appearance:** Green background, ✅ icon
+
+> "{cost_label} of ₹{implied_cost} puts you at a **good CAC of ~₹75K per crore**. Ambitious but achievable — you'll need disciplined targeting and strong creatives, but this is the sweet spot for efficient spend."
+
+### 🟢 Optimal (Avg CAC)
+
+**Appearance:** Green background, ✅ icon
+
+> "{cost_label} of ₹{implied_cost} lands at an **average CAC of ~₹1L per crore** — comfortably achievable with standard best practices. Most campaigns for ₹{P}Cr properties perform in this range."
+
+### 🟡 Overboard (High CAC)
 
 **Appearance:** Amber background, ⚠️ icon
 
-> "Implied {cost_label} of ₹{implied_cost} is ambitious for this market. You'll need to optimize aggressively — expect tight targeting and creative refresh every 5-7 days. A more comfortable budget would be ₹{suggested_budget} for {target_count} {target_type}."
-
-**Additional line if daily budget is low:**
-> "Daily budget of ₹{daily_budget} may limit Meta's ability to optimize. Consider ₹{suggested_daily}+/day."
-
-### Realistic
-
-**Appearance:** Green background, ✅ icon
-
-> "Implied {cost_label} of ₹{implied_cost} is achievable for real estate campaigns in India. Daily budget of ₹{daily_budget} gives Meta enough room to optimize delivery."
-
-### Comfortable
-
-**Appearance:** Green background, ✅ icon
-
-> "{cost_label} of ₹{implied_cost} gives you room to optimize for lead quality over volume. Consider tightening targeting to attract higher-intent buyers, or reducing budget to improve efficiency."
+> "{cost_label} of ₹{implied_cost} implies a **CAC above ₹1.3L per crore** — higher than needed for a ₹{P}Cr property. Consider reducing your budget to ₹{suggested_budget} (for avg CAC) or using the extra spend to tighten targeting for higher-intent buyers."
 
 ---
 
-## 5. Suggested Budget Calculation
+## 7. Suggested Budget Calculation
 
-When the user's budget is unrealistic or aggressive, we suggest a realistic budget:
+When the user is Unrealistic or Overboard, we suggest a budget that would land them in the Optimal zone.
 
 ```
-suggested_budget = target_count × benchmarks.realistic_floor
-suggested_daily  = suggested_budget / duration_days
+optimal_midpoint_per_target = (aggressive_ceiling + optimal_ceiling) / 2 * P
+suggested_budget            = target_count * optimal_midpoint_per_target
+suggested_daily             = suggested_budget / duration_days
 ```
 
-Example:
-- Target: 200 Qualified Leads in 30 days
-- User enters: ₹4,00,000 (implied CPQL = ₹2,000 — aggressive)
-- Suggested: 200 × ₹5,000 = ₹10,00,000 at ₹33,333/day
-- Nudge: "Implied CPQL of ₹2,000 is ambitious. A more comfortable budget would be ₹10L for 200 qualified leads."
+**Worked example:**
+- Property: ₹2Cr, targeting 300 Qualified Leads in 30 days
+- Optimal range per QL: ₹7,500 – ₹9,750 (₹3,750–₹4,875 × 2)
+- Midpoint: ₹8,625
+- Suggested budget: 300 × ₹8,625 = **₹25,87,500** at ₹86,250/day
+
+If the user entered ₹40,00,000 (₹13,333 CPQL — Overboard), the nudge suggests trimming to ~₹25.8L.
 
 ---
 
-## 6. Cross-field Validation
+## 8. Cross-field Validation
 
-The nudge should only show when **all three fields** are filled: target count, duration, and budget.
+The nudge should only show when **all four inputs** are resolved: property price (from project), target count, duration, and budget.
 
-| Fields filled | Show nudge? |
-|--------------|-------------|
+| Fields resolved | Show nudge? |
+|----------------|-------------|
+| Missing P (project has no price set) | No — show prompt: "Add property price to this project to see budget guidance" |
 | Only budget | No |
-| Budget + target count | No (need duration to calculate daily budget) |
-| Budget + target count + duration | Yes |
+| Budget + target count | No (need duration for daily check) |
+| Budget + target count + duration (with P available) | Yes |
 
 ---
 
-## 7. Edge Cases
+## 9. Edge Cases
 
 | Scenario | Behavior |
 |----------|----------|
-| Target count = 0 | Don't show nudge, show field validation error instead |
-| Duration = 0 | Don't show nudge, show field validation error instead |
-| Budget = 0 | Don't show nudge, show field validation error instead |
-| Very large budget (₹1Cr+) | Show "comfortable" nudge with quality optimization suggestion |
-| Very long duration (90+ days) | Show nudge normally but add note: "For campaigns longer than 60 days, consider splitting into phases for better optimization." |
-| Very short duration (< 7 days) | Add note: "Short campaigns give Meta limited time to optimize. Consider extending to at least 14 days." |
+| Target count = 0 | No nudge, show field validation error |
+| Duration = 0 | No nudge, show field validation error |
+| Budget = 0 | No nudge, show field validation error |
+| Property price not set | No nudge, inline CTA: "Add property price to the project" |
+| P < 0.25 (under ₹25L) | Show nudge with note: "Low-ticket real estate may have different benchmarks — monitor CAC closely" |
+| P > 10 (over ₹10Cr ultra-luxury) | Show nudge with note: "Ultra-premium properties often run higher CAC — consider extending campaign duration for quality over speed" |
+| Very long duration (90+ days) | Add note: "For campaigns longer than 60 days, consider splitting into phases for better optimization" |
+| Very short duration (< 7 days) | Add note: "Short campaigns give Meta limited time to optimize. Consider extending to at least 14 days" |
 
 ---
 
-## 8. Benchmark Config (for future extensibility)
+## 10. Benchmark Config (implementation reference)
 
 ```typescript
-const BUDGET_BENCHMARKS = {
-  leads: {
-    unrealistic_ceiling: 200,
-    aggressive_ceiling: 500,
-    realistic_ceiling: 2000,
-    realistic_floor: 500,       // used for suggested budget calc
+// All values are PER ₹1Cr of property value. Multiply by P at evaluation time.
+const BUDGET_BENCHMARKS_PER_CRORE = {
+  raw_lead: {
+    unrealistic_ceiling: 400,     // < this * P  → Unrealistic
+    aggressive_ceiling:  750,     // up to this * P → Aggressive (Good CAC)
+    optimal_ceiling:     975,     // up to this * P → Optimal (Avg CAC)
+                                  // > this * P  → Overboard (High CAC)
     label: "CPL",
   },
-  verified_leads: {
-    unrealistic_ceiling: 800,
-    aggressive_ceiling: 2000,
-    realistic_ceiling: 6000,
-    realistic_floor: 2000,
+  verified_lead: {
+    unrealistic_ceiling:  650,
+    aggressive_ceiling:  1250,
+    optimal_ceiling:     1625,
     label: "CPVL",
   },
-  qualified_leads: {
+  qualified_lead: {
     unrealistic_ceiling: 2000,
-    aggressive_ceiling: 5000,
-    realistic_ceiling: 15000,
-    realistic_floor: 5000,
+    aggressive_ceiling:  3750,
+    optimal_ceiling:     4875,
     label: "CPQL",
   },
 };
+
+// Underlying CAC envelope (per ₹1Cr of property value)
+const CAC_ENVELOPE = {
+  good_cac:    75_000,    // ≈ upper bound of Aggressive zone
+  average_cac: 97_500,    // ≈ upper bound of Optimal zone
+  high_cac:    130_000,   // ≈ Overboard territory begins
+};
+
+// Implicit funnel assumed in the derivation
+const FUNNEL = {
+  raw_to_close:       0.01,   // 1%
+  verified_to_close:  0.0167, // 1.67%
+  qualified_to_close: 0.05,   // 5%
+};
 ```
 
-These benchmarks should eventually be:
-- Configurable per industry (when non-real-estate industries are added)
+These constants should eventually be:
+- Configurable per project (luxury vs mid-market may use different funnel rates)
 - Informed by the org's own historical campaign data (once enough campaigns have run)
-- Adjusted by city tier (Tier 1 vs Tier 2 vs NRI markets)
+- Adjusted by city tier (Tier 1 vs Tier 2 vs NRI markets may have different CAC envelopes)
 
 ---
 
-## 9. Summary
+## 11. Summary
 
 ```
-User enters:  Target type + Target count + Duration + Budget
-System derives: Implied cost per target, daily budget
-System evaluates: Against target-type-specific benchmarks + daily budget minimums
+Inputs:   Property Price (P) + Target type + Target count + Duration + Budget
+Derives:  Implied cost per target, daily budget
+Scales:   All thresholds × P (so a ₹5Cr property gets 5× the budget headroom)
+Checks:   Implied cost against CAC-derived ranges, plus daily budget floor
 
-Four statuses:
-  🔴 Unrealistic  — below market floor, won't deliver
-  🟡 Aggressive   — possible but requires heavy optimization
-  🟢 Realistic    — achievable with standard best practices
-  🟢 Comfortable  — room to optimize for quality
+Four statuses, semantically tied to CAC outcomes:
+  🔴 Unrealistic — below market floor, won't deliver
+  🟢 Aggressive  — implies GOOD CAC (~₹75K/Cr), efficient spend
+  🟢 Optimal     — implies AVG CAC (~₹1L/Cr), standard range
+  🟡 Overboard   — implies HIGH CAC (>₹1.3L/Cr), overspending
 
-Key difference from current implementation:
-  ✅ Benchmarks are target-type-aware (CPL vs CPVL vs CPQL have different ranges)
-  ✅ Daily budget minimum is checked independently
-  ✅ Suggested budget is calculated and shown
-  ✅ Duration edge cases handled (too short / too long)
-  ✅ Messages adapt label (CPL/CPVL/CPQL) based on chosen target type
+The key mental model:
+  Budget isn't judged in absolute terms — it's judged against the
+  property's value. ₹10L for a ₹1Cr property is overboard;
+  ₹10L for a ₹5Cr property is aggressive-good.
 ```
