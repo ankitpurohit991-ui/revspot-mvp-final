@@ -31,6 +31,18 @@ Two separate calls produce two arrays:
 
 ## 2. Data payload sent to the LLM
 
+Both payloads include **platform-level metrics** (CPM, CTR, CPC, Frequency, Impressions, Link Clicks) alongside lead/funnel metrics. These upstream signals are critical for insight quality:
+
+| Metric | What it reveals |
+|--------|-----------------|
+| **CPM** (Cost per 1000 impressions) | Audience saturation, competitor bidding, delivery cost |
+| **CTR** (Click-through rate) | Creative performance — drops signal creative fatigue |
+| **CPC** (Cost per link click) | Combined efficiency of CPM + CTR before lead form |
+| **Frequency** | Ad fatigue risk — same users seeing the ad repeatedly |
+| **Impressions / Link Clicks** | Volume context for the funnel |
+
+Without these, the AI can only say "CPL went up" — not *why*. With them, it can say "CPL rose because CTR dropped from 2.1% to 1.4% — creative fatigue setting in" or "CPM jumped 28% while CTR held steady — audience is saturating."
+
 ### 2a. Yesterday payload
 
 Yesterday's payload includes **yesterday's totals + the prior 7 days as a daily breakdown** so the LLM can contextualize yesterday against recent history.
@@ -48,30 +60,42 @@ Yesterday's payload includes **yesterday's totals + the prior 7 days as a daily 
     "spend": 14200,
     "cpl": 444,
     "cpvl": 2367,
-    "cpql": 1775
+    "cpql": 1775,
+    "impressions": 185000,
+    "reach": 98000,
+    "link_clicks": 2960,
+    "cpm": 76.76,
+    "ctr": 1.6,
+    "cpc": 4.80,
+    "frequency": 1.89,
+    "click_to_lead_rate": 1.08
   },
 
   "prior_7_days_daily": [
-    { "date": "2026-04-07", "enquiries": 25, "verified_leads": 4, "qualified_leads": 5, "spend": 12500, "cpl": 500, "calls_made": 20, "calls_connected": 15, "calls_qualified": 5 },
-    { "date": "2026-04-08", "enquiries": 28, "verified_leads": 5, "qualified_leads": 6, "spend": 13000, "cpl": 464, "calls_made": 22, "calls_connected": 17, "calls_qualified": 6 },
-    { "date": "2026-04-09", "enquiries": 27, "verified_leads": 4, "qualified_leads": 5, "spend": 13200, "cpl": 489, "calls_made": 21, "calls_connected": 16, "calls_qualified": 5 },
-    { "date": "2026-04-10", "enquiries": 29, "verified_leads": 6, "qualified_leads": 7, "spend": 13800, "cpl": 476, "calls_made": 24, "calls_connected": 19, "calls_qualified": 7 },
-    { "date": "2026-04-11", "enquiries": 26, "verified_leads": 5, "qualified_leads": 6, "spend": 13500, "cpl": 519, "calls_made": 22, "calls_connected": 17, "calls_qualified": 6 },
-    { "date": "2026-04-12", "enquiries": 30, "verified_leads": 5, "qualified_leads": 7, "spend": 14000, "cpl": 467, "calls_made": 25, "calls_connected": 20, "calls_qualified": 7 },
-    { "date": "2026-04-13", "enquiries": 28, "verified_leads": 6, "qualified_leads": 7, "spend": 13700, "cpl": 489, "calls_made": 23, "calls_connected": 18, "calls_qualified": 7 }
+    { "date": "2026-04-07", "enquiries": 25, "verified_leads": 4, "qualified_leads": 5, "spend": 12500, "cpl": 500, "impressions": 160000, "link_clicks": 2560, "cpm": 78.12, "ctr": 1.60, "cpc": 4.88, "frequency": 1.72, "calls_made": 20, "calls_connected": 15, "calls_qualified": 5 },
+    { "date": "2026-04-08", "enquiries": 28, "verified_leads": 5, "qualified_leads": 6, "spend": 13000, "cpl": 464, "impressions": 168000, "link_clicks": 2688, "cpm": 77.38, "ctr": 1.60, "cpc": 4.83, "frequency": 1.78, "calls_made": 22, "calls_connected": 17, "calls_qualified": 6 },
+    { "date": "2026-04-09", "enquiries": 27, "verified_leads": 4, "qualified_leads": 5, "spend": 13200, "cpl": 489, "impressions": 170000, "link_clicks": 2550, "cpm": 77.65, "ctr": 1.50, "cpc": 5.18, "frequency": 1.82, "calls_made": 21, "calls_connected": 16, "calls_qualified": 5 },
+    { "date": "2026-04-10", "enquiries": 29, "verified_leads": 6, "qualified_leads": 7, "spend": 13800, "cpl": 476, "impressions": 172000, "link_clicks": 2752, "cpm": 80.23, "ctr": 1.60, "cpc": 5.01, "frequency": 1.85, "calls_made": 24, "calls_connected": 19, "calls_qualified": 7 },
+    { "date": "2026-04-11", "enquiries": 26, "verified_leads": 5, "qualified_leads": 6, "spend": 13500, "cpl": 519, "impressions": 175000, "link_clicks": 2450, "cpm": 77.14, "ctr": 1.40, "cpc": 5.51, "frequency": 1.92, "calls_made": 22, "calls_connected": 17, "calls_qualified": 6 },
+    { "date": "2026-04-12", "enquiries": 30, "verified_leads": 5, "qualified_leads": 7, "spend": 14000, "cpl": 467, "impressions": 178000, "link_clicks": 2670, "cpm": 78.65, "ctr": 1.50, "cpc": 5.24, "frequency": 1.95, "calls_made": 25, "calls_connected": 20, "calls_qualified": 7 },
+    { "date": "2026-04-13", "enquiries": 28, "verified_leads": 6, "qualified_leads": 7, "spend": 13700, "cpl": 489, "impressions": 181000, "link_clicks": 2715, "cpm": 75.69, "ctr": 1.50, "cpc": 5.05, "frequency": 1.98, "calls_made": 23, "calls_connected": 18, "calls_qualified": 7 }
   ],
 
   "baselines_30d": {
     "enquiries_daily_avg": 27,
     "cpl_avg": 1020,
     "qualification_rate": 0.28,
-    "verification_rate": 0.19
+    "verification_rate": 0.19,
+    "cpm_avg": 82.50,
+    "ctr_avg": 1.75,
+    "cpc_avg": 4.71,
+    "frequency_avg": 1.68
   },
 
   "by_campaign_yesterday": [
-    { "name": "Godrej Air Phase 3",           "spend": 9500, "leads": 18, "qualified": 5, "cpl": 528, "health": "on-track" },
-    { "name": "Godrej Reflections — NRI",     "spend": 3500, "leads":  9, "qualified": 2, "cpl": 389, "health": "on-track" },
-    { "name": "Godrej Habitat — Brand",       "spend": 1200, "leads":  5, "qualified": 1, "cpl": 240, "health": "needs-attention" }
+    { "name": "Godrej Air Phase 3",       "spend": 9500, "leads": 18, "qualified": 5, "cpl": 528, "impressions": 118000, "ctr": 1.72, "cpm": 80.51, "cpc": 4.68, "frequency": 1.91, "health": "on-track" },
+    { "name": "Godrej Reflections — NRI", "spend": 3500, "leads":  9, "qualified": 2, "cpl": 389, "impressions":  45000, "ctr": 1.80, "cpm": 77.78, "cpc": 4.32, "frequency": 1.65, "health": "on-track" },
+    { "name": "Godrej Habitat — Brand",   "spend": 1200, "leads":  5, "qualified": 1, "cpl": 240, "impressions":  22000, "ctr": 0.95, "cpm": 54.55, "cpc": 5.74, "frequency": 2.35, "health": "needs-attention" }
   ],
 
   "voice_agent_yesterday": {
@@ -114,17 +138,25 @@ The weekly payload includes **day-by-day for the last 7 days** plus the **preced
     "spend": 95200,
     "cpl": 481,
     "cpvl": 2573,
-    "cpql": 2070
+    "cpql": 2070,
+    "impressions": 1229000,
+    "reach": 345000,
+    "link_clicks": 18885,
+    "cpm": 77.46,
+    "ctr": 1.54,
+    "cpc": 5.04,
+    "frequency": 3.56,
+    "click_to_lead_rate": 1.05
   },
 
   "daily_breakdown": [
-    { "date": "2026-04-08", "enquiries": 28, "verified_leads": 5, "qualified_leads": 6, "spend": 13000, "cpl": 464, "calls_made": 22, "calls_connected": 17, "calls_qualified": 6 },
-    { "date": "2026-04-09", "enquiries": 27, "verified_leads": 4, "qualified_leads": 5, "spend": 13200, "cpl": 489, "calls_made": 21, "calls_connected": 16, "calls_qualified": 5 },
-    { "date": "2026-04-10", "enquiries": 29, "verified_leads": 6, "qualified_leads": 7, "spend": 13800, "cpl": 476, "calls_made": 24, "calls_connected": 19, "calls_qualified": 7 },
-    { "date": "2026-04-11", "enquiries": 26, "verified_leads": 5, "qualified_leads": 6, "spend": 13500, "cpl": 519, "calls_made": 22, "calls_connected": 17, "calls_qualified": 6 },
-    { "date": "2026-04-12", "enquiries": 30, "verified_leads": 5, "qualified_leads": 7, "spend": 14000, "cpl": 467, "calls_made": 25, "calls_connected": 20, "calls_qualified": 7 },
-    { "date": "2026-04-13", "enquiries": 28, "verified_leads": 6, "qualified_leads": 7, "spend": 13700, "cpl": 489, "calls_made": 23, "calls_connected": 18, "calls_qualified": 7 },
-    { "date": "2026-04-14", "enquiries": 32, "verified_leads": 6, "qualified_leads": 8, "spend": 14200, "cpl": 444, "calls_made": 23, "calls_connected": 18, "calls_qualified": 8 }
+    { "date": "2026-04-08", "enquiries": 28, "verified_leads": 5, "qualified_leads": 6, "spend": 13000, "cpl": 464, "impressions": 168000, "link_clicks": 2688, "cpm": 77.38, "ctr": 1.60, "cpc": 4.83, "frequency": 1.78, "calls_made": 22, "calls_connected": 17, "calls_qualified": 6 },
+    { "date": "2026-04-09", "enquiries": 27, "verified_leads": 4, "qualified_leads": 5, "spend": 13200, "cpl": 489, "impressions": 170000, "link_clicks": 2550, "cpm": 77.65, "ctr": 1.50, "cpc": 5.18, "frequency": 1.82, "calls_made": 21, "calls_connected": 16, "calls_qualified": 5 },
+    { "date": "2026-04-10", "enquiries": 29, "verified_leads": 6, "qualified_leads": 7, "spend": 13800, "cpl": 476, "impressions": 172000, "link_clicks": 2752, "cpm": 80.23, "ctr": 1.60, "cpc": 5.01, "frequency": 1.85, "calls_made": 24, "calls_connected": 19, "calls_qualified": 7 },
+    { "date": "2026-04-11", "enquiries": 26, "verified_leads": 5, "qualified_leads": 6, "spend": 13500, "cpl": 519, "impressions": 175000, "link_clicks": 2450, "cpm": 77.14, "ctr": 1.40, "cpc": 5.51, "frequency": 1.92, "calls_made": 22, "calls_connected": 17, "calls_qualified": 6 },
+    { "date": "2026-04-12", "enquiries": 30, "verified_leads": 5, "qualified_leads": 7, "spend": 14000, "cpl": 467, "impressions": 178000, "link_clicks": 2670, "cpm": 78.65, "ctr": 1.50, "cpc": 5.24, "frequency": 1.95, "calls_made": 25, "calls_connected": 20, "calls_qualified": 7 },
+    { "date": "2026-04-13", "enquiries": 28, "verified_leads": 6, "qualified_leads": 7, "spend": 13700, "cpl": 489, "impressions": 181000, "link_clicks": 2715, "cpm": 75.69, "ctr": 1.50, "cpc": 5.05, "frequency": 1.98, "calls_made": 23, "calls_connected": 18, "calls_qualified": 7 },
+    { "date": "2026-04-14", "enquiries": 32, "verified_leads": 6, "qualified_leads": 8, "spend": 14200, "cpl": 444, "impressions": 185000, "link_clicks": 2960, "cpm": 76.76, "ctr": 1.60, "cpc": 4.80, "frequency": 1.89, "calls_made": 23, "calls_connected": 18, "calls_qualified": 8 }
   ],
 
   "previous_7_days_totals": {
@@ -135,13 +167,19 @@ The weekly payload includes **day-by-day for the last 7 days** plus the **preced
     "cpl": 497,
     "cpvl": 2750,
     "cpql": 2146,
-    "qualification_rate": 0.232
+    "qualification_rate": 0.232,
+    "impressions": 1060000,
+    "link_clicks": 18020,
+    "cpm": 83.02,
+    "ctr": 1.70,
+    "cpc": 4.88,
+    "frequency": 3.28
   },
 
   "by_campaign_period": [
-    { "name": "Godrej Air Phase 3",         "spend": 66000, "leads": 125, "qualified": 32, "cpl": 528, "health": "on-track",        "trend": "improving" },
-    { "name": "Godrej Reflections — NRI",   "spend": 22000, "leads":  55, "qualified": 11, "cpl": 400, "health": "on-track",        "trend": "stable"    },
-    { "name": "Godrej Habitat — Brand",     "spend":  7200, "leads":  18, "qualified":  3, "cpl": 400, "health": "needs-attention", "trend": "declining" }
+    { "name": "Godrej Air Phase 3",       "spend": 66000, "leads": 125, "qualified": 32, "cpl": 528, "impressions": 820000, "ctr": 1.65, "cpm": 80.49, "cpc": 4.88, "frequency": 3.72, "health": "on-track",        "trend": "improving" },
+    { "name": "Godrej Reflections — NRI", "spend": 22000, "leads":  55, "qualified": 11, "cpl": 400, "impressions": 290000, "ctr": 1.72, "cpm": 75.86, "cpc": 4.41, "frequency": 2.85, "health": "on-track",        "trend": "stable"    },
+    { "name": "Godrej Habitat — Brand",   "spend":  7200, "leads":  18, "qualified":  3, "cpl": 400, "impressions": 119000, "ctr": 0.88, "cpm": 60.50, "cpc": 6.88, "frequency": 4.15, "health": "needs-attention", "trend": "declining" }
   ],
 
   "voice_agent_period": {
@@ -171,6 +209,9 @@ The weekly payload includes **day-by-day for the last 7 days** plus the **preced
 - *"CPL improved every day from Monday to Thursday — from ₹519 to ₹444, a 14% drop over 4 days."*
 - *"Yesterday's 8 qualified leads was the best day of the week, up from an average of 6.6."*
 - *"Call qualification rate jumped from 5/22 (23%) on Tuesday to 8/23 (35%) yesterday."*
+- *"CTR dipped to 1.4% on Friday from a 1.6% average — creative fatigue may be setting in."*
+- *"Frequency climbed from 3.28 to 3.56 week-over-week — audience is getting saturated."*
+- *"Godrej Habitat — Brand has CTR of 0.88% (vs. 1.54% campaign average) and frequency 4.15 — creative refresh overdue."*
 
 These micro-trend observations are impossible to generate from aggregates alone.
 
@@ -201,9 +242,10 @@ Return valid JSON only:
 ]
 
 ## ICON SEMANTICS
-- 📊 Volume observations (enquiries, lead counts)
-- 💰 Cost / spend observations (CPL, CPVL, CPQL, budget)
+- 📊 Volume observations (enquiries, lead counts, impressions, reach)
+- 💰 Cost / spend observations (CPL, CPVL, CPQL, CPM, CPC, budget)
 - 📞 Voice agent activity (calls, qualification, disqualification reasons)
+- 🎨 Creative / engagement signals (CTR changes, frequency climbing, click-to-lead rate)
 - 🔻 Underperformance / cost spikes / things getting worse
 - ✅ Wins / conversions / positive CRM movements
 - 📈 Trends over time (day-over-day, week-over-week, improving/declining metrics)
@@ -216,9 +258,22 @@ Pick insights across these dimensions — don't cluster multiple insights on the
 4. **Voice agent** — qualification rate, call outcomes, top disqualification reason
 5. **CRM progression** — leads moving through the funnel (site visits, won, lost)
 6. **Cost efficiency** — CPL/CPVL/CPQL changes
+7. **Creative / platform health** — CTR drops (creative fatigue), rising frequency (audience saturation), CPM spikes (competitive delivery), click-to-lead rate changes (landing page / form friction)
 
 For "last_7_days", ALWAYS include at least one week-over-week comparison using `previous_7_days_totals`.
 For "yesterday", ALWAYS include at least one insight that uses `prior_7_days_daily` to contextualize yesterday against the recent trend (e.g., "best day in a week", "continued a 3-day improvement streak").
+
+## DIAGNOSTIC LINKING (key value-add)
+When a lead-stage metric moves, check if a platform metric explains it — this turns "what happened" into "why it happened":
+
+- **CPL rising** → check if CTR is dropping (creative fatigue) OR CPM rising (audience saturation / competitive delivery)
+- **CPL falling** → check if CTR improving (creative winning) OR CPM falling (efficient delivery)
+- **Enquiry volume dropping** → check impressions, reach, and frequency (is Meta throttling reach, or is the audience saturated?)
+- **Frequency > 3.0** → flag audience fatigue risk, especially if CTR also declining
+- **CPC rising but CPL stable** → flag landing page / form conversion improving (good sign to call out)
+- **Campaign with CTR < 1.0%** → flag creative refresh candidate by name
+
+When this "why" can be traced in the data, prefer a diagnostic insight over a one-note observation.
 
 ## STYLE RULES (match existing insights exactly)
 1. **Structure**: {Specific metric} + {comparison to baseline, prior day, or previous week} + {optional recommendation or cause}
@@ -244,12 +299,14 @@ Example:
 
 ## PRIORITIZATION
 Rank insights by "would a performance marketer want to know this?". Prioritize:
-1. **Multi-day trends** — streaks of improvement or decline across the daily breakdown
-2. **Anomalies** — any metric that moved > 20% from its baseline
-3. **CRM wins** — leads moving to high-value stages (site visit, negotiation, won)
-4. **Voice agent signals** — qualification rate shifts, dominant disqualification reasons
-5. **Campaign inefficiencies** — a campaign with "needs-attention" or "underperforming" health
-6. **Cost movements** — CPL/CPVL/CPQL changes
+1. **Diagnostic insights** — observations that link a lead-stage change to its platform-metric cause (e.g., "CPL rose because CTR dropped from 1.7% to 1.4%")
+2. **Multi-day trends** — streaks of improvement or decline across the daily breakdown
+3. **Anomalies** — any metric that moved > 20% from its baseline
+4. **Creative fatigue signals** — CTR declining across multiple days, frequency climbing above 3.0
+5. **CRM wins** — leads moving to high-value stages (site visit, negotiation, won)
+6. **Voice agent signals** — qualification rate shifts, dominant disqualification reasons
+7. **Campaign inefficiencies** — a campaign with "needs-attention" or "underperforming" health, especially with poor CTR/CPM
+8. **Cost movements** — CPL/CPVL/CPQL changes (prefer diagnostic framing when platform metrics can explain them)
 
 Skip insights where the observation is boring (e.g., "Spend was ₹14,200" with no comparison or context).
 
