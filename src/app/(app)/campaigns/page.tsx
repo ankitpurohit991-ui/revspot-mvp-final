@@ -321,7 +321,7 @@ export default function CampaignsPage() {
                 <th className="px-4 py-3 text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] text-center">
                   Health
                 </th>
-                <th className="w-10 px-2 py-3" aria-label="Actions" />
+                <th className="w-16 px-3 py-3" aria-label="Actions" />
               </tr>
             </thead>
             <tbody>
@@ -404,7 +404,7 @@ export default function CampaignsPage() {
                   <td className="px-4 py-3 text-center">
                     <HealthBadge health={c.health} />
                   </td>
-                  <td className="w-10 px-2 py-3 text-center">
+                  <td className="w-16 px-3 py-3 text-center">
                     {getStatus(c) === "draft" && (
                       <button
                         type="button"
@@ -414,9 +414,9 @@ export default function CampaignsPage() {
                         }}
                         title="Delete draft"
                         aria-label={`Delete draft ${c.name}`}
-                        className="inline-flex items-center justify-center h-7 w-7 rounded-button text-text-tertiary hover:text-status-error hover:bg-[#FEF2F2] transition-colors duration-150 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                        className="inline-flex items-center justify-center h-7 w-7 rounded-button text-status-error border border-status-error/40 bg-white hover:bg-[#FEF2F2] hover:border-status-error transition-colors duration-150"
                       >
-                        <Trash2 size={13} strokeWidth={1.5} />
+                        <Trash2 size={13} strokeWidth={1.75} />
                       </button>
                     )}
                   </td>
