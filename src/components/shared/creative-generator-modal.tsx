@@ -33,9 +33,11 @@ interface CreativeGeneratorModalProps {
   onComplete: (creatives: GeneratedCreative[]) => void;
   angleName: string;
   personaName: string;
+  personaRole?: string;
   hook: string;
   cta: string;
 }
+
 
 /* ------------------------------------------------------------------ */
 /*  Data                                                               */
@@ -140,6 +142,7 @@ export function CreativeGeneratorModal({
   onComplete,
   angleName,
   personaName,
+  personaRole,
   hook,
   cta,
 }: CreativeGeneratorModalProps) {
@@ -269,7 +272,8 @@ export function CreativeGeneratorModal({
   /* ---------------------------------------------------------------- */
 
   const renderUploadArea = (
-    label: string,
+    title: string,
+    helper: string,
     uploaded: boolean,
     fileName: string,
     onUpload: () => void
@@ -277,7 +281,7 @@ export function CreativeGeneratorModal({
     <button
       type="button"
       onClick={onUpload}
-      className="w-full border-2 border-dashed border-border rounded-card p-6 flex flex-col items-center justify-center gap-2 hover:border-accent/40 hover:bg-accent/[0.02] transition-colors duration-150 cursor-pointer"
+      className="w-full border-2 border-dashed border-border rounded-card p-5 flex flex-col items-center justify-center gap-2 text-center hover:border-accent/40 hover:bg-accent/[0.02] transition-colors duration-150 cursor-pointer min-h-[160px]"
     >
       {uploaded ? (
         <>
@@ -290,42 +294,124 @@ export function CreativeGeneratorModal({
       ) : (
         <>
           <Upload size={20} strokeWidth={1.5} className="text-text-tertiary" />
-          <span className="text-[13px] font-medium text-text-secondary">{label}</span>
-          <span className="text-[11px] text-text-tertiary">Click or drag & drop</span>
+          <span className="text-[13px] font-medium text-text-primary">{title}</span>
+          <span className="text-[11px] text-text-tertiary leading-relaxed max-w-[220px]">{helper}</span>
         </>
       )}
     </button>
   );
 
   const renderStep1 = () => (
-    <motion.div key="step1" variants={fadeVariants} initial="hidden" animate="visible" exit="exit" className="space-y-5">
+    <motion.div key="step1" variants={fadeVariants} initial="hidden" animate="visible" exit="exit" className="space-y-4">
+      <div>
+        <h3 className="text-[14px] font-semibold text-text-primary">Add references for the AI</h3>
+        <p className="text-[12px] text-text-secondary mt-0.5">Upload a reference ad (for style) and your product image (what we advertise).</p>
+      </div>
       <div className="grid grid-cols-2 gap-4">
         {renderUploadArea(
-          "Reference ad (style inspiration)",
+          "Inspiration ad",
+          "A competitor or similar brand's ad whose style you like.",
           refUploaded,
           "reference_ad.jpg",
           () => setRefUploaded(true)
         )}
         {renderUploadArea(
-          "Product/base image",
+          "Product image",
+          "Hero photo of your property or product.",
           baseUploaded,
           "godrej_air_hero.jpg",
           () => setBaseUploaded(true)
         )}
       </div>
-      <p className="text-[11px] text-text-tertiary">Both uploads are optional but recommended.</p>
-      <div className="bg-surface-page border border-border-subtle rounded-card px-4 py-3">
-        <span className="text-[11px] font-medium text-text-tertiary uppercase tracking-[0.4px]">Generating for</span>
-        <p className="text-[13px] text-text-primary font-medium mt-0.5">
-          {personaName} &mdash; {angleName}
-        </p>
-      </div>
+      <p className="text-[11px] text-text-tertiary">Both optional — skip if you want fully AI-generated visuals.</p>
     </motion.div>
   );
 
+  /* Option card — with Edit button that toggles selection */
+  const renderOptionCard = (n: number) => {
+    const selected = selectedOption === n;
+    const opt = optionData[n - 1];
+    const isEditingThis = editingPostText === n;
+    return (
+      <div
+        key={n}
+        className={`text-left bg-white border rounded-card p-4 transition-all duration-150 relative ${
+          selected
+            ? "border-accent ring-2 ring-accent/20"
+            : "border-border"
+        }`}
+      >
+        {/* Image placeholder */}
+        <div className="aspect-[4/3] bg-surface-secondary rounded-[8px] flex items-center justify-center mb-3">
+          <span className="text-[12px] font-medium text-text-tertiary">Option {n}</span>
+        </div>
+        {/* Style description */}
+        <p className="text-[11px] text-text-tertiary mb-2">{opt.style}</p>
+        {/* Ad copy fields */}
+        <div className="space-y-2">
+          {/* Primary Text */}
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Primary Text</span>
+              <button type="button" onClick={() => setEditingPostText(isEditingThis ? null : n)}
+                className="p-0.5 text-text-tertiary hover:text-accent transition-colors" title="Edit text directly">
+                <Pencil size={9} strokeWidth={1.5} />
+              </button>
+            </div>
+            {isEditingThis ? (
+              <textarea value={opt.primaryText}
+                onChange={(e) => setOptionData((prev) => prev.map((o, i) => i === n - 1 ? { ...o, primaryText: e.target.value } : o))}
+                rows={3} className="w-full mt-0.5 px-2 py-1 text-[10px] border border-accent/30 rounded-input bg-white text-text-primary focus:outline-none focus:border-accent resize-none leading-relaxed" />
+            ) : (
+              <p className="text-[10px] text-text-secondary leading-relaxed mt-0.5 line-clamp-3 whitespace-pre-line">{opt.primaryText}</p>
+            )}
+          </div>
+          {/* Headline */}
+          <div>
+            <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Headline</span>
+            {isEditingThis ? (
+              <input type="text" value={opt.headline}
+                onChange={(e) => setOptionData((prev) => prev.map((o, i) => i === n - 1 ? { ...o, headline: e.target.value } : o))}
+                className="w-full mt-0.5 h-6 px-2 text-[10px] border border-accent/30 rounded-input bg-white text-text-primary focus:outline-none focus:border-accent" />
+            ) : (
+              <p className="text-[10px] text-text-primary font-medium mt-0.5 line-clamp-1">{opt.headline}</p>
+            )}
+          </div>
+          {/* Description */}
+          <div>
+            <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Description</span>
+            {isEditingThis ? (
+              <input type="text" value={opt.description}
+                onChange={(e) => setOptionData((prev) => prev.map((o, i) => i === n - 1 ? { ...o, description: e.target.value } : o))}
+                className="w-full mt-0.5 h-6 px-2 text-[10px] border border-accent/30 rounded-input bg-white text-text-primary focus:outline-none focus:border-accent" />
+            ) : (
+              <p className="text-[10px] text-text-secondary mt-0.5 line-clamp-1">{opt.description}</p>
+            )}
+          </div>
+        </div>
+
+        {/* Edit button at bottom — toggles selection (scopes the tweak input below) */}
+        <div className="flex items-center justify-end mt-3 pt-3 border-t border-border-subtle">
+          <button
+            type="button"
+            onClick={() => setSelectedOption(selected ? null : n)}
+            className={`inline-flex items-center gap-1 h-7 px-2.5 text-[11px] font-medium rounded-button transition-colors duration-150 ${
+              selected
+                ? "text-accent border border-accent/40 bg-accent/5 hover:bg-accent/10"
+                : "text-text-secondary border border-border hover:text-text-primary hover:bg-surface-page"
+            }`}
+          >
+            <Pencil size={10} strokeWidth={1.5} />
+            {selected ? "Editing" : "Edit"}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const renderStep2 = () => (
-    <motion.div key="step2" variants={fadeVariants} initial="hidden" animate="visible" exit="exit" className="space-y-5">
-      {isGenerating ? (
+    <motion.div key="step2" variants={fadeVariants} initial="hidden" animate="visible" exit="exit" className="space-y-4">
+      {isGenerating && !step2Loaded ? (
         <>
           <p className="text-[13px] text-text-secondary flex items-center gap-2">
             <span className="h-4 w-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
@@ -342,92 +428,16 @@ export function CreativeGeneratorModal({
         </>
       ) : (
         <>
-          {/* Feedback + action — always visible at top */}
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              placeholder={selectedOption ? `Suggest changes to Option ${selectedOption}...` : "Select an option first, then suggest changes..."}
-              className="flex-1 h-9 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
-            />
-            <button
-              type="button"
-              onClick={handleRegenerate}
-              className="inline-flex items-center gap-1.5 h-9 px-3 text-[12px] font-medium text-accent border border-accent/30 rounded-button hover:bg-accent/5 transition-colors duration-150 shrink-0"
-            >
-              <RefreshCw size={13} strokeWidth={1.5} />
-              {selectedOption ? `Tweak Option ${selectedOption}` : "Regenerate All"}
-            </button>
-          </div>
-
+          <p className="text-[11px] text-text-tertiary">
+            {selectedOption
+              ? `Editing Option ${selectedOption}. Your changes below will only update this option.`
+              : "Use the input below to tweak all 4 options at once, or click Edit on a card to tweak just that one."}
+          </p>
           <div className="grid grid-cols-2 gap-4">
-            {[1, 2, 3, 4].map((n) => {
-              const selected = selectedOption === n;
-              const opt = optionData[n - 1];
-              const isEditingThis = editingPostText === n;
-              return (
-                <div
-                  key={n}
-                  onClick={() => setSelectedOption(selected ? null : n)}
-                  className={`text-left bg-white border rounded-card p-4 transition-all duration-150 cursor-pointer ${
-                    selected
-                      ? "border-accent ring-2 ring-accent/20"
-                      : "border-border hover:border-accent/40"
-                  }`}
-                >
-                  {/* Image placeholder */}
-                  <div className="aspect-[4/3] bg-surface-secondary rounded-[8px] flex items-center justify-center mb-3">
-                    <span className="text-[12px] font-medium text-text-tertiary">Option {n}</span>
-                  </div>
-                  {/* Style description */}
-                  <p className="text-[11px] text-text-tertiary mb-2">{opt.style}</p>
-                  {/* Ad copy fields */}
-                  <div className="space-y-2" onClick={(e) => e.stopPropagation()}>
-                    {/* Primary Text */}
-                    <div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Primary Text</span>
-                        <button type="button" onClick={() => setEditingPostText(isEditingThis ? null : n)}
-                          className="p-0.5 text-text-tertiary hover:text-accent transition-colors">
-                          <Pencil size={9} strokeWidth={1.5} />
-                        </button>
-                      </div>
-                      {isEditingThis ? (
-                        <textarea value={opt.primaryText}
-                          onChange={(e) => setOptionData((prev) => prev.map((o, i) => i === n - 1 ? { ...o, primaryText: e.target.value } : o))}
-                          rows={3} className="w-full mt-0.5 px-2 py-1 text-[10px] border border-accent/30 rounded-input bg-white text-text-primary focus:outline-none focus:border-accent resize-none leading-relaxed" />
-                      ) : (
-                        <p className="text-[10px] text-text-secondary leading-relaxed mt-0.5 line-clamp-3 whitespace-pre-line">{opt.primaryText}</p>
-                      )}
-                    </div>
-                    {/* Headline */}
-                    <div>
-                      <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Headline</span>
-                      {isEditingThis ? (
-                        <input type="text" value={opt.headline}
-                          onChange={(e) => setOptionData((prev) => prev.map((o, i) => i === n - 1 ? { ...o, headline: e.target.value } : o))}
-                          className="w-full mt-0.5 h-6 px-2 text-[10px] border border-accent/30 rounded-input bg-white text-text-primary focus:outline-none focus:border-accent" />
-                      ) : (
-                        <p className="text-[10px] text-text-primary font-medium mt-0.5 line-clamp-1">{opt.headline}</p>
-                      )}
-                    </div>
-                    {/* Description */}
-                    <div>
-                      <span className="text-[10px] font-medium text-text-tertiary uppercase tracking-[0.3px]">Description</span>
-                      {isEditingThis ? (
-                        <input type="text" value={opt.description}
-                          onChange={(e) => setOptionData((prev) => prev.map((o, i) => i === n - 1 ? { ...o, description: e.target.value } : o))}
-                          className="w-full mt-0.5 h-6 px-2 text-[10px] border border-accent/30 rounded-input bg-white text-text-primary focus:outline-none focus:border-accent" />
-                      ) : (
-                        <p className="text-[10px] text-text-secondary mt-0.5 line-clamp-1">{opt.description}</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+            {[1, 2, 3, 4].map((n) => renderOptionCard(n))}
           </div>
+          {/* Extra padding so cards don't hide behind the sticky tweak bar */}
+          <div className="h-4" />
         </>
       )}
     </motion.div>
@@ -609,11 +619,9 @@ export function CreativeGeneratorModal({
           >
             {/* Header */}
             <div className="sticky top-0 z-10 bg-white border-b border-border px-6 py-4">
+              {/* Row 1: Title + close */}
               <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-[18px] font-semibold text-text-primary">Generate Creative</h2>
-                  <span className="text-[12px] text-text-tertiary">Step {modalStep} of 4</span>
-                </div>
+                <h2 className="text-[18px] font-semibold text-text-primary">Generate Creative</h2>
                 <button
                   type="button"
                   onClick={onClose}
@@ -623,8 +631,22 @@ export function CreativeGeneratorModal({
                 </button>
               </div>
 
-              {/* Progress dots */}
-              <div className="flex items-center gap-6 mt-3">
+              {/* Row 2: Persona inline — visible on all 4 steps */}
+              <p className="text-[12px] text-text-secondary mt-1">
+                <span className="text-text-primary font-medium">{personaName}</span>
+                {personaRole && (
+                  <>
+                    <span className="mx-1.5 text-text-tertiary">&middot;</span>
+                    {personaRole.split(",")[0].trim()}
+                  </>
+                )}
+                <span className="mx-1.5 text-text-tertiary">&middot;</span>
+                {angleName}
+              </p>
+
+              {/* Row 3: Progress dots + step label */}
+              <div className="flex items-center justify-between mt-3">
+                <div className="flex items-center gap-6">
                 {STEP_LABELS.map((label, i) => {
                   const stepNum = i + 1;
                   const isActive = stepNum === modalStep;
@@ -650,6 +672,8 @@ export function CreativeGeneratorModal({
                     </div>
                   );
                 })}
+                </div>
+                <span className="text-[11px] font-medium text-text-tertiary">Step {modalStep} of 4</span>
               </div>
             </div>
 
@@ -662,6 +686,44 @@ export function CreativeGeneratorModal({
                 {modalStep === 4 && renderStep4()}
               </AnimatePresence>
             </div>
+
+            {/* Sticky tweak bar — glassy, visible only on step 2 after options loaded */}
+            {modalStep === 2 && step2Loaded && !isGenerating && (
+              <div
+                className={`sticky bottom-[60px] z-10 border-t px-6 py-3 backdrop-blur-md transition-colors duration-200 ${
+                  selectedOption
+                    ? "bg-accent/[0.08] border-accent/30 shadow-[0_-1px_12px_rgba(26,26,26,0.04)]"
+                    : "bg-white/70 border-border-subtle"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={feedback}
+                    onChange={(e) => setFeedback(e.target.value)}
+                    placeholder={
+                      selectedOption
+                        ? `Suggest changes to Option ${selectedOption}...`
+                        : "Suggest changes for all 4 options..."
+                    }
+                    className={`flex-1 h-9 px-3 text-[13px] border rounded-input text-text-primary focus:outline-none transition-colors duration-150 placeholder:text-text-tertiary ${
+                      selectedOption
+                        ? "bg-white border-accent/40 focus:border-accent"
+                        : "bg-white/80 border-border focus:border-accent"
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRegenerate}
+                    disabled={isGenerating}
+                    className="inline-flex items-center gap-1.5 h-9 px-3 text-[12px] font-medium rounded-button transition-colors duration-150 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed text-accent border border-accent/30 hover:bg-accent/5 bg-white/80"
+                  >
+                    <RefreshCw size={13} strokeWidth={1.5} />
+                    {selectedOption ? `Tweak Option ${selectedOption}` : "Regenerate all 4"}
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Footer */}
             <div className="sticky bottom-0 bg-white border-t border-border px-6 py-3 flex items-center justify-between">

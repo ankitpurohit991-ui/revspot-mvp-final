@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Upload, ArrowRight, X, FileText } from "lucide-react";
-import { existingClients, cities, adAccounts } from "@/lib/wizard-data";
+import { existingClients, cities, adAccounts, facebookPages } from "@/lib/wizard-data";
 
 interface Step1Props {
   onNext: () => void;
@@ -72,6 +72,7 @@ function TextAreaField({ label, placeholder, value, onChange, required, rows = 3
 }
 
 export function Step1CampaignInput({ onNext }: Step1Props) {
+  const [campaignName, setCampaignName] = useState("");
   const [project, setProject] = useState("");
   const [isNewProject, setIsNewProject] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
@@ -90,6 +91,7 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
   const [locationInput, setLocationInput] = useState("");
   const [budgetCeiling, setBudgetCeiling] = useState("");
   const [adAccount, setAdAccount] = useState("");
+  const [facebookPage, setFacebookPage] = useState("");
 
   const handleProjectChange = (v: string) => {
     if (v === "__new__") {
@@ -128,8 +130,17 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
         <p className="text-meta text-text-secondary mt-1">Provide campaign details and the AI will generate a complete strategy</p>
       </div>
 
+      {/* Campaign Setup card */}
       <div className="bg-white border border-border rounded-card p-6 space-y-5">
-        {/* 1. Project */}
+        <div>
+          <h3 className="text-[14px] font-semibold text-text-primary">Campaign Setup</h3>
+          <p className="text-[12px] text-text-secondary mt-0.5">Name your campaign, select a project, and define your objective.</p>
+        </div>
+
+        {/* Campaign Name */}
+        <TextField label="Campaign Name" placeholder="e.g., Godrej" value={campaignName} onChange={setCampaignName} required />
+
+        {/* Project */}
         <div>
           <SelectField label="Project" options={[...existingClients, { value: "__new__", label: "+ Create new project" }]}
             placeholder="Select a project..." value={isNewProject ? "" : project} onChange={handleProjectChange} required />
@@ -175,7 +186,7 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
           )}
         </div>
 
-        {/* 2. Campaign Objective */}
+        {/* Campaign Objective */}
         <div>
           <label className="block text-[13px] font-medium text-text-primary mb-3">
             Campaign Objective<span className="text-status-error ml-0.5">*</span>
@@ -205,8 +216,16 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* 3. Offer */}
+      {/* Product & Context card */}
+      <div className="bg-white border border-border rounded-card p-6 space-y-5">
+        <div>
+          <h3 className="text-[14px] font-semibold text-text-primary">Product & Context</h3>
+          <p className="text-[12px] text-text-secondary mt-0.5">Help the AI understand your product with offers, brochures, and business details.</p>
+        </div>
+
+        {/* Offer */}
         <TextField label="Offer" placeholder="e.g., Godrej Reflections Habitat, 3BHK Launch Offer"
           value={offer} onChange={setOffer} />
 
@@ -318,7 +337,7 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
           })()}
         </div>
 
-        {/* 9. Ad Account */}
+        {/* Ad Account */}
         <div>
           <label className="block text-[13px] font-medium text-text-primary mb-1.5">Ad Account <span className="text-status-error">*</span></label>
           <select value={adAccount} onChange={(e) => setAdAccount(e.target.value)}
@@ -328,13 +347,24 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
             {adAccounts.map((acc) => <option key={acc.id} value={acc.id}>{acc.name}</option>)}
           </select>
         </div>
+
+        {/* Facebook Page */}
+        <div>
+          <label className="block text-[13px] font-medium text-text-primary mb-1.5">Facebook Page</label>
+          <select value={facebookPage} onChange={(e) => setFacebookPage(e.target.value)}
+            className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
+            style={selectStyle}>
+            <option value="">Select Facebook Page...</option>
+            {facebookPages.map((pg) => <option key={pg.id} value={pg.id}>{pg.name}</option>)}
+          </select>
+        </div>
       </div>
 
       {/* CTA */}
       <div className="flex justify-end pt-2">
         <button onClick={onNext}
           className="inline-flex items-center gap-2 h-10 px-6 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150">
-          Continue to Personas <ArrowRight size={15} strokeWidth={2} />
+          Continue <ArrowRight size={15} strokeWidth={2} />
         </button>
       </div>
     </div>

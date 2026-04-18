@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { ArrowRight, ArrowLeft, Wand2, Upload, Image as ImageIcon, X } from "lucide-react";
 import { motion } from "framer-motion";
-import { angleData, facebookPages } from "@/lib/wizard-data";
+import { angleData, facebookPages, strategyData } from "@/lib/wizard-data";
 import { CreativeGeneratorModal } from "@/components/shared/creative-generator-modal";
 import type { GeneratedCreative } from "@/components/shared/creative-generator-modal";
 import { UploadCreativeModal } from "@/components/shared/upload-creative-modal";
@@ -219,6 +219,7 @@ export function Step3Creatives({ onNext, onBack }: Step3Props) {
           }}
           angleName={activeGeneratorAngle.angleName}
           personaName={activeGeneratorAngle.personaName}
+          personaRole={strategyData.personas.find((p) => p.id === activeGeneratorAngle.personaId)?.role}
           hook={activeGeneratorAngle.hook}
           cta={activeGeneratorAngle.cta}
         />
