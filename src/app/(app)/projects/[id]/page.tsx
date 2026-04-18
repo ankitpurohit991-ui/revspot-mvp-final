@@ -193,7 +193,7 @@ export default function ProjectDetailPage() {
                   <td className="px-4 py-3 text-[13px] text-text-primary font-medium max-w-[280px] truncate">{c.name}</td>
                   <td className="px-4 py-3">
                     <span className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge ${
-                      c.status === "active" ? "bg-[#F0FDF4] text-[#15803D]" : c.status === "paused" ? "bg-surface-secondary text-text-secondary" : "bg-[#F0F0F0] text-text-primary"
+                      c.status === "enabled" ? "bg-[#F0FDF4] text-[#15803D]" : "bg-surface-secondary text-text-secondary"
                     }`}>{c.status.charAt(0).toUpperCase() + c.status.slice(1)}</span>
                   </td>
                   <td className="px-4 py-3 text-[13px] text-text-primary text-right tabular-nums">{formatCurrency(c.spend)}</td>
