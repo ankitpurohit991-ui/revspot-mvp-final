@@ -185,7 +185,7 @@ export default function AgentsMvpPage() {
                     className="w-full h-10 px-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent appearance-none cursor-pointer"
                     style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239B9B9B' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E")`, backgroundRepeat: "no-repeat", backgroundPosition: "right 12px center" }}>
                     <option value="">Choose a campaign...</option>
-                    {campaignsList.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {campaignsList.filter(c => c.status !== "draft").map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                   <p className="text-[10px] text-text-tertiary mt-1">AI will use this campaign&apos;s targeting, creatives, and ad copy as context. The agent won&apos;t be auto-attached.</p>
                 </div>

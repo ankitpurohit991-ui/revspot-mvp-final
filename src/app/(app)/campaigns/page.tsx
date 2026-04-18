@@ -20,6 +20,7 @@ import {
   CheckCircle2,
   Lightbulb,
   Columns3,
+  Trash2,
 } from "lucide-react";
 import { campaignsList } from "@/lib/campaign-data";
 import type { CampaignStatus, CampaignHealth, CampaignListItem } from "@/lib/campaign-data";
@@ -87,6 +88,7 @@ function StatusBadge({ status }: { status: CampaignStatus }) {
   const config: Record<CampaignStatus, { label: string; cls: string }> = {
     enabled: { label: "Enabled", cls: "bg-[#F0FDF4] text-[#15803D]" },
     paused: { label: "Paused", cls: "bg-surface-secondary text-text-secondary" },
+    draft: { label: "Draft", cls: "bg-[#FEF3C7] text-[#92400E]" },
   };
   const { label, cls } = config[status];
   return (
@@ -124,7 +126,19 @@ export default function CampaignsPage() {
     () => new Set(ALL_METRICS.filter((m) => m.defaultVisible).map((m) => m.key))
   );
   const [showColumnPicker, setShowColumnPicker] = useState(false);
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set());
+  const [deleteTarget, setDeleteTarget] = useState<CampaignListItem | null>(null);
   const getStatus = (c: CampaignListItem): CampaignStatus => c.status;
+
+  const confirmDelete = () => {
+    if (!deleteTarget) return;
+    setDeletedIds((prev) => {
+      const next = new Set(prev);
+      next.add(deleteTarget.id);
+      return next;
+    });
+    setDeleteTarget(null);
+  };
 
   const activeMetrics = useMemo(
     () => ALL_METRICS.filter((m) => visibleColumns.has(m.key)),
@@ -148,6 +162,7 @@ export default function CampaignsPage() {
   const filtered = useMemo(() => {
     if (isEmpty) return [];
     return campaignsList.filter((c) => {
+      if (deletedIds.has(c.id)) return false;
       if (statusFilter !== "all" && getStatus(c) !== statusFilter) return false;
       if (projectFilter !== "all" && c.client !== projectFilter) return false;
       if (
@@ -158,7 +173,7 @@ export default function CampaignsPage() {
         return false;
       return true;
     });
-  }, [search, statusFilter, projectFilter, isEmpty]);
+  }, [search, statusFilter, projectFilter, isEmpty, deletedIds]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -194,7 +209,7 @@ export default function CampaignsPage() {
       {/* Filters */}
       <motion.div variants={fadeUp} className="flex items-center gap-3 mb-5">
         <div className="flex items-center gap-0.5 bg-surface-secondary rounded-input p-0.5">
-          {(["all", "enabled", "paused"] as const).map((s) => (
+          {(["all", "enabled", "paused", "draft"] as const).map((s) => (
             <button
               key={s}
               onClick={() => {
@@ -306,12 +321,13 @@ export default function CampaignsPage() {
                 <th className="px-4 py-3 text-[11px] font-medium text-text-tertiary uppercase tracking-[0.5px] text-center">
                   Health
                 </th>
+                <th className="w-10 px-2 py-3" aria-label="Actions" />
               </tr>
             </thead>
             <tbody>
               {paginated.length === 0 ? (
                 <tr>
-                  <td colSpan={activeMetrics.length + 3}>
+                  <td colSpan={activeMetrics.length + 4}>
                     {search || statusFilter !== "all" || projectFilter !== "all" ? (
                       <EmptyState
                         illustration={<IllustrationSearchEmpty />}
@@ -350,7 +366,7 @@ export default function CampaignsPage() {
                 <tr
                   key={c.id}
                   onClick={() => router.push(`/campaigns/${c.id}`)}
-                  className={`hover:bg-surface-page transition-colors duration-150 cursor-pointer border-b border-border-subtle last:border-b-0 ${
+                  className={`group hover:bg-surface-page transition-colors duration-150 cursor-pointer border-b border-border-subtle last:border-b-0 ${
                     i % 2 === 0 ? "bg-white" : "bg-surface-page/40"
                   }`}
                 >
@@ -388,6 +404,22 @@ export default function CampaignsPage() {
                   <td className="px-4 py-3 text-center">
                     <HealthBadge health={c.health} />
                   </td>
+                  <td className="w-10 px-2 py-3 text-center">
+                    {getStatus(c) === "draft" && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteTarget(c);
+                        }}
+                        title="Delete draft"
+                        aria-label={`Delete draft ${c.name}`}
+                        className="inline-flex items-center justify-center h-7 w-7 rounded-button text-text-tertiary hover:text-status-error hover:bg-[#FEF2F2] transition-colors duration-150 opacity-0 group-hover:opacity-100 focus:opacity-100"
+                      >
+                        <Trash2 size={13} strokeWidth={1.5} />
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -421,6 +453,45 @@ export default function CampaignsPage() {
 
       {/* Import Modal */}
       {showImport && <ImportCampaignsModal onClose={() => setShowImport(false)} />}
+
+      {/* Delete draft confirmation */}
+      {deleteTarget && (
+        <>
+          <div className="fixed inset-0 bg-black/30 z-[60]" onClick={() => setDeleteTarget(null)} />
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <div className="bg-white rounded-card border border-border shadow-xl w-full max-w-[420px] p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="h-9 w-9 rounded-full bg-[#FEF2F2] flex items-center justify-center shrink-0">
+                  <Trash2 size={16} strokeWidth={1.5} className="text-status-error" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-[15px] font-semibold text-text-primary">Delete draft campaign?</h3>
+                  <p className="text-[12px] text-text-secondary leading-relaxed mt-1">
+                    <span className="font-medium text-text-primary">{deleteTarget.name}</span> will be permanently deleted. This can&apos;t be undone.
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setDeleteTarget(null)}
+                  className="h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmDelete}
+                  className="inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-medium bg-status-error text-white rounded-button hover:bg-[#B91C1C] transition-colors"
+                >
+                  <Trash2 size={13} strokeWidth={1.5} />
+                  Delete draft
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </motion.div>
   );
 }

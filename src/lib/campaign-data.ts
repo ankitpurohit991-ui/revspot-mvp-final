@@ -2,7 +2,7 @@
 
 // ── Campaign List ───────────────────────────────────────────
 
-export type CampaignStatus = "enabled" | "paused";
+export type CampaignStatus = "enabled" | "paused" | "draft";
 export type CampaignType = "Performance" | "Brand";
 export type CampaignHealth = "on-track" | "needs-attention" | "underperforming";
 
@@ -122,7 +122,7 @@ export const campaignsList: CampaignListItem[] = [
   {
     id: "camp-11", name: "Godrej Reserve — HNI Launch", type: "Performance",
     client: "Godrej Reserve", projectId: "proj-3",
-    status: "paused", spend: 0, leads: 0, verifiedLeads: 0, qualifiedLeads: 0, cpl: 0, health: "on-track", createdAt: "2026-04-02",
+    status: "draft", spend: 0, leads: 0, verifiedLeads: 0, qualifiedLeads: 0, cpl: 0, health: "on-track", createdAt: "2026-04-02",
     cpm: 0, ctr: 0, cpc: 0,
     firstFrameRetention: 0, hookRate: 0, holdRate: 0, playRate95: 0,
     costPerLinkClick: 0, costPerVerifiedLead: 0, costPerQualifiedLead: 0, verificationRate: 0, qualificationRate: 0, agentConnected: false,
