@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
@@ -34,6 +34,26 @@ export default function CampaignDetailPage() {
   const [campaignStatus, setCampaignStatus] = useState<"enabled" | "paused">(
     campaignDetail.status === "paused" ? "paused" : "enabled"
   );
+  const [statusConfirm, setStatusConfirm] = useState<"pause" | "enable" | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 3000);
+    return () => clearTimeout(t);
+  }, [toast]);
+
+  const handleStatusConfirm = () => {
+    if (!statusConfirm) return;
+    if (statusConfirm === "pause") {
+      setCampaignStatus("paused");
+      setToast("Campaign paused");
+    } else {
+      setCampaignStatus("enabled");
+      setToast("Campaign enabled");
+    }
+    setStatusConfirm(null);
+  };
 
   const campaign = campaignDetail;
   const isEnabled = campaignStatus === "enabled";
@@ -155,7 +175,7 @@ export default function CampaignDetailPage() {
         {/* Top-right CTA */}
         <button
           type="button"
-          onClick={() => setCampaignStatus(isEnabled ? "paused" : "enabled")}
+          onClick={() => setStatusConfirm(isEnabled ? "pause" : "enable")}
           className={`inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-medium rounded-button border transition-colors duration-150 shrink-0 ${
             isEnabled
               ? "text-text-secondary border-border bg-white hover:bg-surface-page hover:text-text-primary"
@@ -300,6 +320,81 @@ export default function CampaignDetailPage() {
         {activeTab === "brief" && <CampaignBriefTab />}
         {activeTab === "settings" && <SettingsTab />}
       </div>
+
+      {/* Pause/Enable confirmation */}
+      {statusConfirm && (
+        <>
+          <div className="fixed inset-0 bg-black/30 z-[60]" onClick={() => setStatusConfirm(null)} />
+          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+            <div className="bg-white rounded-card border border-border shadow-xl w-full max-w-[420px] p-6">
+              <div className="flex items-start gap-3 mb-4">
+                <div
+                  className={`h-9 w-9 rounded-full flex items-center justify-center shrink-0 ${
+                    statusConfirm === "pause" ? "bg-surface-secondary" : "bg-[#F0FDF4]"
+                  }`}
+                >
+                  {statusConfirm === "pause" ? (
+                    <Pause size={16} strokeWidth={1.5} className="text-text-secondary" />
+                  ) : (
+                    <Play size={16} strokeWidth={1.5} className="text-[#15803D]" />
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <h3 className="text-[15px] font-semibold text-text-primary">
+                    {statusConfirm === "pause" ? "Pause campaign?" : "Enable campaign?"}
+                  </h3>
+                  <p className="text-[12px] text-text-secondary leading-relaxed mt-1">
+                    {statusConfirm === "pause" ? (
+                      <>
+                        <span className="font-medium text-text-primary">{campaign.name}</span> will stop serving ads on Meta. Budget will stop spending. You can enable it again anytime.
+                      </>
+                    ) : (
+                      <>
+                        <span className="font-medium text-text-primary">{campaign.name}</span> will resume on Meta. Ads will start serving and budget will begin spending within minutes.
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setStatusConfirm(null)}
+                  className="h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleStatusConfirm}
+                  className={`inline-flex items-center gap-1.5 h-9 px-4 text-[13px] font-medium rounded-button transition-colors ${
+                    statusConfirm === "pause"
+                      ? "bg-text-primary text-white hover:bg-black"
+                      : "bg-[#15803D] text-white hover:bg-[#166534]"
+                  }`}
+                >
+                  {statusConfirm === "pause" ? (
+                    <Pause size={13} strokeWidth={2} />
+                  ) : (
+                    <Play size={13} strokeWidth={2} />
+                  )}
+                  {statusConfirm === "pause" ? "Pause campaign" : "Enable campaign"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[80] pointer-events-none">
+          <div className="inline-flex items-center gap-2 bg-text-primary text-white text-[13px] font-medium px-4 py-2.5 rounded-[8px] shadow-lg">
+            <Check size={14} strokeWidth={2} className="text-[#4ADE80]" />
+            {toast}
+          </div>
+        </div>
+      )}
     </motion.div>
   );
 }
