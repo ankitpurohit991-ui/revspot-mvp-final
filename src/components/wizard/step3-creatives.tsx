@@ -220,6 +220,9 @@ export function Step3Creatives({ onNext, onBack }: Step3Props) {
           angleName={activeGeneratorAngle.angleName}
           personaName={activeGeneratorAngle.personaName}
           personaRole={strategyData.personas.find((p) => p.id === activeGeneratorAngle.personaId)?.role}
+          personaBullets={strategyData.personas.find((p) => p.id === activeGeneratorAngle.personaId)?.bullets}
+          painPoint={activeGeneratorAngle.painPoint}
+          usp={activeGeneratorAngle.usp}
           hook={activeGeneratorAngle.hook}
           cta={activeGeneratorAngle.cta}
         />

@@ -145,26 +145,51 @@ export function Step5Structure({ onNext, onBack }: Step5Props) {
         </div>
       ) : (
         <>
-          {/* AI Prompt to Edit */}
-          <motion.div custom={0} initial="hidden" animate="visible" variants={fadeUp}>
-            <div className="flex items-center gap-2">
-              <div className="relative flex-1">
-                <Sparkles size={14} strokeWidth={1.5} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-tertiary" />
-                <input
-                  type="text"
-                  value={aiPrompt}
-                  onChange={(e) => setAiPrompt(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleAiEdit(); }}
-                  placeholder="Ask AI to edit the structure (e.g., &quot;increase NRI budget&quot;, &quot;add a new ad set for young professionals&quot;)..."
-                  className="w-full h-10 pl-9 pr-3 text-[13px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent transition-colors duration-150 placeholder:text-text-tertiary"
-                />
+          {/* AI context banner — explains auto-generation + ongoing optimization */}
+          <motion.div custom={0} initial="hidden" animate="visible" variants={fadeUp}
+            className="bg-[#EFF6FF] border border-[#3B82F6]/20 rounded-card overflow-hidden">
+            {/* Row 1: AI generated context */}
+            <div className="px-5 py-4 flex items-start gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#3B82F6]/10 flex items-center justify-center shrink-0 mt-0.5">
+                <Sparkles size={14} strokeWidth={2} className="text-[#3B82F6]" />
               </div>
-              <button onClick={handleAiEdit} disabled={!aiPrompt.trim() || isAiProcessing}
-                className="h-10 w-10 flex items-center justify-center bg-accent text-white rounded-button hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed shrink-0">
-                {isAiProcessing
-                  ? <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  : <Send size={14} strokeWidth={2} />
-                }
+              <div className="flex-1 min-w-0">
+                <h4 className="text-[13px] font-semibold text-text-primary">AI has generated this structure</h4>
+                <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">
+                  Ad sets, targeting, and budget allocation were auto-filled based on your personas, creatives, and business inputs.
+                  You can edit anything below.
+                </p>
+              </div>
+            </div>
+
+
+            {/* Divider */}
+            <div className="border-t border-[#3B82F6]/15" />
+
+            {/* Row 3: Continuous optimization toggle */}
+            <div className="px-5 py-4 flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 min-w-0 flex-1">
+                <div className="w-8 shrink-0" />
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-[13px] font-semibold text-text-primary">Keep AI optimizing after launch</h4>
+                  <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">
+                    Once the campaign is live, Revspot will monitor performance and suggest budget reallocation across ad sets
+                    to reduce CPL. Suggestions appear in the campaign dashboard.
+                  </p>
+                  {autoOptimize && (
+                    <div className="mt-2 text-[11px] text-[#1D4ED8] font-medium">
+                      ✓ Optimization starts automatically on campaign launch
+                    </div>
+                  )}
+                </div>
+              </div>
+              <button type="button" onClick={() => setAutoOptimize(!autoOptimize)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-150 shrink-0 mt-1 ${
+                  autoOptimize ? "bg-[#3B82F6]" : "bg-gray-200"
+                }`}>
+                <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform duration-150 ${
+                  autoOptimize ? "translate-x-[18px]" : "translate-x-[3px]"
+                }`} />
               </button>
             </div>
           </motion.div>
@@ -207,38 +232,6 @@ export function Step5Structure({ onNext, onBack }: Step5Props) {
                 ))}
               </div>
             </div>
-          </motion.div>
-
-          {/* AI Budget Optimization Toggle */}
-          <motion.div custom={2} initial="hidden" animate="visible" variants={fadeUp}
-            className="bg-[#EFF6FF] border border-[#3B82F6]/20 rounded-card p-5">
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-[#3B82F6]/10 flex items-center justify-center shrink-0 mt-0.5">
-                  <Zap size={14} strokeWidth={2} className="text-[#3B82F6]" />
-                </div>
-                <div>
-                  <h4 className="text-[13px] font-semibold text-text-primary">AI Budget Optimization</h4>
-                  <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">
-                    Revspot will monitor campaign performance and suggest budget reallocation across ad sets
-                    to maximize lead volume and reduce CPL. Suggestions will appear in the campaign dashboard.
-                  </p>
-                </div>
-              </div>
-              <button type="button" onClick={() => setAutoOptimize(!autoOptimize)}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-150 shrink-0 mt-1 ${
-                  autoOptimize ? "bg-[#3B82F6]" : "bg-gray-200"
-                }`}>
-                <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform duration-150 ${
-                  autoOptimize ? "translate-x-[18px]" : "translate-x-[3px]"
-                }`} />
-              </button>
-            </div>
-            {autoOptimize && (
-              <div className="mt-3 ml-11 text-[11px] text-[#1D4ED8] font-medium">
-                ✓ Optimization suggestions will appear in your campaign dashboard after launch
-              </div>
-            )}
           </motion.div>
 
           {/* Budget Summary */}
