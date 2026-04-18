@@ -85,10 +85,8 @@ const fadeUp: Variants = {
 
 function StatusBadge({ status }: { status: CampaignStatus }) {
   const config: Record<CampaignStatus, { label: string; cls: string }> = {
-    active: { label: "Active", cls: "bg-[#F0FDF4] text-[#15803D]" },
+    enabled: { label: "Enabled", cls: "bg-[#F0FDF4] text-[#15803D]" },
     paused: { label: "Paused", cls: "bg-surface-secondary text-text-secondary" },
-    completed: { label: "Completed", cls: "bg-[#F0F0F0] text-text-primary" },
-    draft: { label: "Draft", cls: "bg-[#FEF3C7] text-[#92400E]" },
   };
   const { label, cls } = config[status];
   return (
@@ -126,6 +124,7 @@ export default function CampaignsPage() {
     () => new Set(ALL_METRICS.filter((m) => m.defaultVisible).map((m) => m.key))
   );
   const [showColumnPicker, setShowColumnPicker] = useState(false);
+  const getStatus = (c: CampaignListItem): CampaignStatus => c.status;
 
   const activeMetrics = useMemo(
     () => ALL_METRICS.filter((m) => visibleColumns.has(m.key)),
@@ -149,7 +148,7 @@ export default function CampaignsPage() {
   const filtered = useMemo(() => {
     if (isEmpty) return [];
     return campaignsList.filter((c) => {
-      if (statusFilter !== "all" && c.status !== statusFilter) return false;
+      if (statusFilter !== "all" && getStatus(c) !== statusFilter) return false;
       if (projectFilter !== "all" && c.client !== projectFilter) return false;
       if (
         search &&
@@ -195,7 +194,7 @@ export default function CampaignsPage() {
       {/* Filters */}
       <motion.div variants={fadeUp} className="flex items-center gap-3 mb-5">
         <div className="flex items-center gap-0.5 bg-surface-secondary rounded-input p-0.5">
-          {(["all", "active", "paused", "completed", "draft"] as const).map((s) => (
+          {(["all", "enabled", "paused"] as const).map((s) => (
             <button
               key={s}
               onClick={() => {
@@ -364,17 +363,11 @@ export default function CampaignsPage() {
                           Optimize
                         </span>
                       )}
-                      {c.status === "draft" && (
-                        <button onClick={(e) => { e.stopPropagation(); router.push("/campaigns/create"); }}
-                          className="inline-flex items-center gap-0.5 text-[9px] font-medium px-1.5 py-0.5 rounded-badge bg-[#FEF3C7] text-[#92400E] shrink-0 hover:bg-[#FDE68A] transition-colors">
-                          Resume →
-                        </button>
-                      )}
                     </div>
                     <div className="text-[10px] text-text-tertiary mt-0.5 truncate">{c.client}</div>
                   </td>
                   <td className="px-4 py-3">
-                    <StatusBadge status={c.status} />
+                    <StatusBadge status={getStatus(c)} />
                   </td>
                   {activeMetrics.map((m) => {
                     const isQualMetric = ["qualifiedLeads", "costPerQualifiedLead", "qualificationRate"].includes(m.key);

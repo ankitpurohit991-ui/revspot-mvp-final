@@ -5,20 +5,21 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { ArrowLeft, Calendar, ArrowRight, Sparkles, Lightbulb, X, Check, Bot, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Calendar, ArrowRight, Sparkles, Lightbulb, X, Check, Bot, AlertTriangle, Pause, Play } from "lucide-react";
 import { campaignDetail, campaignDiagnosis, leadDistributionData } from "@/lib/campaign-data";
 import { LeadsTab } from "@/components/campaigns/leads-tab";
 import { AnalysisTab } from "@/components/campaigns/analysis-tab";
 import { SettingsTab } from "@/components/campaigns/settings-tab";
 import { DiagnosisTab } from "@/components/campaigns/diagnosis-tab";
 import { LeadInsights } from "@/components/campaigns/lead-insights";
+import { CampaignBriefTab } from "@/components/campaigns/campaign-brief-tab";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
   show: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
 };
 
-type Tab = "analysis" | "leads" | "insights" | "diagnosis" | "settings";
+type Tab = "analysis" | "leads" | "insights" | "diagnosis" | "brief" | "settings";
 
 // Diagnosis status badge config
 const diagnosisStatusConfig = {
@@ -30,8 +31,12 @@ const diagnosisStatusConfig = {
 export default function CampaignDetailPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<Tab>("analysis");
+  const [campaignStatus, setCampaignStatus] = useState<"enabled" | "paused">(
+    campaignDetail.status === "paused" ? "paused" : "enabled"
+  );
 
   const campaign = campaignDetail;
+  const isEnabled = campaignStatus === "enabled";
   const diagCfg = diagnosisStatusConfig[campaignDiagnosis.status];
 
   interface Suggestion {
@@ -102,6 +107,7 @@ export default function CampaignDetailPage() {
     { key: "leads", label: "Leads", count: 186 },
     { key: "insights", label: "Insights" },
     { key: "diagnosis", label: "Diagnosis" },
+    { key: "brief", label: "Campaign setup" },
     { key: "settings", label: "Settings" },
   ];
 
@@ -117,26 +123,48 @@ export default function CampaignDetailPage() {
       </div>
 
       {/* Header */}
-      <div className="mb-3">
-        <div className="flex items-center gap-3 mb-2">
-          <h1 className="text-page-title text-text-primary">{campaign.name}</h1>
-          <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#F0FDF4] text-[#15803D]">
-            {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
-          </span>
-          <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8]">
-            {campaign.platform}
-          </span>
-          <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge bg-surface-secondary text-text-secondary">
-            <Calendar size={10} strokeWidth={1.5} /> Day 14 of 30
-          </span>
+      <div className="mb-3 flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-3 mb-2 flex-wrap">
+            <h1 className="text-page-title text-text-primary">{campaign.name}</h1>
+            <span
+              className={`inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge ${
+                isEnabled
+                  ? "bg-[#F0FDF4] text-[#15803D]"
+                  : "bg-surface-secondary text-text-secondary"
+              }`}
+            >
+              {isEnabled ? "Enabled" : "Paused"}
+            </span>
+            <span className="inline-flex items-center text-[11px] font-medium px-2 py-0.5 rounded-badge bg-[#EFF6FF] text-[#1D4ED8]">
+              {campaign.platform}
+            </span>
+            <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge bg-surface-secondary text-text-secondary">
+              <Calendar size={10} strokeWidth={1.5} /> Day 14 of 30
+            </span>
+          </div>
+          <div className="flex items-center gap-4 text-[12px] text-text-secondary">
+            <span>Project: <Link href="/projects/proj-2" className="text-text-primary font-medium hover:underline">{campaign.client}</Link></span>
+            <span className="text-border">|</span>
+            <span>Owner: <span className="text-text-primary font-medium">{campaign.owner}</span></span>
+            <span className="text-border">|</span>
+            <span>Budget: <span className="text-text-primary font-medium">₹{campaign.dailyBudget.toLocaleString("en-IN")}/day</span></span>
+          </div>
         </div>
-        <div className="flex items-center gap-4 text-[12px] text-text-secondary">
-          <span>Project: <Link href="/projects/proj-2" className="text-text-primary font-medium hover:underline">{campaign.client}</Link></span>
-          <span className="text-border">|</span>
-          <span>Owner: <span className="text-text-primary font-medium">{campaign.owner}</span></span>
-          <span className="text-border">|</span>
-          <span>Budget: <span className="text-text-primary font-medium">₹{campaign.dailyBudget.toLocaleString("en-IN")}/day</span></span>
-        </div>
+
+        {/* Top-right CTA */}
+        <button
+          type="button"
+          onClick={() => setCampaignStatus(isEnabled ? "paused" : "enabled")}
+          className={`inline-flex items-center gap-1.5 h-9 px-3.5 text-[13px] font-medium rounded-button border transition-colors duration-150 shrink-0 ${
+            isEnabled
+              ? "text-text-secondary border-border bg-white hover:bg-surface-page hover:text-text-primary"
+              : "text-white bg-[#15803D] border-[#15803D] hover:bg-[#166534]"
+          }`}
+        >
+          {isEnabled ? <Pause size={14} strokeWidth={2} /> : <Play size={14} strokeWidth={2} />}
+          {isEnabled ? "Pause Campaign" : "Enable Campaign"}
+        </button>
       </div>
 
       {/* Navigation Confirmation Popup */}
@@ -269,6 +297,7 @@ export default function CampaignDetailPage() {
           />
         )}
         {activeTab === "diagnosis" && <DiagnosisTab />}
+        {activeTab === "brief" && <CampaignBriefTab />}
         {activeTab === "settings" && <SettingsTab />}
       </div>
     </motion.div>

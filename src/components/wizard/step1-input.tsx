@@ -85,7 +85,8 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
 
   const [offer, setOffer] = useState("");
   const [websiteUrl, setWebsiteUrl] = useState("");
-  const [businessDetails, setBusinessDetails] = useState("");
+  const [campaignBrief, setCampaignBrief] = useState("");
+  const [reraNumber, setReraNumber] = useState("");
   const [files, setFiles] = useState<string[]>([]);
   const [selectedLocations, setSelectedLocations] = useState<string[]>(["Bangalore"]);
   const [locationInput, setLocationInput] = useState("");
@@ -222,12 +223,13 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
       <div className="bg-white border border-border rounded-card p-6 space-y-5">
         <div>
           <h3 className="text-[14px] font-semibold text-text-primary">Product & Context</h3>
-          <p className="text-[12px] text-text-secondary mt-0.5">Help the AI understand your product with offers, brochures, and business details.</p>
+          <p className="text-[12px] text-text-secondary mt-0.5">Help the AI understand your product with offer, campaign brief, and brochures.</p>
         </div>
 
-        {/* Offer */}
-        <TextField label="Offer" placeholder="e.g., Godrej Reflections Habitat, 3BHK Launch Offer"
-          value={offer} onChange={setOffer} />
+        {/* Campaign Brief — required */}
+        <TextAreaField label="Campaign Brief" required
+          placeholder="Describe the campaign: target audience, positioning, key messages, competitors to beat..."
+          value={campaignBrief} onChange={setCampaignBrief} rows={4} />
 
         {/* 4. Upload Brochures */}
         <div>
@@ -257,13 +259,19 @@ export function Step1CampaignInput({ onNext }: Step1Props) {
           )}
         </div>
 
-        {/* 5. Project Website */}
-        <TextField label="Project Website" placeholder="https://godrejproperties.com/godrej-air" value={websiteUrl} onChange={setWebsiteUrl}
+        {/* 5. Project Website — required */}
+        <TextField label="Project Website" required
+          placeholder="https://godrejproperties.com/godrej-air" value={websiteUrl} onChange={setWebsiteUrl}
           helper="Used as context for AI to understand the project better" />
 
-        {/* 6. Business Details */}
-        <TextAreaField label="Business Details" placeholder="Any additional context about the product, target audience, or competitive positioning..."
-          value={businessDetails} onChange={setBusinessDetails} rows={3} />
+        {/* 6. Offer */}
+        <TextField label="Offer" placeholder="e.g., Godrej Reflections Habitat, 3BHK Launch Offer"
+          value={offer} onChange={setOffer} />
+
+        {/* 7. RERA Number — optional */}
+        <TextField label="RERA Number" placeholder="e.g., PRM/KA/RERA/1251/446/PR/170730/001234"
+          value={reraNumber} onChange={setReraNumber}
+          helper="Optional. Shown on ads where legally required." />
       </div>
 
       {/* Targeting & Budget */}

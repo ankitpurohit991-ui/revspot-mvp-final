@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import {
-  ArrowLeft, Rocket, AlertCircle, Bot, ShieldCheck, Lock, Info,
+  ArrowLeft, Rocket, Bot, ShieldCheck, Lock, Info, Pause, Play, Check,
 } from "lucide-react";
 import { newAgentsList } from "@/lib/voice-agent-data";
 
@@ -20,6 +20,7 @@ const selectStyle = {
 export function Step4Launch({ onNext, onBack }: Step4Props) {
   const [launching, setLaunching] = useState(false);
   const [selectedAgent, setSelectedAgent] = useState("");
+  const [launchState, setLaunchState] = useState<"paused" | "enabled">("paused");
 
   // Verification — ON by default, locked ON if objective is verified_leads
   const isVerifiedLeadsObjective = true;
@@ -133,12 +134,80 @@ export function Step4Launch({ onNext, onBack }: Step4Props) {
         )}
       </div>
 
-      {/* Info banner */}
-      <div className="flex items-start gap-2.5 bg-[#EFF6FF] border border-[#3B82F6]/20 rounded-[6px] px-4 py-3">
-        <AlertCircle size={14} strokeWidth={1.5} className="text-[#1D4ED8] mt-0.5 shrink-0" />
-        <p className="text-[12px] text-[#1D4ED8] leading-relaxed">
-          Campaign will be created on Meta in <span className="font-medium">paused</span> state. Review on Meta Ads Manager before going live.
-        </p>
+      {/* Launch state — choose how campaign goes live on Meta */}
+      <div className="bg-white border border-border rounded-card p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 rounded-full bg-surface-secondary flex items-center justify-center shrink-0">
+            <Rocket size={15} strokeWidth={1.5} className="text-text-secondary" />
+          </div>
+          <div>
+            <h3 className="text-[14px] font-semibold text-text-primary">Launch state on Meta</h3>
+            <p className="text-[12px] text-text-secondary mt-0.5">Choose how the campaign is created in Meta Ads Manager</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {/* Paused option */}
+          <button
+            type="button"
+            onClick={() => setLaunchState("paused")}
+            className={`relative text-left p-4 rounded-card border transition-all duration-150 ${
+              launchState === "paused"
+                ? "border-accent bg-accent/5 ring-1 ring-accent/20"
+                : "border-border bg-white hover:border-accent/40"
+            }`}
+          >
+            {launchState === "paused" && (
+              <div className="absolute top-2.5 right-2.5 h-4 w-4 rounded-full bg-accent flex items-center justify-center">
+                <Check size={10} strokeWidth={3} className="text-white" />
+              </div>
+            )}
+            <div className="flex items-center gap-2 mb-1.5">
+              <Pause size={13} strokeWidth={2} className="text-text-secondary" />
+              <span className="text-[13px] font-semibold text-text-primary">Paused</span>
+              <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-badge bg-surface-secondary text-text-secondary">
+                Recommended
+              </span>
+            </div>
+            <p className="text-[11px] text-text-secondary leading-relaxed">
+              Created in paused state. Review targeting &amp; creatives on Meta Ads Manager, then enable when ready.
+            </p>
+          </button>
+
+          {/* Active option */}
+          <button
+            type="button"
+            onClick={() => setLaunchState("enabled")}
+            className={`relative text-left p-4 rounded-card border transition-all duration-150 ${
+              launchState === "enabled"
+                ? "border-[#15803D] bg-[#F0FDF4] ring-1 ring-[#15803D]/20"
+                : "border-border bg-white hover:border-[#15803D]/40"
+            }`}
+          >
+            {launchState === "enabled" && (
+              <div className="absolute top-2.5 right-2.5 h-4 w-4 rounded-full bg-[#15803D] flex items-center justify-center">
+                <Check size={10} strokeWidth={3} className="text-white" />
+              </div>
+            )}
+            <div className="flex items-center gap-2 mb-1.5">
+              <Play size={13} strokeWidth={2} className="text-[#15803D]" />
+              <span className="text-[13px] font-semibold text-text-primary">Active</span>
+            </div>
+            <p className="text-[11px] text-text-secondary leading-relaxed">
+              Goes live immediately on Meta. Budget starts spending and ads start serving right away.
+            </p>
+          </button>
+        </div>
+
+        {/* Subtle hint under selection */}
+        <div className="mt-3 flex items-start gap-2 text-[11px] text-text-tertiary leading-relaxed">
+          <Info size={12} strokeWidth={1.5} className="shrink-0 mt-0.5" />
+          <span>
+            {launchState === "paused"
+              ? "You can enable the campaign from the campaign detail page or on Meta Ads Manager."
+              : "Ads will start serving within minutes of Meta approval. You can pause anytime."}
+          </span>
+        </div>
       </div>
 
       {/* Actions */}
@@ -152,7 +221,13 @@ export function Step4Launch({ onNext, onBack }: Step4Props) {
           {launching ? (
             <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Creating on Meta...</>
           ) : (
-            <><Rocket size={15} strokeWidth={1.5} /> Create Campaign on Meta</>
+            <>
+              <Rocket size={15} strokeWidth={1.5} />
+              Create Campaign on Meta
+              <span className="inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-badge bg-white/20 ml-1">
+                {launchState === "paused" ? "Paused" : "Active"}
+              </span>
+            </>
           )}
         </button>
       </div>

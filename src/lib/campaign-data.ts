@@ -2,7 +2,7 @@
 
 // ── Campaign List ───────────────────────────────────────────
 
-export type CampaignStatus = "active" | "paused" | "completed" | "draft";
+export type CampaignStatus = "enabled" | "paused";
 export type CampaignType = "Performance" | "Brand";
 export type CampaignHealth = "on-track" | "needs-attention" | "underperforming";
 
@@ -42,7 +42,7 @@ export const campaignsList: CampaignListItem[] = [
   {
     id: "camp-1", name: "Godrej Reflections Habitat — Lead Gen", type: "Performance",
     client: "Whitefield Luxury Villas", projectId: "proj-1",
-    status: "active", spend: 185000, leads: 214, verifiedLeads: 38, qualifiedLeads: 18, cpl: 864, health: "on-track", createdAt: "2025-12-15",
+    status: "enabled", spend: 185000, leads: 214, verifiedLeads: 38, qualifiedLeads: 18, cpl: 864, health: "on-track", createdAt: "2025-12-15",
     cpm: 245, ctr: 2.1, cpc: 18,
     firstFrameRetention: 94, hookRate: 32, holdRate: 28, playRate95: 26,
     costPerLinkClick: 15, costPerVerifiedLead: 4868, costPerQualifiedLead: 10278, verificationRate: 18, qualificationRate: 8, agentConnected: true,
@@ -50,7 +50,7 @@ export const campaignsList: CampaignListItem[] = [
   {
     id: "camp-2", name: "Godrej Eternity — Retargeting", type: "Performance",
     client: "Godrej Eternity Pre-launch", projectId: "proj-3",
-    status: "active", spend: 142000, leads: 156, verifiedLeads: 22, qualifiedLeads: 11, cpl: 910, health: "needs-attention", createdAt: "2026-01-08",
+    status: "enabled", spend: 142000, leads: 156, verifiedLeads: 22, qualifiedLeads: 11, cpl: 910, health: "needs-attention", createdAt: "2026-01-08",
     cpm: 310, ctr: 1.4, cpc: 32,
     firstFrameRetention: 91, hookRate: 25, holdRate: 22, playRate95: 18,
     costPerLinkClick: 28, costPerVerifiedLead: 6455, costPerQualifiedLead: 12909, verificationRate: 14, qualificationRate: 7, agentConnected: true,
@@ -58,7 +58,7 @@ export const campaignsList: CampaignListItem[] = [
   {
     id: "camp-3", name: "Godrej Nurture — Lookalike", type: "Performance",
     client: "Godrej Nurture", projectId: null,
-    status: "active", spend: 95000, leads: 128, verifiedLeads: 24, qualifiedLeads: 14, cpl: 742, health: "on-track", createdAt: "2026-01-22",
+    status: "enabled", spend: 95000, leads: 128, verifiedLeads: 24, qualifiedLeads: 14, cpl: 742, health: "on-track", createdAt: "2026-01-22",
     cpm: 198, ctr: 2.8, cpc: 12,
     firstFrameRetention: 96, hookRate: 36, holdRate: 31, playRate95: 34,
     costPerLinkClick: 10, costPerVerifiedLead: 3958, costPerQualifiedLead: 6786, verificationRate: 19, qualificationRate: 11, agentConnected: true,
@@ -66,7 +66,7 @@ export const campaignsList: CampaignListItem[] = [
   {
     id: "camp-4", name: "Godrej Platinum — Lead Gen", type: "Performance",
     client: "Godrej Platinum", projectId: null,
-    status: "active", spend: 110000, leads: 142, verifiedLeads: 18, qualifiedLeads: 8, cpl: 775, health: "underperforming", createdAt: "2026-02-03",
+    status: "enabled", spend: 110000, leads: 142, verifiedLeads: 18, qualifiedLeads: 8, cpl: 775, health: "underperforming", createdAt: "2026-02-03",
     cpm: 380, ctr: 0.9, cpc: 45,
     firstFrameRetention: 87, hookRate: 21, holdRate: 20, playRate95: 16,
     costPerLinkClick: 42, costPerVerifiedLead: 6111, costPerQualifiedLead: 13750, verificationRate: 13, qualificationRate: 6, agentConnected: true,
@@ -74,7 +74,7 @@ export const campaignsList: CampaignListItem[] = [
   {
     id: "camp-5", name: "Godrej Reserve — HNI", type: "Performance",
     client: "Godrej Reserve", projectId: null,
-    status: "active", spend: 88000, leads: 98, verifiedLeads: 16, qualifiedLeads: 10, cpl: 898, health: "on-track", createdAt: "2026-02-14",
+    status: "enabled", spend: 88000, leads: 98, verifiedLeads: 16, qualifiedLeads: 10, cpl: 898, health: "on-track", createdAt: "2026-02-14",
     cpm: 265, ctr: 1.9, cpc: 22,
     firstFrameRetention: 93, hookRate: 29, holdRate: 26, playRate95: 22,
     costPerLinkClick: 20, costPerVerifiedLead: 5500, costPerQualifiedLead: 8800, verificationRate: 16, qualificationRate: 10, agentConnected: true,
@@ -90,7 +90,7 @@ export const campaignsList: CampaignListItem[] = [
   {
     id: "camp-7", name: "Godrej Air Phase 3 — Lead Gen", type: "Performance",
     client: "Godrej Air Phase 3", projectId: "proj-2",
-    status: "active", spend: 220000, leads: 186, verifiedLeads: 42, qualifiedLeads: 22, cpl: 1183, health: "on-track", createdAt: "2025-11-20",
+    status: "enabled", spend: 220000, leads: 186, verifiedLeads: 42, qualifiedLeads: 22, cpl: 1183, health: "on-track", createdAt: "2025-11-20",
     cpm: 280, ctr: 2.4, cpc: 19,
     firstFrameRetention: 95, hookRate: 34, holdRate: 29, playRate95: 30,
     costPerLinkClick: 16, costPerVerifiedLead: 5238, costPerQualifiedLead: 10000, verificationRate: 23, qualificationRate: 12, agentConnected: false,
@@ -98,7 +98,7 @@ export const campaignsList: CampaignListItem[] = [
   {
     id: "camp-8", name: "Godrej Woodland — Brand Awareness", type: "Brand",
     client: "Godrej Woodland", projectId: null,
-    status: "active", spend: 75000, leads: 92, verifiedLeads: 11, qualifiedLeads: 5, cpl: 815, health: "needs-attention", createdAt: "2026-02-28",
+    status: "enabled", spend: 75000, leads: 92, verifiedLeads: 11, qualifiedLeads: 5, cpl: 815, health: "needs-attention", createdAt: "2026-02-28",
     cpm: 175, ctr: 2.6, cpc: 11,
     firstFrameRetention: 92, hookRate: 27, holdRate: 24, playRate95: 20,
     costPerLinkClick: 9, costPerVerifiedLead: 6818, costPerQualifiedLead: 15000, verificationRate: 12, qualificationRate: 5, agentConnected: true,
@@ -106,7 +106,7 @@ export const campaignsList: CampaignListItem[] = [
   {
     id: "camp-9", name: "Godrej Summit — Lead Gen", type: "Performance",
     client: "Godrej Summit Full Funnel", projectId: "proj-4",
-    status: "completed", spend: 310000, leads: 340, verifiedLeads: 58, qualifiedLeads: 29, cpl: 912, health: "on-track", createdAt: "2025-09-10",
+    status: "paused", spend: 310000, leads: 340, verifiedLeads: 58, qualifiedLeads: 29, cpl: 912, health: "on-track", createdAt: "2025-09-10",
     cpm: 220, ctr: 2.3, cpc: 15,
     firstFrameRetention: 95, hookRate: 33, holdRate: 30, playRate95: 28,
     costPerLinkClick: 12, costPerVerifiedLead: 5345, costPerQualifiedLead: 10690, verificationRate: 17, qualificationRate: 9, agentConnected: true,
@@ -122,7 +122,7 @@ export const campaignsList: CampaignListItem[] = [
   {
     id: "camp-11", name: "Godrej Reserve — HNI Launch", type: "Performance",
     client: "Godrej Reserve", projectId: "proj-3",
-    status: "draft", spend: 0, leads: 0, verifiedLeads: 0, qualifiedLeads: 0, cpl: 0, health: "on-track", createdAt: "2026-04-02",
+    status: "paused", spend: 0, leads: 0, verifiedLeads: 0, qualifiedLeads: 0, cpl: 0, health: "on-track", createdAt: "2026-04-02",
     cpm: 0, ctr: 0, cpc: 0,
     firstFrameRetention: 0, hookRate: 0, holdRate: 0, playRate95: 0,
     costPerLinkClick: 0, costPerVerifiedLead: 0, costPerQualifiedLead: 0, verificationRate: 0, qualificationRate: 0, agentConnected: false,
@@ -150,7 +150,7 @@ export interface CampaignDetail {
 export const campaignDetail: CampaignDetail = {
   id: "camp-7",
   name: "Godrej Air Phase 3",
-  status: "active",
+  status: "enabled",
   type: "Performance",
   client: "Godrej Properties",
   owner: "demo@godrejproperties.com",

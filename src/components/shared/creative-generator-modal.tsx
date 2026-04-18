@@ -12,7 +12,6 @@ import {
   Image as ImageIcon,
   Pencil,
   Sparkles,
-  Info,
   ChevronDown,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -693,48 +692,39 @@ export function CreativeGeneratorModal({
           <div className="grid grid-cols-2 gap-4">
             {generatedCreatives.map((creative) => {
               const sizeOpt = SIZE_OPTIONS.find(
-                (s) => s.id === selectedSizes.find((sid) => SIZE_OPTIONS.find((so) => so.id === sid)?.dimensions === creative.size && SIZE_OPTIONS.find((so) => so.id === sid)?.label === creative.label)
+                (s) => s.dimensions === creative.size && s.label === creative.label
               );
-              const aspect = sizeOpt
-                ? `${sizeOpt.aspectW}/${sizeOpt.aspectH}`
-                : "1/1";
+              const sizeId = sizeOpt?.id || "sq-feed";
+              const aspect =
+                sizeId === "story"
+                  ? "9 / 16"
+                  : sizeId === "landscape"
+                  ? "1200 / 628"
+                  : sizeId === "portrait"
+                  ? "4 / 5"
+                  : "1 / 1";
+              const variant = pickedOption ?? ((creative.id.charCodeAt(creative.id.length - 1) % 4) + 1);
+              const previewMaxW =
+                sizeId === "story" ? "max-w-[200px]" : sizeId === "portrait" ? "max-w-[260px]" : "";
+
               return (
-                <div key={creative.id} className="bg-white border border-border rounded-card overflow-hidden">
+                <div key={creative.id} className="bg-white border border-border rounded-card overflow-hidden flex flex-col">
                   {/* Size label */}
                   <div className="px-4 py-2 border-b border-border-subtle bg-surface-page">
                     <span className="text-[12px] font-medium text-text-primary">
-                      {creative.size} &mdash; {creative.label}
+                      {creative.label}
+                      <span className="text-text-tertiary font-normal ml-1.5 tabular-nums">{creative.size}</span>
                     </span>
                   </div>
-                  {/* Meta ad frame */}
-                  <div className="p-4 space-y-3">
-                    {/* Header */}
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-surface-secondary flex items-center justify-center">
-                        <ImageIcon size={14} className="text-text-tertiary" />
-                      </div>
-                      <div>
-                        <p className="text-[12px] font-medium text-text-primary leading-none">Godrej Properties</p>
-                        <p className="text-[10px] text-text-tertiary mt-0.5">Sponsored</p>
-                      </div>
-                    </div>
-                    {/* Image placeholder */}
-                    <div
-                      className="bg-surface-secondary rounded-[8px] flex items-center justify-center"
-                      style={{ aspectRatio: aspect }}
-                    >
-                      <ImageIcon size={24} className="text-text-tertiary" />
-                    </div>
-                    {/* Post text */}
-                    <p className="text-[12px] text-text-secondary leading-relaxed whitespace-pre-line">
-                      {creative.postText}
-                    </p>
-                    {/* CTA */}
-                    <div className="flex items-center justify-between border-t border-border-subtle pt-2">
-                      <span className="text-[11px] text-text-tertiary">godrejproperties.com</span>
-                      <span className="text-[11px] font-medium text-accent">Learn More</span>
+
+                  {/* Image-only preview */}
+                  <div className="p-4 flex-1 flex items-start justify-center">
+                    <div className={`w-full ${previewMaxW} rounded-[8px] overflow-hidden border border-border-subtle`}
+                      style={{ aspectRatio: aspect }}>
+                      <AdMockup variant={variant} headline={creative.headline} />
                     </div>
                   </div>
+
                   {/* Download */}
                   <div className="px-4 py-2 border-t border-border-subtle">
                     <button

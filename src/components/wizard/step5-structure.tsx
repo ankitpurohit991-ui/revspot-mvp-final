@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowRight, ArrowLeft, Sparkles, Plus, Send, Zap } from "lucide-react";
+import { ArrowRight, ArrowLeft, Sparkles, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   type CampaignSettings,
@@ -32,8 +32,6 @@ export function Step5Structure({ onNext, onBack }: Step5Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [campaign, setCampaign] = useState<CampaignSettings>(defaultCampaignSettings);
   const [adSets, setAdSets] = useState<AdSetState[]>(initialAdSets);
-  const [aiPrompt, setAiPrompt] = useState("");
-  const [isAiProcessing, setIsAiProcessing] = useState(false);
   const [autoOptimize, setAutoOptimize] = useState(true);
 
   useEffect(() => {
@@ -93,26 +91,6 @@ export function Step5Structure({ onNext, onBack }: Step5Props) {
     setAdSets((prev) => [...prev, newAdSet]);
   };
 
-  const handleAiEdit = () => {
-    if (!aiPrompt.trim()) return;
-    setIsAiProcessing(true);
-    setTimeout(() => {
-      // Simulate AI edit — e.g. "increase budget for NRI ad set"
-      const lower = aiPrompt.toLowerCase();
-      if (lower.includes("budget") && lower.includes("nri")) {
-        setAdSets((prev) => prev.map((a) =>
-          a.name.toLowerCase().includes("nri") ? { ...a, budget: a.budget + 1000 } : a
-        ));
-      } else if (lower.includes("add") && lower.includes("ad set")) {
-        addAdSet();
-      } else if (lower.includes("rename")) {
-        setCampaign((prev) => ({ ...prev, name: prev.name + " (Updated)" }));
-      }
-      setAiPrompt("");
-      setIsAiProcessing(false);
-    }, 1500);
-  };
-
   const totalDailyBudget = campaign.cboEnabled
     ? campaign.budget
     : adSets.reduce((sum, a) => sum + a.budget, 0);
@@ -145,50 +123,37 @@ export function Step5Structure({ onNext, onBack }: Step5Props) {
         </div>
       ) : (
         <>
-          {/* AI context banner — explains auto-generation + ongoing optimization */}
+          {/* AI context banner — compact, two rows */}
           <motion.div custom={0} initial="hidden" animate="visible" variants={fadeUp}
             className="bg-[#EFF6FF] border border-[#3B82F6]/20 rounded-card overflow-hidden">
-            {/* Row 1: AI generated context */}
-            <div className="px-5 py-4 flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#3B82F6]/10 flex items-center justify-center shrink-0 mt-0.5">
-                <Sparkles size={14} strokeWidth={2} className="text-[#3B82F6]" />
-              </div>
+            {/* Row 1: AI generated */}
+            <div className="px-4 py-2.5 flex items-center gap-2.5">
+              <Sparkles size={13} strokeWidth={2} className="text-[#3B82F6] shrink-0" />
               <div className="flex-1 min-w-0">
-                <h4 className="text-[13px] font-semibold text-text-primary">AI has generated this structure</h4>
-                <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">
-                  Ad sets, targeting, and budget allocation were auto-filled based on your personas, creatives, and business inputs.
-                  You can edit anything below.
-                </p>
+                <span className="text-[12px] font-semibold text-text-primary">AI-generated structure</span>
+                <span className="text-[11px] text-text-secondary ml-1.5">
+                  Ad sets, targeting &amp; budget auto-filled from your personas &amp; creatives.
+                </span>
               </div>
             </div>
 
-
-            {/* Divider */}
             <div className="border-t border-[#3B82F6]/15" />
 
-            {/* Row 3: Continuous optimization toggle */}
-            <div className="px-5 py-4 flex items-start justify-between gap-3">
-              <div className="flex items-start gap-3 min-w-0 flex-1">
-                <div className="w-8 shrink-0" />
-                <div className="min-w-0 flex-1">
-                  <h4 className="text-[13px] font-semibold text-text-primary">Keep AI optimizing after launch</h4>
-                  <p className="text-[12px] text-text-secondary mt-0.5 leading-relaxed">
-                    Once the campaign is live, Revspot will monitor performance and suggest budget reallocation across ad sets
-                    to reduce CPL. Suggestions appear in the campaign dashboard.
-                  </p>
-                  {autoOptimize && (
-                    <div className="mt-2 text-[11px] text-[#1D4ED8] font-medium">
-                      ✓ Optimization starts automatically on campaign launch
-                    </div>
-                  )}
-                </div>
+            {/* Row 2: Keep optimizing toggle */}
+            <div className="px-4 py-2.5 flex items-center gap-2.5">
+              <div className="w-[13px] shrink-0" />
+              <div className="flex-1 min-w-0">
+                <span className="text-[12px] font-semibold text-text-primary">Keep AI optimizing after launch</span>
+                <span className="text-[11px] text-text-secondary ml-1.5">
+                  Monitors performance and reallocates budget to reduce CPL.
+                </span>
               </div>
               <button type="button" onClick={() => setAutoOptimize(!autoOptimize)}
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors duration-150 shrink-0 mt-1 ${
+                className={`relative inline-flex h-4 w-7 items-center rounded-full transition-colors duration-150 shrink-0 ${
                   autoOptimize ? "bg-[#3B82F6]" : "bg-gray-200"
                 }`}>
-                <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform duration-150 ${
-                  autoOptimize ? "translate-x-[18px]" : "translate-x-[3px]"
+                <span className={`inline-block h-3 w-3 rounded-full bg-white transition-transform duration-150 ${
+                  autoOptimize ? "translate-x-[14px]" : "translate-x-[2px]"
                 }`} />
               </button>
             </div>
