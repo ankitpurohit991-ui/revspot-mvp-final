@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { ArrowRight, ArrowLeft, Sparkles, Plus } from "lucide-react";
+import { ArrowLeft, Sparkles, Plus, Rocket } from "lucide-react";
 import { motion } from "framer-motion";
 import {
   type CampaignSettings,
@@ -237,7 +237,8 @@ export function Step5Structure({ onNext, onBack }: Step5Props) {
         </button>
         <button onClick={onNext} disabled={isLoading}
           className="inline-flex items-center gap-2 h-10 px-6 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed">
-          Continue to Launch <ArrowRight size={15} strokeWidth={2} />
+          <Rocket size={15} strokeWidth={1.5} />
+          Launch campaign on Meta
         </button>
       </div>
     </div>

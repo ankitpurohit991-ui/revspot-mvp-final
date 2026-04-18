@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Variants } from "framer-motion";
@@ -10,8 +10,6 @@ import {
   Image,
   FileText,
   Sparkles,
-  Rocket,
-  CheckCircle2,
   ArrowLeft,
   Check,
 } from "lucide-react";
@@ -20,8 +18,7 @@ import { Step2BusinessProfile } from "@/components/wizard/step2-profile";
 import { Step3Creatives } from "@/components/wizard/step3-creatives";
 import { Step4Forms } from "@/components/wizard/step4-forms";
 import { Step5Structure } from "@/components/wizard/step5-structure";
-import { Step4Launch as Step6Launch } from "@/components/wizard/step4-launch";
-import { Step5Finalize as Step7Finalize } from "@/components/wizard/step5-finalize";
+import { CampaignResult } from "@/components/wizard/campaign-result";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 6 },
@@ -34,15 +31,27 @@ const steps = [
   { key: "creatives", label: "Creatives", icon: Image },
   { key: "forms", label: "Forms", icon: FileText },
   { key: "structure", label: "Structure", icon: Sparkles },
-  { key: "launch", label: "Launch", icon: Rocket },
-  { key: "finalize", label: "Finalize", icon: CheckCircle2 },
 ] as const;
+
+// Result is a STATE, not a step — rendered after structure completes.
+const RESULT_INDEX = steps.length;
 
 export default function CreateCampaignPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
 
-  const goNext = () => setCurrentStep((s) => Math.min(s + 1, steps.length - 1));
+  // Debug helper — ?start=N jumps to that step index (N = RESULT_INDEX previews the result state)
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = new URLSearchParams(window.location.search);
+    const start = parseInt(p.get("start") || "", 10);
+    if (!isNaN(start) && start >= 0 && start <= RESULT_INDEX) {
+      setCurrentStep(start);
+    }
+  }, []);
+
+  const isResult = currentStep === RESULT_INDEX;
+  const goNext = () => setCurrentStep((s) => Math.min(s + 1, RESULT_INDEX));
   const goBack = () => setCurrentStep((s) => Math.max(s - 1, 0));
 
   return (
@@ -131,8 +140,7 @@ export default function CreateCampaignPage() {
             {currentStep === 2 && <Step3Creatives onNext={goNext} onBack={goBack} />}
             {currentStep === 3 && <Step4Forms onNext={goNext} onBack={goBack} />}
             {currentStep === 4 && <Step5Structure onNext={goNext} onBack={goBack} />}
-            {currentStep === 5 && <Step6Launch onNext={goNext} onBack={goBack} />}
-            {currentStep === 6 && <Step7Finalize />}
+            {currentStep === 5 && <CampaignResult onRetry={() => setCurrentStep(4)} />}
           </motion.div>
         </AnimatePresence>
       </div>

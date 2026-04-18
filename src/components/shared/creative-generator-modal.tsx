@@ -243,6 +243,7 @@ export function CreativeGeneratorModal({
     SIZE_OPTIONS[1].id,
   ]);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [regeneratingSet, setRegeneratingSet] = useState<Set<number>>(new Set());
   const [generatedCreatives, setGeneratedCreatives] = useState<GeneratedCreative[]>([]);
   const [optionData, setOptionData] = useState(OPTION_DATA);
   const [editingPostText, setEditingPostText] = useState<number | null>(null);
@@ -259,6 +260,7 @@ export function CreativeGeneratorModal({
       setFeedback("");
       setSelectedSizes([SIZE_OPTIONS[0].id, SIZE_OPTIONS[1].id]);
       setIsGenerating(false);
+      setRegeneratingSet(new Set());
       setGeneratedCreatives([]);
       setOptionData(OPTION_DATA);
       setStep2Loaded(false);
@@ -304,30 +306,30 @@ export function CreativeGeneratorModal({
   }, []);
 
   const handleRegenerate = useCallback(() => {
+    if (!selectedOption) return;
+    const target = selectedOption;
+    setRegeneratingSet(new Set([target]));
     setIsGenerating(true);
+    // Exit AI-edit view immediately so the card can show the skeleton
+    setSelectedOption(null);
+    const capturedFeedback = feedback;
+    setFeedback("");
     setTimeout(() => {
-      if (selectedOption) {
-        // Only tweak the selected option — others stay unchanged
-        const idx = selectedOption - 1;
-        const feedbackSuffix = feedback.trim() ? ` (${feedback.trim()})` : "";
-        setOptionData((prev) =>
-          prev.map((opt, i) =>
-            i === idx
-              ? {
-                  style: `${ALT_OPTION_DATA[idx]?.style || opt.style}${feedbackSuffix}`,
-                  primaryText: ALT_OPTION_DATA[idx]?.primaryText || opt.primaryText,
-                  headline: ALT_OPTION_DATA[idx]?.headline || opt.headline,
-                  description: ALT_OPTION_DATA[idx]?.description || opt.description,
-                }
-              : opt
-          )
-        );
-      } else {
-        // No option selected — regenerate all
-        setOptionData((prev) => (prev === OPTION_DATA ? ALT_OPTION_DATA : OPTION_DATA));
-        setSelectedOption(null);
-      }
-      setEditingPostText(null);
+      const idx = target - 1;
+      const feedbackSuffix = capturedFeedback.trim() ? ` (${capturedFeedback.trim()})` : "";
+      setOptionData((prev) =>
+        prev.map((opt, i) =>
+          i === idx
+            ? {
+                style: `${ALT_OPTION_DATA[idx]?.style || opt.style}${feedbackSuffix}`,
+                primaryText: ALT_OPTION_DATA[idx]?.primaryText || opt.primaryText,
+                headline: ALT_OPTION_DATA[idx]?.headline || opt.headline,
+                description: ALT_OPTION_DATA[idx]?.description || opt.description,
+              }
+            : opt
+        )
+      );
+      setRegeneratingSet(new Set());
       setIsGenerating(false);
     }, 2000);
   }, [selectedOption, feedback]);
@@ -417,13 +419,137 @@ export function CreativeGeneratorModal({
   );
 
   /* Option card — Meta ad preview in view mode, labeled fields in edit mode */
+  const anyEditing = selectedOption !== null || editingPostText !== null;
+  const anyRegenerating = regeneratingSet.size > 0;
+  const anyActivity = anyEditing || anyRegenerating;
+
   const renderOptionCard = (n: number) => {
     const aiEditing = selectedOption === n;
     const picked = pickedOption === n;
     const opt = optionData[n - 1];
     const isEditingText = editingPostText === n;
+    const isRegenerating = regeneratingSet.has(n);
+    const isLocked = anyActivity && !aiEditing && !isEditingText && !isRegenerating;
     const updateField = (key: "primaryText" | "headline" | "description", value: string) =>
       setOptionData((prev) => prev.map((o, i) => (i === n - 1 ? { ...o, [key]: value } : o)));
+
+    /* Regenerating skeleton — overlays the card while AI tweaks this option */
+    if (isRegenerating) {
+      return (
+        <div
+          key={n}
+          className={`relative bg-white border rounded-card overflow-hidden ${
+            picked ? "border-accent ring-2 ring-accent/30" : aiEditing ? "border-accent/60 ring-2 ring-accent/15" : "border-border"
+          }`}
+        >
+          {/* Brand row skeleton */}
+          <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+            <div className="h-7 w-7 rounded-full bg-surface-secondary animate-pulse" />
+            <div className="flex-1 space-y-1">
+              <div className="h-2.5 w-24 bg-surface-secondary rounded-[4px] animate-pulse" />
+              <div className="h-2 w-16 bg-surface-secondary rounded-[4px] animate-pulse" />
+            </div>
+          </div>
+          {/* Primary text skeleton */}
+          <div className="px-3 pb-2 space-y-1.5">
+            <div className="h-2.5 w-full bg-surface-secondary rounded-[4px] animate-pulse" />
+            <div className="h-2.5 w-4/5 bg-surface-secondary rounded-[4px] animate-pulse" />
+          </div>
+          {/* Image skeleton with spinner */}
+          <div className="aspect-square bg-surface-secondary relative overflow-hidden animate-pulse">
+            <div className="absolute inset-0 flex items-center justify-center gap-2">
+              <span className="h-4 w-4 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+              <span className="text-[11px] font-medium text-text-secondary">
+                {selectedOption ? `Tweaking Option ${n}…` : "Regenerating…"}
+              </span>
+            </div>
+          </div>
+          {/* Footer skeleton */}
+          <div className="flex items-center justify-between gap-2 px-3 py-2 bg-surface-page">
+            <div className="flex-1 space-y-1">
+              <div className="h-2 w-28 bg-white rounded-[4px] animate-pulse" />
+              <div className="h-2.5 w-3/4 bg-white rounded-[4px] animate-pulse" />
+              <div className="h-2 w-1/2 bg-white rounded-[4px] animate-pulse" />
+            </div>
+            <div className="h-5 w-16 bg-white rounded-button animate-pulse shrink-0" />
+          </div>
+          <div className="flex items-center justify-between gap-2 px-3 py-2 border-t border-border-subtle">
+            <div className="h-2 w-32 bg-surface-secondary rounded-[4px] animate-pulse" />
+            <div className="flex items-center gap-1.5 shrink-0">
+              <div className="h-6 w-16 bg-surface-secondary rounded-button animate-pulse" />
+              <div className="h-6 w-16 bg-surface-secondary rounded-button animate-pulse" />
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    /* AI-edit mode — small image preview + instructions + regenerate */
+    if (aiEditing) {
+      return (
+        <div
+          key={n}
+          className="bg-white border rounded-card p-4 border-accent ring-2 ring-accent/30 flex flex-col"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="inline-flex items-center gap-1.5">
+              <Sparkles size={12} strokeWidth={1.5} className="text-accent" />
+              <span className="text-[12px] font-semibold text-text-primary">Edit Option {n} with AI</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => { setSelectedOption(null); setFeedback(""); }}
+              className="p-1 text-text-tertiary hover:text-text-primary hover:bg-surface-secondary rounded-button transition-colors"
+              title="Cancel"
+              aria-label="Cancel AI edit"
+            >
+              <X size={13} strokeWidth={1.5} />
+            </button>
+          </div>
+
+          {/* Image reference — full-width, dominant */}
+          <div className="mb-3 rounded-[8px] overflow-hidden border border-border-subtle aspect-square">
+            <AdMockup variant={n} headline={opt.headline} />
+          </div>
+
+          {/* Instruction input — compact */}
+          <div className="mb-3">
+            <label className="block text-[10px] font-medium text-text-tertiary uppercase tracking-[0.4px] mb-1.5">
+              Instructions for AI
+            </label>
+            <textarea
+              autoFocus
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="e.g., Make the headline more urgent, add a price anchor, change the tone to be more emotional..."
+              rows={3}
+              className="w-full px-2.5 py-2 text-[12px] border border-border rounded-input bg-white text-text-primary focus:outline-none focus:border-accent resize-none leading-relaxed placeholder:text-text-tertiary"
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => { setSelectedOption(null); setFeedback(""); }}
+              className="h-8 px-3 text-[11px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleRegenerate}
+              disabled={!feedback.trim() || isGenerating}
+              className="inline-flex items-center gap-1.5 h-8 px-3 text-[11px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw size={11} strokeWidth={2} />
+              Regenerate
+            </button>
+          </div>
+        </div>
+      );
+    }
 
     /* Edit text mode — labeled inputs */
     if (isEditingText) {
@@ -481,13 +607,10 @@ export function CreativeGeneratorModal({
     return (
       <div
         key={n}
+        aria-disabled={isLocked}
         className={`relative bg-white border rounded-card overflow-hidden transition-all duration-150 ${
-          picked
-            ? "border-accent ring-2 ring-accent/30"
-            : aiEditing
-            ? "border-accent/60 ring-2 ring-accent/15"
-            : "border-border"
-        }`}
+          picked ? "border-accent ring-2 ring-accent/30" : "border-border"
+        } ${isLocked ? "opacity-50 pointer-events-none" : ""}`}
       >
         {/* Picked badge */}
         {picked && (
@@ -550,15 +673,11 @@ export function CreativeGeneratorModal({
           <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
-              onClick={() => setSelectedOption(aiEditing ? null : n)}
-              className={`inline-flex items-center gap-1 h-6 px-2 text-[10px] font-medium rounded-button transition-colors duration-150 ${
-                aiEditing
-                  ? "text-accent border border-accent/40 bg-accent/5 hover:bg-accent/10"
-                  : "text-text-secondary border border-border hover:text-text-primary hover:bg-surface-page"
-              }`}
+              onClick={() => { setFeedback(""); setSelectedOption(n); }}
+              className="inline-flex items-center gap-1 h-6 px-2 text-[10px] font-medium rounded-button border border-border text-text-secondary hover:text-text-primary hover:bg-surface-page transition-colors duration-150"
             >
               <Sparkles size={9} strokeWidth={1.5} />
-              {aiEditing ? "Editing" : "Edit with AI"}
+              Edit with AI
             </button>
             <button
               type="button"
@@ -915,44 +1034,6 @@ export function CreativeGeneratorModal({
                 {modalStep === 4 && renderStep4()}
               </AnimatePresence>
             </div>
-
-            {/* Sticky tweak bar — glassy, visible only on step 2 after options loaded */}
-            {modalStep === 2 && step2Loaded && !isGenerating && (
-              <div
-                className={`sticky bottom-[60px] z-10 border-t px-6 py-3 backdrop-blur-md transition-colors duration-200 ${
-                  selectedOption
-                    ? "bg-accent/[0.08] border-accent/30 shadow-[0_-1px_12px_rgba(26,26,26,0.04)]"
-                    : "bg-white/70 border-border-subtle"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={feedback}
-                    onChange={(e) => setFeedback(e.target.value)}
-                    placeholder={
-                      selectedOption
-                        ? `Suggest changes to Option ${selectedOption}...`
-                        : "Suggest changes for all 4 options..."
-                    }
-                    className={`flex-1 h-9 px-3 text-[13px] border rounded-input text-text-primary focus:outline-none transition-colors duration-150 placeholder:text-text-tertiary ${
-                      selectedOption
-                        ? "bg-white border-accent/40 focus:border-accent"
-                        : "bg-white/80 border-border focus:border-accent"
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={handleRegenerate}
-                    disabled={isGenerating}
-                    className="inline-flex items-center gap-1.5 h-9 px-3 text-[12px] font-medium rounded-button transition-colors duration-150 shrink-0 disabled:opacity-50 disabled:cursor-not-allowed text-accent border border-accent/30 hover:bg-accent/5 bg-white/80"
-                  >
-                    <RefreshCw size={13} strokeWidth={1.5} />
-                    {selectedOption ? `Tweak Option ${selectedOption}` : "Regenerate all 4"}
-                  </button>
-                </div>
-              </div>
-            )}
 
             {/* Footer */}
             <div className="sticky bottom-0 bg-white border-t border-border px-6 py-3 flex items-center justify-between">
