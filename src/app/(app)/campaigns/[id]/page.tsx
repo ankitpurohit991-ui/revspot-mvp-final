@@ -13,6 +13,8 @@ import { SettingsTab } from "@/components/campaigns/settings-tab";
 import { DiagnosisTab } from "@/components/campaigns/diagnosis-tab";
 import { LeadInsights } from "@/components/campaigns/lead-insights";
 import { CampaignBriefTab } from "@/components/campaigns/campaign-brief-tab";
+import { ActionBanner } from "@/components/shared/action-banner";
+import { FunnelEvidenceChips, type FunnelEvidence } from "@/components/shared/funnel-evidence-chips";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
@@ -36,6 +38,7 @@ export default function CampaignDetailPage() {
   );
   const [statusConfirm, setStatusConfirm] = useState<"pause" | "enable" | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [bannerSnoozed, setBannerSnoozed] = useState(false);
 
   useEffect(() => {
     if (!toast) return;
@@ -66,34 +69,52 @@ export default function CampaignDetailPage() {
     ctaLink?: string;
     ctaModule?: string;
     type: "budget" | "creative" | "targeting" | "general";
+    funnel_evidence?: FunnelEvidence[];
   }
 
   const [suggestions, setSuggestions] = useState<Suggestion[]>([
     {
       id: "sug-1",
-      text: 'Shift 20% budget from "Broad Bangalore" to "Whitefield HNI" — Whitefield HNI has 35% lower CPL and 2x conversion rate.',
+      text: 'Shift 20% budget from "Broad Bangalore" to "Whitefield HNI" — Whitefield delivers 3.2× more qualified leads per ₹ and 4 of 5 site visits this month came from it.',
       cta: "Adjust Budget",
       type: "budget",
+      funnel_evidence: [
+        { stage: "TOF", fact: "CTR 2.4% vs 0.9%" },
+        { stage: "MOF", fact: "Verify 31% vs 11%" },
+        { stage: "BOF", fact: "4/5 site visits" },
+      ],
     },
     {
       id: "sug-2",
-      text: 'Pause "Godrej Air Floor Plan Static" creative — CTR dropped 40% in the last 7 days. Consider replacing with a new lifestyle creative.',
+      text: 'Pause "Godrej Air Floor Plan Static" creative — 0.8% CTR is dragging upstream cost up and the few leads it produces verify at 0%.',
       cta: "Update Creative",
       ctaLink: "/creatives",
       ctaModule: "Creatives",
       type: "creative",
+      funnel_evidence: [
+        { stage: "TOF", fact: "CTR 0.8% (-40% in 7d)" },
+        { stage: "MOF", fact: "0 of 6 leads verified" },
+      ],
     },
     {
       id: "sug-3",
-      text: 'Increase bid on "3BHK Whitefield" audience by 15% — conversion rate is 2.3x above average but impression share is low.',
+      text: 'Increase bid on "3BHK Whitefield" audience by 15% — qualification rate is 2.3× campaign average but impression share is low.',
       cta: "Adjust Targeting",
       type: "targeting",
+      funnel_evidence: [
+        { stage: "TOF", fact: "Impression share 12%" },
+        { stage: "BOF", fact: "Qual rate 27% vs 12% avg" },
+      ],
     },
     {
       id: "sug-4",
-      text: 'Add Sarjapur Road as a separate ad set — 12% of qualified leads come from this area but no dedicated targeting exists.',
+      text: 'Add Sarjapur Road as a separate ad set — 12% of qualified leads originate there with no dedicated targeting yet.',
       cta: "Add Ad Set",
       type: "general",
+      funnel_evidence: [
+        { stage: "MOF", fact: "Sarjapur leads verify at 24%" },
+        { stage: "BOF", fact: "12% of qualified leads" },
+      ],
     },
   ]);
   const [appliedId, setAppliedId] = useState<string | null>(null);
@@ -229,6 +250,20 @@ export default function CampaignDetailPage() {
         </div>
       )}
 
+      {/* Action-first banner — leads with what to do */}
+      {!bannerSnoozed && campaignDiagnosis.headline_action && (
+        <ActionBanner
+          verb={campaignDiagnosis.headline_action.verb}
+          target={campaignDiagnosis.headline_action.target}
+          outcome={campaignDiagnosis.headline_action.outcome}
+          expectedImpact={campaignDiagnosis.headline_action.expected_impact}
+          ctaLabel={campaignDiagnosis.headline_action.cta_label}
+          onCtaClick={() => setActiveTab("settings")}
+          onSnooze={() => setBannerSnoozed(true)}
+          variant="campaign"
+        />
+      )}
+
       {/* Merged Diagnosis Summary + AI Recommendations Bar */}
       <div className="mb-5 bg-white border border-border rounded-card">
         {/* Diagnosis row */}
@@ -252,9 +287,16 @@ export default function CampaignDetailPage() {
         {suggestions.length > 0 && (
           <div className="border-t border-border-subtle">
             {suggestions.slice(0, 2).map((sug) => (
-              <div key={sug.id} className="flex items-center gap-3 px-4 py-2.5 border-b border-border-subtle last:border-b-0">
-                <Lightbulb size={13} strokeWidth={1.5} className="text-[#3B82F6] shrink-0" />
-                <p className="text-[12px] text-text-secondary flex-1 truncate">{sug.text}</p>
+              <div key={sug.id} className="flex items-start gap-3 px-4 py-3 border-b border-border-subtle last:border-b-0">
+                <Lightbulb size={13} strokeWidth={1.5} className="text-[#3B82F6] shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-[12px] text-text-secondary leading-relaxed">{sug.text}</p>
+                  {sug.funnel_evidence && sug.funnel_evidence.length > 0 && (
+                    <div className="mt-1.5">
+                      <FunnelEvidenceChips evidence={sug.funnel_evidence} />
+                    </div>
+                  )}
+                </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {appliedId === sug.id ? (
                     <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#15803D]">

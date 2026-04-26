@@ -454,15 +454,74 @@ export const cplTrendData: CPLDataPoint[] = [
   { date: "Mar 20", cpl: 1183, target: 1200 },
 ];
 
+export type DiagnosisVerb =
+  | "Pause"
+  | "Increase"
+  | "Refresh"
+  | "Shift"
+  | "Add"
+  | "Investigate"
+  | "Maintain";
+
+export interface DiagnosisHeadlineAction {
+  verb: DiagnosisVerb;
+  target: string;
+  outcome: string;
+  expected_impact: string;
+  cta_label: string;
+  cta_href: string;
+}
+
+export interface DiagnosisReason {
+  text: string;
+  evidence: { stage: "TOF" | "MOF" | "BOF"; fact: string }[];
+}
+
 export const campaignDiagnosis = {
   status: "near-target" as "on-target" | "near-target" | "off-target",
+  headline_action: {
+    verb: "Pause" as DiagnosisVerb,
+    target: "Broad Bangalore — 25-55 adset",
+    outcome:
+      "Stop ₹3K/day burning on traffic that isn't qualifying — 0 qualified leads from this audience after ₹63K spent.",
+    expected_impact:
+      "Frees ~₹25K over the remaining 8 days; CPQL drops ~22% if reallocated to Whitefield HNI.",
+    cta_label: "Review in Settings",
+    cta_href: "/campaigns/camp-7?tab=settings",
+  },
   summary:
     "Campaign is NEAR TARGET — CPL ₹1,183 is 1.4% below target ₹1,200. Improving trend visible in second half of the flight.",
   reasons: [
-    "CPL started high at ₹1,450 and has steadily decreased over 4 weeks",
-    "Whitefield HNI adset is the top performer with ₹920 CPL",
-    "Broad Bangalore adset is dragging overall CPL up at ₹1,680",
-    "Creative fatigue detected on Lifestyle Video (CTR dropped 22%)",
+    {
+      text: "Broad Bangalore is dragging the campaign — CTR 0.9% leads to verification rate of just 11% and 0 qualified leads.",
+      evidence: [
+        { stage: "TOF" as const, fact: "CTR 0.9% vs 2.4% top adset" },
+        { stage: "MOF" as const, fact: "Verify 11% vs 31% top adset" },
+        { stage: "BOF" as const, fact: "0 qualified leads in 14 days" },
+      ],
+    },
+    {
+      text: "Whitefield HNI is the project's growth engine — converts 19% of leads to qualified and produces 4 of 7 site visits.",
+      evidence: [
+        { stage: "TOF" as const, fact: "CTR 2.4%" },
+        { stage: "MOF" as const, fact: "Verify 31%" },
+        { stage: "BOF" as const, fact: "4 site visits attributed" },
+      ],
+    },
+    {
+      text: "Form bracket 'Below ₹1Cr' generates 27% of leads but 0% qualify — audience too broad for a ₹2.5Cr property.",
+      evidence: [
+        { stage: "MOF" as const, fact: "50 leads from this bracket" },
+        { stage: "BOF" as const, fact: "0 qualified, 0 site visits" },
+      ],
+    },
+    {
+      text: "Lifestyle Video creative shows fatigue — CTR dropped from 3.4% to 2.6% over 7 days as frequency rose to 3.18.",
+      evidence: [
+        { stage: "TOF" as const, fact: "CTR -22% in 7 days" },
+        { stage: "TOF" as const, fact: "Frequency 3.18 (saturating)" },
+      ],
+    },
   ],
   recommendations: [
     "Shift 20% budget from Broad Bangalore to Whitefield HNI adset",
@@ -767,6 +826,150 @@ export function getProjectCampaigns(projectId: string) {
   if (!project) return [];
   return campaignsList.filter((c) => project.campaignIds.includes(c.id));
 }
+
+// ── Project-Level Insights (AI-generated, mocked) ──────────────────────────
+
+export type ProjectInsightVerb =
+  | "Reallocate"
+  | "Pause"
+  | "Scale"
+  | "Refresh"
+  | "Tighten"
+  | "Investigate"
+  | "Maintain";
+
+export interface ProjectFinding {
+  id: string;
+  icon: "🎯" | "⚠️" | "📈" | "🎨" | "📞" | "✅" | "🔻";
+  title: string;
+  narrative: string;
+  funnel_evidence: { stage: "TOF" | "MOF" | "BOF"; fact: string }[];
+  scope: "audience" | "creative" | "form_signal" | "campaign" | "funnel" | "trend";
+  tone: "positive" | "neutral" | "concern";
+}
+
+export interface ProjectInsights {
+  project_status: "on-track" | "needs-attention" | "underperforming";
+  headline_action: {
+    verb: ProjectInsightVerb;
+    target: string;
+    outcome: string;
+    expected_impact: string;
+    cta_label: string;
+    /** href to navigate to. May include query string to deep-link a tab. */
+    cta_href: string;
+  };
+  summary: string;
+  findings: ProjectFinding[];
+  generated_at: string;
+}
+
+/**
+ * Mock project insights for proj-1 (Whitefield Luxury Villas).
+ * The findings are intentionally mixed in tone (positive + concern) so the UI
+ * has variety to render across both the inline panel and the Diagnosis tab.
+ */
+export const projectInsights: ProjectInsights = {
+  project_status: "needs-attention",
+  headline_action: {
+    verb: "Reallocate",
+    target: "20% of budget from Retargeting → Whitefield HNI",
+    outcome:
+      "Concentrate spend on the audience converting to site visits — Retargeting's CPQL is 1.8× project average and the audience is saturating.",
+    expected_impact:
+      "Project CPQL drops ~30% (₹10.6K → ~₹7.4K); +3 site visits/month at current funnel rates.",
+    cta_label: "Open Retargeting campaign",
+    cta_href: "/campaigns/camp-10?tab=settings",
+  },
+  summary:
+    "Across 2 campaigns spending ₹2.33L, qualification is at 7.9% (vs ~10% benchmark) with 22% of spend producing zero qualified leads. Whitefield HNI is your clear lever — 41% of qualified leads from 28% of spend.",
+  findings: [
+    {
+      id: "pf-1",
+      icon: "📈",
+      title: "Whitefield HNI is your project's growth lever",
+      narrative:
+        "Across both campaigns, Whitefield HNI accounts for 41% of qualified leads from just 28% of spend — and 4 of 6 site visits trace back to it.",
+      funnel_evidence: [
+        { stage: "TOF", fact: "CTR 2.4% vs 1.6% project avg" },
+        { stage: "MOF", fact: "Verify 31% vs 16% project avg" },
+        { stage: "BOF", fact: "4 of 6 site visits attributed" },
+      ],
+      scope: "audience",
+      tone: "positive",
+    },
+    {
+      id: "pf-2",
+      icon: "🔻",
+      title: "'Below ₹1Cr' budget bracket is leaking spend",
+      narrative:
+        "102 leads (37% of total) come from the 'Below ₹1Cr' budget bracket — but 0 of them qualify and 0 reach site visit. The audience is too broad for a ₹2.5Cr property.",
+      funnel_evidence: [
+        { stage: "MOF", fact: "Verify 6% vs 16% avg" },
+        { stage: "BOF", fact: "0 qualified, 0 site visits" },
+        { stage: "BOF", fact: "Top DQ reason: 'Budget' (52%)" },
+      ],
+      scope: "form_signal",
+      tone: "concern",
+    },
+    {
+      id: "pf-3",
+      icon: "⚠️",
+      title: "Broad Bangalore audience is saturating",
+      narrative:
+        "Frequency has climbed to 4.05 across 3 campaigns running this audience; CTR has dropped to 0.95% with only 9% verification.",
+      funnel_evidence: [
+        { stage: "TOF", fact: "Frequency 4.05 (>3.0 saturation line)" },
+        { stage: "TOF", fact: "CTR 0.95% (-40% vs Whitefield)" },
+        { stage: "MOF", fact: "Verify rate 9%" },
+      ],
+      scope: "audience",
+      tone: "concern",
+    },
+    {
+      id: "pf-4",
+      icon: "🎨",
+      title: "Lakeside 3BHK Carousel converts above its weight",
+      narrative:
+        "Carousel format drives 21% of impressions but 50% of qualified leads. Worth scaling and testing similar variants.",
+      funnel_evidence: [
+        { stage: "TOF", fact: "CTR 2.8% (project leader)" },
+        { stage: "MOF", fact: "Verify 21%" },
+        { stage: "BOF", fact: "11 of 22 qualified leads" },
+      ],
+      scope: "creative",
+      tone: "positive",
+    },
+    {
+      id: "pf-5",
+      icon: "📞",
+      title: "Half of disqualifications cite 'Budget below threshold'",
+      narrative:
+        "32 of 62 voice agent disqualifications cite the same reason — your TOF audience is bringing in too many sub-budget leads. Tighten interest/lookalike targeting.",
+      funnel_evidence: [
+        { stage: "MOF", fact: "124 leads in '₹1Cr-₹2Cr' bracket" },
+        { stage: "BOF", fact: "32 budget-based DQs (52%)" },
+      ],
+      scope: "funnel",
+      tone: "concern",
+    },
+    {
+      id: "pf-6",
+      icon: "✅",
+      title: "'Past site visitors' retargeting converts 100%",
+      narrative:
+        "Both qualified leads from this audience visited the site — small pool but a strong signal. Worth scaling cautiously with tight frequency cap.",
+      funnel_evidence: [
+        { stage: "MOF", fact: "Verify 3% (small pool)" },
+        { stage: "BOF", fact: "2 of 2 qualified → site visit" },
+      ],
+      scope: "audience",
+      tone: "positive",
+    },
+  ],
+  generated_at: "2 hours ago",
+};
+
 
 export const settingsData = {
   channelConfig: {

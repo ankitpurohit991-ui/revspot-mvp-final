@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { campaignDiagnosis, adSetsData } from "@/lib/campaign-data";
 import type { AdSetRow } from "@/lib/campaign-data";
 import { CreativeGeneratorModal } from "@/components/shared/creative-generator-modal";
-import type { GeneratedCreative } from "@/components/shared/creative-generator-modal";
+import { FunnelEvidenceChips } from "@/components/shared/funnel-evidence-chips";
 
 function formatCurrency(amount: number) {
   if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
@@ -93,11 +93,21 @@ export function DiagnosisTab() {
             <div>
               <div className="flex items-center gap-1.5 mb-3">
                 <TrendingDown size={14} strokeWidth={1.5} className="text-text-tertiary" />
-                <span className="text-[12px] font-medium text-text-secondary uppercase tracking-[0.4px]">Why</span>
+                <span className="text-[12px] font-medium text-text-secondary uppercase tracking-[0.4px]">Why — funnel-connected reasoning</span>
               </div>
-              <ul className="space-y-2">
+              <ul className="space-y-3">
                 {campaignDiagnosis.reasons.map((r, i) => (
-                  <li key={i} className="text-[12px] text-text-secondary leading-relaxed pl-3 relative before:content-[''] before:absolute before:left-0 before:top-[7px] before:w-1 before:h-1 before:bg-text-tertiary before:rounded-full">{r}</li>
+                  <li
+                    key={i}
+                    className="text-[12px] text-text-secondary leading-relaxed pl-3 relative before:content-[''] before:absolute before:left-0 before:top-[7px] before:w-1 before:h-1 before:bg-text-tertiary before:rounded-full"
+                  >
+                    <p>{r.text}</p>
+                    {r.evidence && r.evidence.length > 0 && (
+                      <div className="mt-1.5">
+                        <FunnelEvidenceChips evidence={r.evidence} />
+                      </div>
+                    )}
+                  </li>
                 ))}
               </ul>
             </div>
