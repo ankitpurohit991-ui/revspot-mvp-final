@@ -48,47 +48,59 @@ export function VersionTimeline({
           </span>
         </div>
         <div className="flex items-end gap-3 overflow-x-auto pb-1 -mx-1 px-1">
-          {versions.map((v, i) => {
-            const isActive = v.id === activeVersionId;
-            const hasChildren = childrenById.has(v.id);
-            const showBranchHint = !isActive && i < versions.length - 1;
-            return (
-              <div key={v.id} className="flex flex-col items-center shrink-0">
-                <button
-                  type="button"
-                  onClick={() => onSelect(v.id)}
-                  className={`relative ${tileSize} rounded-card overflow-hidden border-2 transition-all duration-150 ${
-                    isActive
-                      ? "border-accent ring-2 ring-accent/30"
-                      : "border-border hover:border-border-hover"
-                  }`}
-                >
-                  <AdMockup variant={v.variant} headline={v.headline} />
-                  <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-1.5 py-1">
-                    <div className={`${labelSize} font-medium text-white truncate text-left`}>
-                      v{i + 1}
-                    </div>
-                  </div>
-                  {hasChildren && !isActive && (
-                    <div className="absolute top-1 right-1 bg-white/90 text-text-tertiary p-0.5 rounded-[3px]">
-                      <GitBranch size={9} strokeWidth={1.5} />
-                    </div>
-                  )}
-                </button>
-                {showBranchHint && onBranch && (
+          {/* Newest first — render in reverse so the most recent version is on the left. */}
+          {versions
+            .map((v, chronoIdx) => ({ v, chronoIdx }))
+            .reverse()
+            .map(({ v, chronoIdx }) => {
+              const isActive = v.id === activeVersionId;
+              const hasChildren = childrenById.has(v.id);
+              const isLatest = chronoIdx === versions.length - 1;
+              // Branching from the latest version is the default behavior of the
+              // composer, so the "Branch" affordance is only useful on older versions.
+              const showBranchHint = !isActive && !isLatest;
+              return (
+                <div key={v.id} className="flex flex-col items-center shrink-0">
                   <button
                     type="button"
-                    onClick={() => onBranch(v.id)}
-                    title="Continue refining from this version"
-                    className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-medium text-text-tertiary hover:text-text-primary transition-colors"
+                    onClick={() => onSelect(v.id)}
+                    className={`relative ${tileSize} rounded-card overflow-hidden border-2 transition-all duration-150 ${
+                      isActive
+                        ? "border-accent ring-2 ring-accent/30"
+                        : "border-border hover:border-border-hover"
+                    }`}
                   >
-                    <GitBranch size={9} strokeWidth={1.5} /> Branch
+                    <AdMockup variant={v.variant} headline={v.headline} />
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-1.5 py-1">
+                      <div className={`${labelSize} font-medium text-white truncate text-left`}>
+                        v{chronoIdx + 1}
+                        {isLatest && (
+                          <span className="ml-1 text-[8px] font-semibold uppercase tracking-[0.4px] text-white/80">
+                            · latest
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {hasChildren && !isActive && (
+                      <div className="absolute top-1 right-1 bg-white/90 text-text-tertiary p-0.5 rounded-[3px]">
+                        <GitBranch size={9} strokeWidth={1.5} />
+                      </div>
+                    )}
                   </button>
-                )}
-                {!showBranchHint && <div className="mt-1.5 h-[14px]" />}
-              </div>
-            );
-          })}
+                  {showBranchHint && onBranch && (
+                    <button
+                      type="button"
+                      onClick={() => onBranch(v.id)}
+                      title="Continue refining from this version"
+                      className="mt-1.5 inline-flex items-center gap-1 text-[10px] font-medium text-text-tertiary hover:text-text-primary transition-colors"
+                    >
+                      <GitBranch size={9} strokeWidth={1.5} /> Branch
+                    </button>
+                  )}
+                  {!showBranchHint && <div className="mt-1.5 h-[14px]" />}
+                </div>
+              );
+            })}
         </div>
       </div>
     </div>
