@@ -22,15 +22,13 @@ export interface GeneratedCreative {
 
 export type CreativePhase = "setup" | "concept" | "resize";
 
-/** A single message in either the concept chat or a per-size resize chat. */
+/** A single message in the concept chat. */
 export interface ChatMessage {
   id: string;
   role: "user" | "ai";
   text: string;
-  /** When AI replies with a single new version, link the version it produced. */
+  /** When AI replies with a new version, link the version it produced. */
   version_id?: string;
-  /** AI's first reply produces a 4-concept grid the user can promote from. */
-  concept_grid?: ConceptVersion[];
   /** While the AI is "thinking", we add a placeholder message with this set. */
   pending?: boolean;
   created_at: number;
@@ -51,14 +49,6 @@ export interface ConceptVersion {
   created_at: number;
 }
 
-/** A per-size chat in Phase C. */
-export interface SizeChat {
-  size_id: string;
-  messages: ChatMessage[];
-  versions: ConceptVersion[];
-  active_version_id: string;
-}
-
 /** The whole modal's state, threaded through the orchestrator. */
 export interface CreativeWorkspace {
   // Phase A inputs
@@ -66,14 +56,14 @@ export interface CreativeWorkspace {
   style_reference: { name: string } | null;
   product_image: { name: string } | null;
 
-  // Phase B
+  // Phase B (concept editor — chat + version history)
   concept_messages: ChatMessage[];
   concept_versions: ConceptVersion[];
   active_concept_version_id: string | null;
 
-  // Phase C
+  // Phase C (resize editor — single current version per size, no chat)
   selected_sizes: string[];
-  size_chats: Record<string, SizeChat>;
+  size_versions: Record<string, ConceptVersion>;
 }
 
 /* ------------------------------------------------------------------ */
@@ -234,18 +224,19 @@ export function makeMockVersion(opts: {
   };
 }
 
-/** Return the initial 4-variant grid for the very first AI turn. */
-export function makeInitialGrid(): ConceptVersion[] {
-  return [1, 2, 3, 4].map((n, i) => ({
-    id: mkId("ver"),
-    parent_id: null,
-    variant: n as 1 | 2 | 3 | 4,
-    primary_text: CONCEPT_POOL[i].primary_text,
-    headline: CONCEPT_POOL[i].headline,
-    description: CONCEPT_POOL[i].description,
-    label: CONCEPT_POOL[i].label,
-    created_at: Date.now() + i,
-  }));
+/**
+ * Pick a fresh variant from the pool that hasn't been used in `existingVariants`.
+ * Used by "Generate new option" so each new option feels distinct visually.
+ */
+export function pickFreshVariant(
+  existingVariants: (1 | 2 | 3 | 4)[]
+): 1 | 2 | 3 | 4 {
+  const used = new Set(existingVariants);
+  const candidates = [1, 2, 3, 4].filter((n) => !used.has(n as 1 | 2 | 3 | 4));
+  if (candidates.length === 0) {
+    return ((Math.floor(Math.random() * 4) + 1) as 1 | 2 | 3 | 4);
+  }
+  return candidates[Math.floor(Math.random() * candidates.length)] as 1 | 2 | 3 | 4;
 }
 
 /** Compose a short AI summary line for the chat reply. */
@@ -277,7 +268,7 @@ export function emptyWorkspace(): CreativeWorkspace {
     concept_versions: [],
     active_concept_version_id: null,
     selected_sizes: [...DEFAULT_SIZES],
-    size_chats: {},
+    size_versions: {},
   };
 }
 

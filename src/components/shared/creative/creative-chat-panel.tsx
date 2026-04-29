@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Send, Sparkles, User } from "lucide-react";
 import { motion } from "framer-motion";
-import type { ChatMessage, ConceptVersion } from "./types";
-import { AdMockup } from "./ad-mockup";
+import type { ChatMessage } from "./types";
 
 interface CreativeChatPanelProps {
   messages: ChatMessage[];
@@ -12,13 +11,11 @@ interface CreativeChatPanelProps {
   isGenerating: boolean;
   /** Called when user sends a refinement message. */
   onSend: (text: string) => void;
-  /** Called when user clicks a concept in the initial 4-grid bubble. */
-  onPickConcept?: (versionId: string) => void;
-  /** When true, inline preview thumbnails in AI bubbles are clickable to focus them in the right pane. */
+  /** When AI bubble has a version_id, clicking the inline link calls this. */
   onFocusVersion?: (versionId: string) => void;
   /** The version id currently shown in the right pane. Used to highlight bubbles. */
   activeVersionId: string | null;
-  /** Composer placeholder. Differs by phase. */
+  /** Composer placeholder. */
   placeholder?: string;
   /** Empty-state message shown when messages array is empty. */
   emptyMessage?: string;
@@ -28,7 +25,6 @@ export function CreativeChatPanel({
   messages,
   isGenerating,
   onSend,
-  onPickConcept,
   onFocusVersion,
   activeVersionId,
   placeholder = "Refine the concept… e.g., make the headline more urgent",
@@ -72,7 +68,6 @@ export function CreativeChatPanel({
             key={m.id}
             message={m}
             activeVersionId={activeVersionId}
-            onPickConcept={onPickConcept}
             onFocusVersion={onFocusVersion}
           />
         ))}
@@ -115,11 +110,10 @@ export function CreativeChatPanel({
 interface MessageBubbleProps {
   message: ChatMessage;
   activeVersionId: string | null;
-  onPickConcept?: (versionId: string) => void;
   onFocusVersion?: (versionId: string) => void;
 }
 
-function MessageBubble({ message, activeVersionId, onPickConcept, onFocusVersion }: MessageBubbleProps) {
+function MessageBubble({ message, activeVersionId, onFocusVersion }: MessageBubbleProps) {
   const isUser = message.role === "user";
 
   if (isUser) {
@@ -166,27 +160,12 @@ function MessageBubble({ message, activeVersionId, onPickConcept, onFocusVersion
             )}
           </div>
 
-          {/* 4-concept grid in the first AI turn */}
-          {message.concept_grid && (
-            <div className="grid grid-cols-2 gap-2">
-              {message.concept_grid.map((v) => (
-                <ConceptGridCard
-                  key={v.id}
-                  version={v}
-                  onPick={() => onPickConcept?.(v.id)}
-                  isActive={v.id === activeVersionId}
-                />
-              ))}
-            </div>
-          )}
-
-          {/* Single-version thumbnail attached to a refinement reply */}
-          {message.version_id && !message.concept_grid && (
+          {/* Single-version thumbnail link to focus this version on the right */}
+          {message.version_id && (
             <SingleVersionThumb
               versionId={message.version_id}
               isActive={message.version_id === activeVersionId}
               onClick={() => onFocusVersion?.(message.version_id!)}
-              version={undefined}
             />
           )}
         </div>
@@ -196,51 +175,15 @@ function MessageBubble({ message, activeVersionId, onPickConcept, onFocusVersion
 }
 
 /* ------------------------------------------------------------------ */
-/*  Concept grid card (used in the first AI bubble)                    */
+/*  Single-version thumbnail link                                      */
 /* ------------------------------------------------------------------ */
 
-interface ConceptGridCardProps {
-  version: ConceptVersion;
-  isActive: boolean;
-  onPick: () => void;
-}
-
-function ConceptGridCard({ version, isActive, onPick }: ConceptGridCardProps) {
-  return (
-    <button
-      type="button"
-      onClick={onPick}
-      className={`group relative aspect-square rounded-card overflow-hidden border-2 transition-all duration-150 ${
-        isActive
-          ? "border-accent ring-2 ring-accent/30"
-          : "border-border hover:border-border-hover"
-      }`}
-    >
-      <AdMockup variant={version.variant} headline={version.headline} />
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-2">
-        <div className="text-[10px] font-medium text-white truncate">{version.label}</div>
-      </div>
-      {isActive && (
-        <div className="absolute top-1.5 right-1.5 bg-accent text-white text-[9px] font-semibold uppercase tracking-[0.5px] px-1.5 py-0.5 rounded-badge">
-          Picked
-        </div>
-      )}
-    </button>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-/*  Single-version thumbnail (used in refinement replies)              */
-/* ------------------------------------------------------------------ */
-
-// Note: This component is a stub — the parent (concept editor) usually passes
-// the version through indirectly via `activeVersionId`. We render a small
-// "View this version" anchor instead of redrawing the mock here.
+// Renders a small "View this version →" anchor in the AI bubble.
+// The parent renders the actual preview in the right pane via activeVersionId.
 interface SingleVersionThumbProps {
   versionId: string;
   isActive: boolean;
   onClick: () => void;
-  version: ConceptVersion | undefined;
 }
 
 function SingleVersionThumb({ isActive, onClick }: SingleVersionThumbProps) {

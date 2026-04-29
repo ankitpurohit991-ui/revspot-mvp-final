@@ -138,11 +138,11 @@ export function CreativeSetupPanel({
           {isGenerating ? (
             <>
               <span className="h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Generating concepts…
+              Generating concept…
             </>
           ) : (
             <>
-              <Sparkles size={14} strokeWidth={1.5} /> Generate 4 concepts
+              <Sparkles size={14} strokeWidth={1.5} /> Generate concept
               <ArrowRight size={14} strokeWidth={1.5} />
             </>
           )}

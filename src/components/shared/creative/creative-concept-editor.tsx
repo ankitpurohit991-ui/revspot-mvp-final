@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
 import type { ChatMessage, ConceptVersion } from "./types";
 import { CreativeChatPanel } from "./creative-chat-panel";
@@ -13,15 +13,13 @@ interface CreativeConceptEditorProps {
   activeVersionId: string | null;
   isGenerating: boolean;
   onSendMessage: (text: string) => void;
-  onPickConcept: (versionId: string) => void;
   onSelectVersion: (versionId: string) => void;
   /** Branch from a non-latest version — sets it as active and the next refinement
-   *  message will use it as the parent. We just call onSelectVersion under the
-   *  hood; conversation context will pick up from there. */
+   *  message will use it as the parent. */
   onBranchFromVersion: (versionId: string) => void;
+  /** Generate a fresh "new option" — a sibling concept rooted at the original prompt. */
+  onGenerateNewOption: () => void;
   onFinalize: () => void;
-  /** Empty when no concept has been picked yet. */
-  hasPickedConcept: boolean;
 }
 
 export function CreativeConceptEditor({
@@ -30,13 +28,13 @@ export function CreativeConceptEditor({
   activeVersionId,
   isGenerating,
   onSendMessage,
-  onPickConcept,
   onSelectVersion,
   onBranchFromVersion,
+  onGenerateNewOption,
   onFinalize,
-  hasPickedConcept,
 }: CreativeConceptEditorProps) {
   const activeVersion = versions.find((v) => v.id === activeVersionId) ?? null;
+  const hasVersions = versions.length > 0;
 
   return (
     <motion.div
@@ -51,15 +49,10 @@ export function CreativeConceptEditor({
           messages={messages}
           isGenerating={isGenerating}
           onSend={onSendMessage}
-          onPickConcept={onPickConcept}
           onFocusVersion={onSelectVersion}
           activeVersionId={activeVersionId}
-          placeholder={
-            hasPickedConcept
-              ? "Refine — e.g., 'make it more luxurious', 'use a darker palette'"
-              : "Pick one of the 4 concepts on the left to start refining."
-          }
-          emptyMessage="Generating concepts…"
+          placeholder="Refine — e.g., 'make it more luxurious', 'use a darker palette'"
+          emptyMessage="Generating concept…"
         />
       </div>
 
@@ -68,15 +61,25 @@ export function CreativeConceptEditor({
         <div className="flex-1 overflow-y-auto p-6 bg-surface-page">
           {activeVersion ? (
             <div className="max-w-[480px] mx-auto">
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h3 className="text-[14px] font-semibold text-text-primary">
+              <div className="flex items-start justify-between gap-3 mb-3">
+                <div className="min-w-0">
+                  <h3 className="text-[14px] font-semibold text-text-primary truncate">
                     {activeVersion.label}
                   </h3>
-                  <p className="text-[11px] text-text-tertiary mt-0.5">
+                  <p className="text-[11px] text-text-tertiary mt-0.5 line-clamp-2">
                     {activeVersion.headline}
                   </p>
                 </div>
+                <button
+                  type="button"
+                  onClick={onGenerateNewOption}
+                  disabled={isGenerating}
+                  className="inline-flex items-center gap-1.5 h-8 px-3 text-[12px] font-medium text-text-primary border border-border rounded-button bg-white hover:bg-surface-page hover:border-border-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
+                  title="Generate a fresh option from your original prompt"
+                >
+                  <Sparkles size={12} strokeWidth={1.5} />
+                  Generate new option
+                </button>
               </div>
               <div className="aspect-square rounded-card overflow-hidden border border-border bg-white">
                 <AdMockup variant={activeVersion.variant} headline={activeVersion.headline} />
@@ -93,18 +96,15 @@ export function CreativeConceptEditor({
             </div>
           ) : (
             <div className="h-full flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-[12px] text-text-tertiary max-w-[280px] mx-auto leading-relaxed">
-                  Pick one of the 4 generated concepts in the chat to view it here. You can
-                  refine via chat or branch from any past version.
-                </div>
+              <div className="text-[12px] text-text-tertiary max-w-[280px] mx-auto text-center leading-relaxed">
+                Generating your first concept…
               </div>
             </div>
           )}
         </div>
 
         {/* Version timeline */}
-        {versions.length > 0 && (
+        {hasVersions && (
           <VersionTimeline
             versions={versions}
             activeVersionId={activeVersionId}
@@ -117,14 +117,14 @@ export function CreativeConceptEditor({
         {/* Finalize bar */}
         <div className="border-t border-border bg-white px-6 py-3 flex items-center justify-between">
           <div className="text-[11px] text-text-tertiary leading-relaxed">
-            {hasPickedConcept
+            {hasVersions
               ? "Happy with the concept? Finalize to choose sizes."
-              : "Pick a concept above to enable finalize."}
+              : "Generating…"}
           </div>
           <button
             type="button"
             onClick={onFinalize}
-            disabled={!hasPickedConcept}
+            disabled={!activeVersion}
             className="inline-flex items-center gap-1.5 h-9 px-4 bg-accent text-white text-[13px] font-medium rounded-button hover:bg-accent-hover transition-colors duration-150 disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Finalize concept

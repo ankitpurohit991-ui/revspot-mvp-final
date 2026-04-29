@@ -10,15 +10,14 @@ import type {
   CreativePhase,
   CreativeWorkspace,
   GeneratedCreative,
-  SizeChat,
 } from "./creative/types";
 import {
   emptyWorkspace,
   getSize,
-  makeInitialGrid,
   makeMockReply,
   makeMockVersion,
   mkId,
+  pickFreshVariant,
 } from "./creative/types";
 import { CreativeSetupPanel } from "./creative/creative-setup-panel";
 import { CreativeConceptEditor } from "./creative/creative-concept-editor";
@@ -87,7 +86,6 @@ export function CreativeGeneratorModal({
 }: CreativeGeneratorModalProps) {
   const [phase, setPhase] = useState<CreativePhase>("setup");
   const [workspace, setWorkspace] = useState<CreativeWorkspace>(emptyWorkspace);
-  const [activeSizeId, setActiveSizeId] = useState<string>("sq-feed");
   const [isGenerating, setIsGenerating] = useState(false);
 
   // Reset state whenever the modal is opened.
@@ -95,7 +93,6 @@ export function CreativeGeneratorModal({
     if (!open) return;
     setPhase("setup");
     setWorkspace(emptyWorkspace());
-    setActiveSizeId("sq-feed");
     setIsGenerating(false);
   }, [open]);
 
@@ -123,7 +120,7 @@ export function CreativeGeneratorModal({
     const pendingMessage: ChatMessage = {
       id: mkId("msg"),
       role: "ai",
-      text: "Generating 4 concepts…",
+      text: "Generating concept…",
       pending: true,
       created_at: Date.now(),
     };
@@ -134,21 +131,19 @@ export function CreativeGeneratorModal({
     setPhase("concept");
 
     window.setTimeout(() => {
-      const grid = makeInitialGrid();
+      const firstVer = makeMockVersion({ parent_id: null, labelPrefix: "Option 1" });
       const aiReply: ChatMessage = {
         id: mkId("msg"),
         role: "ai",
-        text:
-          "Here are 4 concepts based on your prompt. Pick one to start refining — or send a message to regenerate the grid.",
-        concept_grid: grid,
+        text: "Here's a concept based on your prompt. Refine it via chat, or click 'Generate new option' on the right for a fresh take.",
+        version_id: firstVer.id,
         created_at: Date.now(),
       };
       setWorkspace((w) => ({
         ...w,
         concept_messages: [userMessage, aiReply],
-        concept_versions: grid,
-        // No active selection yet — user must pick from the grid.
-        active_concept_version_id: null,
+        concept_versions: [firstVer],
+        active_concept_version_id: firstVer.id,
       }));
       setIsGenerating(false);
     }, MOCK_LATENCY_MS);
@@ -156,12 +151,67 @@ export function CreativeGeneratorModal({
 
   /* ---------- Phase B handlers ---------- */
 
-  const handlePickConcept = (versionId: string) => {
+  const handleSelectConceptVersion = (versionId: string) => {
     setWorkspace((w) => ({ ...w, active_concept_version_id: versionId }));
   };
 
-  const handleSelectConceptVersion = (versionId: string) => {
-    setWorkspace((w) => ({ ...w, active_concept_version_id: versionId }));
+  /**
+   * Generate a fresh "new option" — a sibling concept rooted at the original
+   * prompt rather than a refinement of the active version. We pick a variant
+   * that isn't already in use to keep the visual variety high.
+   */
+  const handleGenerateNewOption = () => {
+    if (isGenerating) return;
+    setIsGenerating(true);
+
+    // Find which "Option N" we're up to — count root-level (parent_id null)
+    // versions in the chain so the label increments.
+    const optionCount = workspace.concept_versions.filter((v) => v.parent_id === null).length + 1;
+    const usedVariants = workspace.concept_versions.map((v) => v.variant);
+    const variant = pickFreshVariant(usedVariants);
+
+    const userMessage: ChatMessage = {
+      id: mkId("msg"),
+      role: "user",
+      text: "Generate another option.",
+      created_at: Date.now(),
+    };
+    const pendingMessage: ChatMessage = {
+      id: mkId("msg"),
+      role: "ai",
+      text: "Generating a new option…",
+      pending: true,
+      created_at: Date.now(),
+    };
+    setWorkspace((w) => ({
+      ...w,
+      concept_messages: [...w.concept_messages, userMessage, pendingMessage],
+    }));
+
+    window.setTimeout(() => {
+      const newVer = makeMockVersion({
+        parent_id: null,
+        preferVariant: variant,
+        labelPrefix: `Option ${optionCount}`,
+      });
+      const aiReply: ChatMessage = {
+        id: mkId("msg"),
+        role: "ai",
+        text: `Here's option ${optionCount}. Pick whichever feels right — you can keep generating more.`,
+        version_id: newVer.id,
+        created_at: Date.now(),
+      };
+      setWorkspace((w) => {
+        const messagesWithoutPending = w.concept_messages.filter((m) => !m.pending);
+        return {
+          ...w,
+          concept_messages: [...messagesWithoutPending, aiReply],
+          concept_versions: [...w.concept_versions, newVer],
+          active_concept_version_id: newVer.id,
+        };
+      });
+      setIsGenerating(false);
+    }, MOCK_LATENCY_MS);
   };
 
   const handleBranchFromVersion = (versionId: string) => {
@@ -185,11 +235,7 @@ export function CreativeGeneratorModal({
   const handleSendConceptMessage = (text: string) => {
     if (isGenerating) return;
     const parent = workspace.active_concept_version_id;
-    if (!parent) {
-      // Treat as a regenerate-grid request before any concept is picked.
-      handleGenerateInitialConcepts();
-      return;
-    }
+    if (!parent) return; // shouldn't happen after the single-concept handoff
     setIsGenerating(true);
 
     const userMessage: ChatMessage = {
@@ -242,11 +288,14 @@ export function CreativeGeneratorModal({
     const activeVer = workspace.concept_versions.find((v) => v.id === activeId);
     if (!activeVer) return;
 
-    // Initialize the default size's chat with an opening AI message + initial
-    // version cloned from the finalized concept.
+    // Seed every currently-selected size with a fresh version cloned from
+    // the finalized concept.
     setWorkspace((w) => {
-      const seedChat = makeSizeChat(activeSizeId, activeVer);
-      return { ...w, size_chats: { ...w.size_chats, [activeSizeId]: seedChat } };
+      const nextSizeVersions: Record<string, ConceptVersion> = { ...w.size_versions };
+      for (const sizeId of w.selected_sizes) {
+        nextSizeVersions[sizeId] = makeSizeVersion(sizeId, activeVer);
+      }
+      return { ...w, size_versions: nextSizeVersions };
     });
     setPhase("resize");
   };
@@ -254,107 +303,56 @@ export function CreativeGeneratorModal({
   /* ---------- Phase C handlers ---------- */
 
   const handleToggleSize = (sizeId: string) => {
-    let switchTo: string | null = null;
     setWorkspace((w) => {
       const isSelected = w.selected_sizes.includes(sizeId);
       if (isSelected) {
         // Don't allow removing the last size.
         if (w.selected_sizes.length === 1) return w;
-        const nextChats = { ...w.size_chats };
-        delete nextChats[sizeId];
+        const nextSizeVersions = { ...w.size_versions };
+        delete nextSizeVersions[sizeId];
         const nextSelected = w.selected_sizes.filter((id) => id !== sizeId);
-        // If we removed the active tab, switch to the first remaining size.
-        if (sizeId === activeSizeId) switchTo = nextSelected[0] ?? null;
-        return { ...w, selected_sizes: nextSelected, size_chats: nextChats };
+        return { ...w, selected_sizes: nextSelected, size_versions: nextSizeVersions };
       }
 
-      // Adding a new size — seed a chat for it from the finalized concept.
+      // Adding a new size — seed it from the finalized concept.
       const activeId = w.active_concept_version_id;
       const activeVer = activeId ? w.concept_versions.find((v) => v.id === activeId) : undefined;
-      const nextChats = { ...w.size_chats };
-      if (activeVer && !nextChats[sizeId]) {
-        nextChats[sizeId] = makeSizeChat(sizeId, activeVer);
+      const nextSizeVersions = { ...w.size_versions };
+      if (activeVer && !nextSizeVersions[sizeId]) {
+        nextSizeVersions[sizeId] = makeSizeVersion(sizeId, activeVer);
       }
-      switchTo = sizeId;
-      return { ...w, selected_sizes: [...w.selected_sizes, sizeId], size_chats: nextChats };
-    });
-    if (switchTo) setActiveSizeId(switchTo);
-  };
-
-  const handleSelectSize = (sizeId: string) => setActiveSizeId(sizeId);
-
-  const handleSelectVersionInSize = (sizeId: string, versionId: string) => {
-    setWorkspace((w) => {
-      const chat = w.size_chats[sizeId];
-      if (!chat) return w;
       return {
         ...w,
-        size_chats: {
-          ...w.size_chats,
-          [sizeId]: { ...chat, active_version_id: versionId },
-        },
+        selected_sizes: [...w.selected_sizes, sizeId],
+        size_versions: nextSizeVersions,
       };
     });
   };
 
-  const handleSendInSize = (sizeId: string, text: string) => {
+  /**
+   * Regenerate a single size, optionally with a refinement prompt. The current
+   * version is replaced (no per-size history kept — keeps the resize flow
+   * intentionally lightweight).
+   */
+  const handleRegenerateSize = (sizeId: string, refinementText?: string) => {
     if (isGenerating) return;
-    const chat = workspace.size_chats[sizeId];
-    if (!chat) return;
+    const current = workspace.size_versions[sizeId];
+    if (!current) return;
     setIsGenerating(true);
-
-    const userMessage: ChatMessage = {
-      id: mkId("msg"),
-      role: "user",
-      text,
-      created_at: Date.now(),
-    };
-    const pendingMessage: ChatMessage = {
-      id: mkId("msg"),
-      role: "ai",
-      text: "Adjusting this size…",
-      pending: true,
-      created_at: Date.now(),
-    };
-    setWorkspace((w) => ({
-      ...w,
-      size_chats: {
-        ...w.size_chats,
-        [sizeId]: {
-          ...w.size_chats[sizeId],
-          messages: [...w.size_chats[sizeId].messages, userMessage, pendingMessage],
-        },
-      },
-    }));
 
     window.setTimeout(() => {
       setWorkspace((w) => {
-        const c = w.size_chats[sizeId];
-        const newVer = makeMockVersion({
-          parent_id: c.active_version_id,
-          preferVariant: c.versions[0].variant,
-          labelPrefix: `v${c.versions.length + 1}`,
-          refinementText: text,
+        const cur = w.size_versions[sizeId];
+        if (!cur) return w;
+        const replacement = makeMockVersion({
+          parent_id: cur.id,
+          preferVariant: cur.variant,
+          labelPrefix: `${getSize(sizeId)?.label ?? "size"} v${(extractVersionNumber(cur.label) ?? 1) + 1}`,
+          refinementText: refinementText?.trim() ? refinementText : undefined,
         });
-        const aiReply: ChatMessage = {
-          id: mkId("msg"),
-          role: "ai",
-          text: makeMockReply(text),
-          version_id: newVer.id,
-          created_at: Date.now(),
-        };
-        const messagesWithoutPending = c.messages.filter((m) => !m.pending);
         return {
           ...w,
-          size_chats: {
-            ...w.size_chats,
-            [sizeId]: {
-              ...c,
-              messages: [...messagesWithoutPending, aiReply],
-              versions: [...c.versions, newVer],
-              active_version_id: newVer.id,
-            },
-          },
+          size_versions: { ...w.size_versions, [sizeId]: replacement },
         };
       });
       setIsGenerating(false);
@@ -364,9 +362,7 @@ export function CreativeGeneratorModal({
   const handleConfirm = () => {
     const out: GeneratedCreative[] = [];
     for (const sizeId of workspace.selected_sizes) {
-      const chat = workspace.size_chats[sizeId];
-      if (!chat) continue;
-      const ver = chat.versions.find((v) => v.id === chat.active_version_id);
+      const ver = workspace.size_versions[sizeId];
       if (!ver) continue;
       const sizeMeta = getSize(sizeId);
       out.push({
@@ -382,8 +378,6 @@ export function CreativeGeneratorModal({
   };
 
   /* ---------- Computed ---------- */
-
-  const hasPickedConcept = !!workspace.active_concept_version_id;
 
   const phaseIndex = useMemo(() => PHASES.findIndex((p) => p.id === phase), [phase]);
 
@@ -508,23 +502,19 @@ export function CreativeGeneratorModal({
                 activeVersionId={workspace.active_concept_version_id}
                 isGenerating={isGenerating}
                 onSendMessage={handleSendConceptMessage}
-                onPickConcept={handlePickConcept}
                 onSelectVersion={handleSelectConceptVersion}
                 onBranchFromVersion={handleBranchFromVersion}
+                onGenerateNewOption={handleGenerateNewOption}
                 onFinalize={handleFinalizeConcept}
-                hasPickedConcept={hasPickedConcept}
               />
             )}
 
             {phase === "resize" && (
               <CreativeResizeEditor
                 workspace={workspace}
-                activeSizeId={activeSizeId}
                 isGenerating={isGenerating}
                 onToggleSize={handleToggleSize}
-                onSelectSize={handleSelectSize}
-                onSendInSize={handleSendInSize}
-                onSelectVersionInSize={handleSelectVersionInSize}
+                onRegenerateSize={handleRegenerateSize}
                 onConfirm={handleConfirm}
               />
             )}
@@ -540,29 +530,22 @@ export function CreativeGeneratorModal({
 /* ------------------------------------------------------------------ */
 
 /**
- * Build the initial size-chat for a given sizeId, seeded from the finalized
- * concept version (or any concept version, when adding a new size mid-flow).
+ * Build the initial version for a sizeId, seeded from the finalized concept.
+ * Used both when entering Phase C and when adding a new size mid-flow.
  */
-function makeSizeChat(sizeId: string, fromVersion: ConceptVersion): SizeChat {
+function makeSizeVersion(sizeId: string, fromVersion: ConceptVersion): ConceptVersion {
   const sizeLabel = getSize(sizeId)?.label ?? "size";
-  const seedVer: ConceptVersion = {
+  return {
     ...fromVersion,
     id: mkId("ver"),
     parent_id: fromVersion.id,
     label: `${sizeLabel} v1`,
     created_at: Date.now(),
   };
-  const opening: ChatMessage = {
-    id: mkId("msg"),
-    role: "ai",
-    text: `Generated the ${sizeLabel} version from your finalized concept. Refine below — changes here won't affect other sizes.`,
-    version_id: seedVer.id,
-    created_at: Date.now(),
-  };
-  return {
-    size_id: sizeId,
-    messages: [opening],
-    versions: [seedVer],
-    active_version_id: seedVer.id,
-  };
+}
+
+/** Pull the numeric suffix off a `"… v3"` style label. */
+function extractVersionNumber(label: string): number | null {
+  const m = label.match(/v(\d+)$/);
+  return m ? parseInt(m[1], 10) : null;
 }
