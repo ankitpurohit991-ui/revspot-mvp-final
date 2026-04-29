@@ -5,16 +5,25 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import type { Variants } from "framer-motion";
-import { ArrowLeft, Calendar, ArrowRight, Sparkles, Lightbulb, X, Check, Bot, AlertTriangle, Pause, Play } from "lucide-react";
-import { campaignDetail, campaignDiagnosis, leadDistributionData } from "@/lib/campaign-data";
+import {
+  ArrowLeft,
+  Calendar,
+  Check,
+  Bot,
+  AlertTriangle,
+  Pause,
+  Play,
+} from "lucide-react";
+import { campaignDetail, leadDistributionData } from "@/lib/campaign-data";
+import { campaignDiagnosisPayload } from "@/lib/diagnosis-data";
 import { LeadsTab } from "@/components/campaigns/leads-tab";
 import { AnalysisTab } from "@/components/campaigns/analysis-tab";
 import { SettingsTab } from "@/components/campaigns/settings-tab";
 import { DiagnosisTab } from "@/components/campaigns/diagnosis-tab";
 import { LeadInsights } from "@/components/campaigns/lead-insights";
 import { CampaignBriefTab } from "@/components/campaigns/campaign-brief-tab";
-import { ActionBanner } from "@/components/shared/action-banner";
-import { FunnelEvidenceChips, type FunnelEvidence } from "@/components/shared/funnel-evidence-chips";
+import { StatusStrip } from "@/components/campaigns/diagnosis/status-strip";
+import { NextBestAction } from "@/components/campaigns/diagnosis/next-best-action";
 
 const fadeUp: Variants = {
   hidden: { opacity: 0, y: 4 },
@@ -22,13 +31,6 @@ const fadeUp: Variants = {
 };
 
 type Tab = "analysis" | "leads" | "insights" | "diagnosis" | "brief" | "settings";
-
-// Diagnosis status badge config
-const diagnosisStatusConfig = {
-  "on-target": { label: "On Target", cls: "bg-[#F0FDF4] text-[#15803D]" },
-  "near-target": { label: "Near Target", cls: "bg-[#FEF3C7] text-[#92400E]" },
-  "off-target": { label: "Off Target", cls: "bg-[#FEF2F2] text-[#DC2626]" },
-};
 
 export default function CampaignDetailPage() {
   const router = useRouter();
@@ -38,7 +40,7 @@ export default function CampaignDetailPage() {
   );
   const [statusConfirm, setStatusConfirm] = useState<"pause" | "enable" | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [bannerSnoozed, setBannerSnoozed] = useState(false);
+  const [nbaSnoozed, setNbaSnoozed] = useState(false);
 
   useEffect(() => {
     if (!toast) return;
@@ -60,87 +62,11 @@ export default function CampaignDetailPage() {
 
   const campaign = campaignDetail;
   const isEnabled = campaignStatus === "enabled";
-  const diagCfg = diagnosisStatusConfig[campaignDiagnosis.status];
+  const diagnosis = campaignDiagnosisPayload;
 
-  interface Suggestion {
-    id: string;
-    text: string;
-    cta: string;
-    ctaLink?: string;
-    ctaModule?: string;
-    type: "budget" | "creative" | "targeting" | "general";
-    funnel_evidence?: FunnelEvidence[];
-  }
-
-  const [suggestions, setSuggestions] = useState<Suggestion[]>([
-    {
-      id: "sug-1",
-      text: 'Shift 20% budget from "Broad Bangalore" to "Whitefield HNI" — Whitefield delivers 3.2× more qualified leads per ₹ and 4 of 5 site visits this month came from it.',
-      cta: "Adjust Budget",
-      type: "budget",
-      funnel_evidence: [
-        { stage: "TOF", fact: "CTR 2.4% vs 0.9%" },
-        { stage: "MOF", fact: "Verify 31% vs 11%" },
-        { stage: "BOF", fact: "4/5 site visits" },
-      ],
-    },
-    {
-      id: "sug-2",
-      text: 'Pause "Godrej Air Floor Plan Static" creative — 0.8% CTR is dragging upstream cost up and the few leads it produces verify at 0%.',
-      cta: "Update Creative",
-      ctaLink: "/creatives",
-      ctaModule: "Creatives",
-      type: "creative",
-      funnel_evidence: [
-        { stage: "TOF", fact: "CTR 0.8% (-40% in 7d)" },
-        { stage: "MOF", fact: "0 of 6 leads verified" },
-      ],
-    },
-    {
-      id: "sug-3",
-      text: 'Increase bid on "3BHK Whitefield" audience by 15% — qualification rate is 2.3× campaign average but impression share is low.',
-      cta: "Adjust Targeting",
-      type: "targeting",
-      funnel_evidence: [
-        { stage: "TOF", fact: "Impression share 12%" },
-        { stage: "BOF", fact: "Qual rate 27% vs 12% avg" },
-      ],
-    },
-    {
-      id: "sug-4",
-      text: 'Add Sarjapur Road as a separate ad set — 12% of qualified leads originate there with no dedicated targeting yet.',
-      cta: "Add Ad Set",
-      type: "general",
-      funnel_evidence: [
-        { stage: "MOF", fact: "Sarjapur leads verify at 24%" },
-        { stage: "BOF", fact: "12% of qualified leads" },
-      ],
-    },
-  ]);
-  const [appliedId, setAppliedId] = useState<string | null>(null);
-  const [navigationConfirm, setNavigationConfirm] = useState<{ link: string; module: string } | null>(null);
-
-  const applySuggestion = (sug: Suggestion) => {
-    if (sug.ctaLink && sug.ctaModule) {
-      setNavigationConfirm({ link: sug.ctaLink, module: sug.ctaModule });
-      return;
-    }
-    setAppliedId(sug.id);
-    setTimeout(() => {
-      setSuggestions((prev) => prev.filter((s) => s.id !== sug.id));
-      setAppliedId(null);
-    }, 1200);
-  };
-
-  const dismissSuggestion = (id: string) => {
-    setSuggestions((prev) => prev.filter((s) => s.id !== id));
-  };
-
-  const confirmNavigation = () => {
-    if (navigationConfirm) {
-      router.push(navigationConfirm.link);
-    }
-    setNavigationConfirm(null);
+  const handleApplyNba = () => {
+    // Visual nudge → take user to the Diagnosis tab where the full context lives.
+    setActiveTab("diagnosis");
   };
 
   const tabs: { key: Tab; label: string; count?: number }[] = [
@@ -181,7 +107,7 @@ export default function CampaignDetailPage() {
               {campaign.platform}
             </span>
             <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge bg-surface-secondary text-text-secondary">
-              <Calendar size={10} strokeWidth={1.5} /> Day 14 of 30
+              <Calendar size={10} strokeWidth={1.5} /> Day {diagnosis.status_strip.days_live} of {diagnosis.status_strip.days_total}
             </span>
           </div>
           <div className="flex items-center gap-4 text-[12px] text-text-secondary">
@@ -208,32 +134,7 @@ export default function CampaignDetailPage() {
         </button>
       </div>
 
-      {/* Navigation Confirmation Popup */}
-      {navigationConfirm && (
-        <>
-          <div className="fixed inset-0 bg-black/20 z-[60]" onClick={() => setNavigationConfirm(null)} />
-          <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-            <div className="bg-white rounded-card border border-border shadow-xl w-full max-w-[400px] p-6">
-              <h3 className="text-[16px] font-semibold text-text-primary mb-2">Navigate to {navigationConfirm.module}?</h3>
-              <p className="text-[13px] text-text-secondary leading-relaxed mb-5">
-                You&apos;ll be taken to the {navigationConfirm.module} section to make the recommended changes. Any unsaved changes on this page will be preserved.
-              </p>
-              <div className="flex items-center justify-end gap-2">
-                <button onClick={() => setNavigationConfirm(null)}
-                  className="h-9 px-4 text-[13px] font-medium text-text-secondary border border-border rounded-button bg-white hover:bg-surface-page transition-colors">
-                  Cancel
-                </button>
-                <button onClick={confirmNavigation}
-                  className="h-9 px-4 text-[13px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors">
-                  Go to {navigationConfirm.module}
-                </button>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* No Agent Connected Banner (shown when agentConnected is false) */}
+      {/* No Agent Connected Banner */}
       {!campaign.agentConnected && (
         <div className="mb-4 flex items-start gap-3 bg-[#FEF3C7] border border-[#F59E0B]/20 rounded-card px-5 py-4">
           <AlertTriangle size={16} strokeWidth={1.5} className="text-[#92400E] mt-0.5 shrink-0" />
@@ -250,84 +151,21 @@ export default function CampaignDetailPage() {
         </div>
       )}
 
-      {/* Action-first banner — leads with what to do */}
-      {!bannerSnoozed && campaignDiagnosis.headline_action && (
-        <ActionBanner
-          verb={campaignDiagnosis.headline_action.verb}
-          target={campaignDiagnosis.headline_action.target}
-          outcome={campaignDiagnosis.headline_action.outcome}
-          expectedImpact={campaignDiagnosis.headline_action.expected_impact}
-          ctaLabel={campaignDiagnosis.headline_action.cta_label}
-          onCtaClick={() => setActiveTab("settings")}
-          onSnooze={() => setBannerSnoozed(true)}
-          variant="campaign"
-        />
-      )}
-
-      {/* Merged Diagnosis Summary + AI Recommendations Bar */}
-      <div className="mb-5 bg-white border border-border rounded-card">
-        {/* Diagnosis row */}
-        <div className="flex items-center gap-3 px-4 py-2.5">
-          <div className="w-5 h-5 rounded-[5px] bg-accent flex items-center justify-center shrink-0">
-            <Sparkles size={11} strokeWidth={1.5} className="text-white" />
-          </div>
-          <span className={`inline-flex items-center text-[11px] font-semibold px-2 py-0.5 rounded-badge ${diagCfg.cls}`}>
-            {diagCfg.label}
-          </span>
-          <p className="text-[12px] text-text-secondary flex-1 truncate">
-            CPL ₹1,183 vs target ₹1,200 — improving trend visible in second half of the flight
-          </p>
-          <button onClick={() => setActiveTab("diagnosis")}
-            className="inline-flex items-center gap-1 text-[11px] font-medium text-text-secondary hover:text-text-primary transition-colors duration-150 shrink-0">
-            View details <ArrowRight size={11} strokeWidth={1.5} />
-          </button>
-        </div>
-
-        {/* Inline recommendations (max 2) */}
-        {suggestions.length > 0 && (
-          <div className="border-t border-border-subtle">
-            {suggestions.slice(0, 2).map((sug) => (
-              <div key={sug.id} className="flex items-start gap-3 px-4 py-3 border-b border-border-subtle last:border-b-0">
-                <Lightbulb size={13} strokeWidth={1.5} className="text-[#3B82F6] shrink-0 mt-0.5" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[12px] text-text-secondary leading-relaxed">{sug.text}</p>
-                  {sug.funnel_evidence && sug.funnel_evidence.length > 0 && (
-                    <div className="mt-1.5">
-                      <FunnelEvidenceChips evidence={sug.funnel_evidence} />
-                    </div>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  {appliedId === sug.id ? (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-medium text-[#15803D]">
-                      <Check size={12} strokeWidth={2} /> Applied!
-                    </span>
-                  ) : (
-                    <>
-                      <button onClick={() => applySuggestion(sug)}
-                        className="h-7 px-3 text-[11px] font-medium bg-accent text-white rounded-button hover:bg-accent-hover transition-colors">
-                        {sug.cta}
-                      </button>
-                      <button onClick={() => dismissSuggestion(sug.id)}
-                        className="p-1 text-text-tertiary hover:text-text-primary rounded-button hover:bg-surface-secondary transition-colors">
-                        <X size={14} strokeWidth={1.5} />
-                      </button>
-                    </>
-                  )}
-                </div>
-              </div>
-            ))}
-            {suggestions.length > 2 && (
-              <div className="px-4 py-2">
-                <button onClick={() => setActiveTab("diagnosis")}
-                  className="text-[11px] font-medium text-text-secondary hover:text-text-primary transition-colors duration-150">
-                  See {suggestions.length - 2} more recommendations <ArrowRight size={11} strokeWidth={1.5} className="inline" />
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+      {/* Status strip — compact verdict + headline + primary metric */}
+      <div className="mb-3">
+        <StatusStrip data={diagnosis.status_strip} />
       </div>
+
+      {/* Next Best Action — prescriptive card */}
+      {!nbaSnoozed && (
+        <div className="mb-5">
+          <NextBestAction
+            action={diagnosis.next_best_action}
+            onApply={handleApplyNba}
+            onSnooze={() => setNbaSnoozed(true)}
+          />
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex items-center gap-0 border-b border-border mb-6">

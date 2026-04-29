@@ -1,15 +1,25 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
-  CircleCheck, AlertTriangle, XCircle, TrendingDown, Lightbulb, Sparkles,
-  ChevronDown, ChevronRight, Image as ImageIcon, Wand2, Plus, Upload,
+  CircleCheck,
+  AlertTriangle,
+  XCircle,
+  ChevronDown,
+  ChevronRight,
+  Image as ImageIcon,
+  Plus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { campaignDiagnosis, adSetsData } from "@/lib/campaign-data";
+import { adSetsData } from "@/lib/campaign-data";
 import type { AdSetRow } from "@/lib/campaign-data";
+import { campaignDiagnosisPayload } from "@/lib/diagnosis-data";
 import { CreativeGeneratorModal } from "@/components/shared/creative-generator-modal";
-import { FunnelEvidenceChips } from "@/components/shared/funnel-evidence-chips";
+
+import { GoalTracker } from "./diagnosis/goal-tracker";
+import { BudgetAllocation } from "./diagnosis/budget-allocation";
+import { DiagnosisBullets } from "./diagnosis/diagnosis-bullets";
+import { MoreActions } from "./diagnosis/more-actions";
 
 function formatCurrency(amount: number) {
   if (amount >= 100000) return `₹${(amount / 100000).toFixed(1)}L`;
@@ -23,21 +33,18 @@ function DiagnosisBadge({ diagnosis }: { diagnosis: AdSetRow["diagnosis"] }) {
     "pause-candidate": { icon: XCircle, label: "Pause", cls: "text-status-error bg-[#FEF2F2]" },
   };
   const { icon: Icon, label, cls } = cfg[diagnosis];
-  return <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge ${cls}`}><Icon size={11} strokeWidth={2} /> {label}</span>;
+  return (
+    <span className={`inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-badge ${cls}`}>
+      <Icon size={11} strokeWidth={2} /> {label}
+    </span>
+  );
 }
 
-function CampaignStatusBadge({ status }: { status: "on-target" | "near-target" | "off-target" }) {
-  const cfg = {
-    "on-target": { label: "On Target", cls: "bg-[#F0FDF4] text-[#15803D]" },
-    "near-target": { label: "Near Target", cls: "bg-[#FEF3C7] text-[#92400E]" },
-    "off-target": { label: "Off Target", cls: "bg-[#FEF2F2] text-[#DC2626]" },
-  };
-  const { label, cls } = cfg[status];
-  return <span className={`inline-flex items-center text-[12px] font-semibold px-3 py-1 rounded-badge ${cls}`}>{label}</span>;
-}
-
-// Mock creatives per ad set
-const adSetCreatives: Record<string, { id: string; name: string; format: string; ctr: number; status: "active" | "paused" }[]> = {
+// Mock creatives per ad set — kept for the tactical AdSet Breakdown section.
+const adSetCreatives: Record<
+  string,
+  { id: string; name: string; format: string; ctr: number; status: "active" | "paused" }[]
+> = {
   "adset-1": [
     { id: "cr-1", name: "Godrej Air 3BHK Carousel v2", format: "Carousel", ctr: 2.8, status: "active" },
     { id: "cr-2", name: "Godrej Air Lifestyle Video", format: "Video", ctr: 3.4, status: "active" },
@@ -57,83 +64,61 @@ export function DiagnosisTab() {
   const [expandedAdSet, setExpandedAdSet] = useState<string | null>(null);
   const [generatorOpen, setGeneratorOpen] = useState(false);
   const [generatorAdSet, setGeneratorAdSet] = useState<string | null>(null);
+  const [hoveredActionId, setHoveredActionId] = useState<string | null>(null);
 
-  const toggleAdSet = (id: string) => {
-    setExpandedAdSet((prev) => (prev === id ? null : id));
-  };
+  const payload = campaignDiagnosisPayload;
 
+  // Map of action_id → headline for diagnosis bullets that drive an action.
+  const actionHeadlines = useMemo(() => {
+    const map: Record<string, string> = {
+      [payload.next_best_action.id]: payload.next_best_action.headline,
+    };
+    for (const a of payload.more_actions) map[a.id] = a.headline;
+    return map;
+  }, [payload]);
+
+  const toggleAdSet = (id: string) => setExpandedAdSet((prev) => (prev === id ? null : id));
   const openGenerator = (adSetId: string) => {
     setGeneratorAdSet(adSetId);
     setGeneratorOpen(true);
   };
-
   const adSetName = adSetsData.find((a) => a.id === generatorAdSet)?.name || "Ad Set";
 
   return (
-    <div className="space-y-6">
-      {/* AI Diagnosis */}
-      <div className="bg-[#FAFAF8] border border-border rounded-card overflow-hidden">
-        <div className="border-l-4 border-l-accent p-5">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-[8px] bg-accent flex items-center justify-center">
-                <Sparkles size={14} strokeWidth={1.5} className="text-white" />
-              </div>
-              <div>
-                <h3 className="text-[16px] font-semibold text-text-primary">AI Diagnosis</h3>
-                <span className="text-[11px] text-text-tertiary">Auto-generated campaign analysis</span>
-              </div>
-            </div>
-            <CampaignStatusBadge status={campaignDiagnosis.status} />
-          </div>
+    <div className="space-y-5">
+      {/* Goal tracker */}
+      <GoalTracker data={payload.goal_tracker} />
 
-          <p className="text-[14px] text-text-primary leading-relaxed mb-5 font-medium">{campaignDiagnosis.summary}</p>
+      {/* Budget allocation + top move */}
+      <BudgetAllocation data={payload.budget_allocation} />
 
-          <div className="grid grid-cols-2 gap-5">
-            <div>
-              <div className="flex items-center gap-1.5 mb-3">
-                <TrendingDown size={14} strokeWidth={1.5} className="text-text-tertiary" />
-                <span className="text-[12px] font-medium text-text-secondary uppercase tracking-[0.4px]">Why — funnel-connected reasoning</span>
-              </div>
-              <ul className="space-y-3">
-                {campaignDiagnosis.reasons.map((r, i) => (
-                  <li
-                    key={i}
-                    className="text-[12px] text-text-secondary leading-relaxed pl-3 relative before:content-[''] before:absolute before:left-0 before:top-[7px] before:w-1 before:h-1 before:bg-text-tertiary before:rounded-full"
-                  >
-                    <p>{r.text}</p>
-                    {r.evidence && r.evidence.length > 0 && (
-                      <div className="mt-1.5">
-                        <FunnelEvidenceChips evidence={r.evidence} />
-                      </div>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <div className="flex items-center gap-1.5 mb-2">
-                <Lightbulb size={14} strokeWidth={1.5} className="text-text-tertiary" />
-                <span className="text-[12px] font-medium text-text-secondary uppercase tracking-[0.4px]">Recommendations</span>
-              </div>
-              <p className="text-[12px] text-text-secondary leading-relaxed">
-                Actionable recommendations are shown at the top of this page in the <span className="font-medium text-text-primary">AI Recommendations</span> section with one-click apply buttons.
-              </p>
-            </div>
-          </div>
+      {/* Diagnosis bullets — TOF/MOF/BOF chips with action linkage */}
+      <DiagnosisBullets
+        bullets={payload.diagnosis}
+        actionHeadlines={actionHeadlines}
+        highlightActionId={hoveredActionId ?? payload.next_best_action.id}
+        onSelectAction={(id) => setHoveredActionId(id)}
+      />
 
-          <div className="flex items-center gap-1.5 mt-5 pt-4 border-t border-border-subtle">
-            <Sparkles size={11} strokeWidth={1.5} className="text-text-tertiary" />
-            <span className="text-[10px] text-text-tertiary">Generated by Revspot AI · Updated 2 hours ago</span>
-          </div>
-        </div>
-      </div>
+      {/* More actions */}
+      <MoreActions
+        actions={payload.more_actions}
+        onApply={() => {
+          /* mock: mark applied — not wired to real backend */
+        }}
+        onDismiss={() => {
+          /* mock: dismiss locally — not wired */
+        }}
+        onHover={setHoveredActionId}
+      />
 
-      {/* Ad Sets Table (clickable rows) */}
+      {/* Tactical Ad Set Breakdown (kept for drill-in) */}
       <div className="bg-white border border-border rounded-card overflow-hidden">
         <div className="px-5 py-4 border-b border-border-subtle">
-          <h3 className="text-section-header text-text-primary">Ad Set Breakdown</h3>
-          <p className="text-[11px] text-text-tertiary mt-0.5">Click an ad set to view and manage its creatives</p>
+          <h3 className="text-section-header text-text-primary">Ad set breakdown</h3>
+          <p className="text-[11px] text-text-tertiary mt-0.5">
+            Click an ad set to view and manage its creatives
+          </p>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full">
@@ -141,13 +126,23 @@ export function DiagnosisTab() {
               <tr className="border-b border-border-subtle">
                 <th className="w-6 px-2"></th>
                 {[
-                  { label: "Ad Set", align: "left" }, { label: "Spend", align: "right" },
-                  { label: "Leads", align: "right" }, { label: "QLs", align: "right" },
-                  { label: "CPL", align: "right" }, { label: "CPQL", align: "right" },
-                  { label: "CTR", align: "right" }, { label: "CVR", align: "right" },
-                  { label: "Freq", align: "right" }, { label: "Diagnosis", align: "center" },
+                  { label: "Ad Set", align: "left" },
+                  { label: "Spend", align: "right" },
+                  { label: "Leads", align: "right" },
+                  { label: "QLs", align: "right" },
+                  { label: "CPL", align: "right" },
+                  { label: "CPQL", align: "right" },
+                  { label: "CTR", align: "right" },
+                  { label: "CVR", align: "right" },
+                  { label: "Freq", align: "right" },
+                  { label: "Diagnosis", align: "center" },
                 ].map((h) => (
-                  <th key={h.label} className={`px-3 py-2.5 text-[10px] font-medium text-text-tertiary uppercase tracking-[0.5px] text-${h.align} whitespace-nowrap`}>{h.label}</th>
+                  <th
+                    key={h.label}
+                    className={`px-3 py-2.5 text-[10px] font-medium text-text-tertiary uppercase tracking-[0.5px] text-${h.align} whitespace-nowrap`}
+                  >
+                    {h.label}
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -164,21 +159,42 @@ export function DiagnosisTab() {
                       } ${isExpanded ? "bg-accent/5" : ""}`}
                     >
                       <td className="px-2 py-2.5 text-text-tertiary">
-                        {isExpanded ? <ChevronDown size={14} strokeWidth={1.5} /> : <ChevronRight size={14} strokeWidth={1.5} />}
+                        {isExpanded ? (
+                          <ChevronDown size={14} strokeWidth={1.5} />
+                        ) : (
+                          <ChevronRight size={14} strokeWidth={1.5} />
+                        )}
                       </td>
-                      <td className="px-3 py-2.5 text-[12px] text-text-primary font-medium whitespace-nowrap max-w-[180px] truncate">{adset.name}</td>
-                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">{formatCurrency(adset.spend)}</td>
-                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">{adset.leads}</td>
-                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">{adset.qualifiedLeads}</td>
-                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">₹{adset.cpl.toLocaleString("en-IN")}</td>
-                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">{adset.cpql > 0 ? `₹${adset.cpql.toLocaleString("en-IN")}` : "—"}</td>
-                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">{adset.ctr}%</td>
-                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">{adset.ctlPercent}%</td>
+                      <td className="px-3 py-2.5 text-[12px] text-text-primary font-medium whitespace-nowrap max-w-[180px] truncate">
+                        {adset.name}
+                      </td>
+                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">
+                        {formatCurrency(adset.spend)}
+                      </td>
+                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">
+                        {adset.leads}
+                      </td>
+                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">
+                        {adset.qualifiedLeads}
+                      </td>
+                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">
+                        ₹{adset.cpl.toLocaleString("en-IN")}
+                      </td>
+                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">
+                        {adset.cpql > 0 ? `₹${adset.cpql.toLocaleString("en-IN")}` : "—"}
+                      </td>
+                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">
+                        {adset.ctr}%
+                      </td>
+                      <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">
+                        {adset.ctlPercent}%
+                      </td>
                       <td className="px-3 py-2.5 text-[12px] text-text-primary text-right tabular-nums">2.4</td>
-                      <td className="px-3 py-2.5 text-center"><DiagnosisBadge diagnosis={adset.diagnosis} /></td>
+                      <td className="px-3 py-2.5 text-center">
+                        <DiagnosisBadge diagnosis={adset.diagnosis} />
+                      </td>
                     </tr>
 
-                    {/* Expanded creatives row */}
                     <AnimatePresence>
                       {isExpanded && (
                         <tr>
@@ -194,11 +210,20 @@ export function DiagnosisTab() {
                                 <div className="flex items-center justify-between mb-3">
                                   <div className="flex items-center gap-2">
                                     <ImageIcon size={14} strokeWidth={1.5} className="text-text-tertiary" />
-                                    <span className="text-[12px] font-semibold text-text-primary">Creatives in {adset.name}</span>
-                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-secondary text-text-secondary">{creatives.length}</span>
+                                    <span className="text-[12px] font-semibold text-text-primary">
+                                      Creatives in {adset.name}
+                                    </span>
+                                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-surface-secondary text-text-secondary">
+                                      {creatives.length}
+                                    </span>
                                   </div>
-                                  <button onClick={(e) => { e.stopPropagation(); openGenerator(adset.id); }}
-                                    className="inline-flex items-center gap-1.5 h-7 px-2.5 text-[11px] font-medium text-accent border border-accent/30 rounded-button hover:bg-accent/5 transition-colors">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      openGenerator(adset.id);
+                                    }}
+                                    className="inline-flex items-center gap-1.5 h-7 px-2.5 text-[11px] font-medium text-accent border border-accent/30 rounded-button hover:bg-accent/5 transition-colors"
+                                  >
                                     <Plus size={11} strokeWidth={2} /> Add Creative
                                   </button>
                                 </div>
@@ -207,20 +232,25 @@ export function DiagnosisTab() {
                                   <div className="grid grid-cols-3 gap-3">
                                     {creatives.map((cr) => (
                                       <div key={cr.id} className="bg-white border border-border rounded-[8px] p-3">
-                                        {/* Creative preview placeholder */}
                                         <div className="aspect-[4/3] bg-surface-secondary rounded-[6px] flex items-center justify-center mb-2">
                                           <ImageIcon size={20} strokeWidth={1} className="text-text-tertiary" />
                                         </div>
                                         <div className="flex items-center justify-between">
                                           <div className="min-w-0">
-                                            <div className="text-[11px] font-medium text-text-primary truncate">{cr.name}</div>
+                                            <div className="text-[11px] font-medium text-text-primary truncate">
+                                              {cr.name}
+                                            </div>
                                             <div className="text-[10px] text-text-tertiary mt-0.5">
                                               {cr.format} · CTR {cr.ctr}%
                                             </div>
                                           </div>
-                                          <span className={`text-[9px] font-medium px-1.5 py-0.5 rounded-badge shrink-0 ml-2 ${
-                                            cr.status === "active" ? "bg-[#F0FDF4] text-[#15803D]" : "bg-[#FEF3C7] text-[#92400E]"
-                                          }`}>
+                                          <span
+                                            className={`text-[9px] font-medium px-1.5 py-0.5 rounded-badge shrink-0 ml-2 ${
+                                              cr.status === "active"
+                                                ? "bg-[#F0FDF4] text-[#15803D]"
+                                                : "bg-[#FEF3C7] text-[#92400E]"
+                                            }`}
+                                          >
                                             {cr.status === "active" ? "Active" : "Paused"}
                                           </span>
                                         </div>
@@ -246,11 +276,16 @@ export function DiagnosisTab() {
         </div>
       </div>
 
-      {/* Creative Generator Modal (same as campaign launcher) */}
       <CreativeGeneratorModal
         open={generatorOpen}
-        onClose={() => { setGeneratorOpen(false); setGeneratorAdSet(null); }}
-        onComplete={() => { setGeneratorOpen(false); setGeneratorAdSet(null); }}
+        onClose={() => {
+          setGeneratorOpen(false);
+          setGeneratorAdSet(null);
+        }}
+        onComplete={() => {
+          setGeneratorOpen(false);
+          setGeneratorAdSet(null);
+        }}
         angleName={adSetName}
         personaName={adSetName}
         hook="Premium living in Whitefield"
