@@ -23,6 +23,7 @@ import {
 import { CreativeSetupPanel } from "./creative/creative-setup-panel";
 import { CreativeConceptEditor } from "./creative/creative-concept-editor";
 import { CreativeResizeEditor } from "./creative/creative-resize-editor";
+import { StrategyStrip } from "./creative/strategy-strip";
 
 /* ------------------------------------------------------------------ */
 /*  Public types — preserved so consumers don't change                 */
@@ -78,6 +79,9 @@ export function CreativeGeneratorModal({
   onComplete,
   angleName,
   personaName,
+  personaRole,
+  painPoint,
+  usp,
   hook,
   cta,
 }: CreativeGeneratorModalProps) {
@@ -468,6 +472,18 @@ export function CreativeGeneratorModal({
               <X size={16} strokeWidth={1.5} />
             </button>
           </div>
+
+          {/* Strategy strip — always visible (collapsible) so the user can
+              refer back to pain point / USP / hook / CTA while iterating. */}
+          <StrategyStrip
+            angleName={angleName}
+            personaName={personaName}
+            personaRole={personaRole}
+            painPoint={painPoint}
+            usp={usp}
+            hook={hook}
+            cta={cta}
+          />
 
           {/* Body — switches between phases */}
           <div className="flex-1 min-h-0 overflow-hidden">
