@@ -14,8 +14,11 @@ import {
   Settings,
   Eye,
   EyeOff,
+  Sparkles,
 } from "lucide-react";
 import { useDemoMode } from "@/lib/demo-mode";
+import { useSpotStore } from "@/lib/spot/store";
+import { SpotMark } from "@/components/spot/spot-mark";
 
 const dashboardItem = { name: "Dashboard", href: "/dashboard", icon: LayoutGrid };
 
@@ -42,6 +45,12 @@ const navSections = [
       { name: "Integrations", href: "/integrations", icon: Plug, comingSoon: true },
     ],
   },
+  {
+    label: "Workspace",
+    items: [
+      { name: "Brand", href: "/brand", icon: Sparkles, comingSoon: true },
+    ],
+  },
 ];
 
 function RevspotLogo() {
@@ -66,6 +75,8 @@ function RevspotLogo() {
 export function Sidebar() {
   const pathname = usePathname();
   const { isEmpty, toggle } = useDemoMode();
+  const askSpot = useSpotStore((s) => s.askSpot);
+  const spotOpen = useSpotStore((s) => s.open);
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard" || pathname === "/";
@@ -89,12 +100,33 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto px-3 py-1 pb-2">
-        {/* Dashboard — standalone at top */}
-        <div className="mb-3">
+        {/* Dashboard + Spot — standalone at top */}
+        <div className="mb-3 space-y-0.5">
           <Link href={dashboardItem.href} className={navLinkClass(dashboardItem.href)} style={{ fontSize: "13.5px" }}>
             <dashboardItem.icon size={16} strokeWidth={1.5} />
             <span>{dashboardItem.name}</span>
           </Link>
+          <button
+            type="button"
+            onClick={() => askSpot("")}
+            className={`relative flex items-center gap-2.5 px-2 h-8 rounded-[6px] transition-colors duration-150 w-full text-left ${
+              spotOpen
+                ? "bg-surface-secondary text-text-primary font-medium"
+                : "text-text-secondary hover:bg-surface-secondary/60"
+            }`}
+            style={{ fontSize: "13.5px" }}
+          >
+            <span className="inline-flex items-center justify-center" style={{ width: 16, height: 16 }}>
+              <SpotMark size={14} />
+            </span>
+            <span>Spot</span>
+            <span
+              className="ml-auto"
+              style={{ width: 6, height: 6, borderRadius: "50%", background: "#1A1A1A" }}
+              aria-hidden
+              title="New from Spot"
+            />
+          </button>
         </div>
 
         {/* Sections */}
