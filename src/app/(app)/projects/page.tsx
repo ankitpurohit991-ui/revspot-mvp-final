@@ -5,13 +5,14 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { Plus, ChevronRight, Folder, ArrowUpRight } from "lucide-react";
 import {
-  projectsList as newProjectsList,
+  projectsForWorkspace,
   projectDetails,
   projectRollup,
 } from "@/lib/project-data";
 import { CreateProjectFlow } from "@/components/project/create-project-flow";
 import { SpotMark } from "@/components/spot/spot-mark";
 import { useSpotStore } from "@/lib/spot/store";
+import { useCurrentScope, useCurrentWorkspaceLabel } from "@/lib/workspace-store";
 
 function fmtRate(v: number | null) {
   if (v === null) return "—";
@@ -73,10 +74,13 @@ export default function ProjectsPage() {
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const askSpot = useSpotStore((s) => s.askSpot);
+  const scope = useCurrentScope();
+  const wsLabel = useCurrentWorkspaceLabel();
 
-  const rows = newProjectsList.map((p) => {
-    const rollup = projectRollup(p.id)!;
-    const d = projectDetails[p.id];
+  const filteredProjects = projectsForWorkspace(scope.kind === "all" ? undefined : scope.id);
+  const rows = filteredProjects.map((d) => {
+    const rollup = projectRollup(d.id)!;
+    const p = { id: d.id, name: d.name, category: d.category, status: d.status, health: d.health };
     return { p, d, rollup };
   });
 
@@ -96,7 +100,9 @@ export default function ProjectsPage() {
       {/* Header */}
       <div className="flex items-end justify-between mb-6">
         <div>
-          <div className="text-[12px] text-text-secondary mb-1">Lead Generation</div>
+          <div className="text-[12px] text-text-secondary mb-1">
+            {wsLabel} · Lead Generation
+          </div>
           <h1 className="text-[26px] font-semibold tracking-[-0.01em]">Projects</h1>
         </div>
         <div className="flex items-center gap-2">
@@ -240,15 +246,15 @@ export default function ProjectsPage() {
         <div className="flex-1">
           <div className="uplabel mb-1">Spot · portfolio read</div>
           <div className="text-[13.5px] leading-[1.5] text-text-primary">
-            <strong>Aristocrat</strong> is 21% behind pace; <strong>Splendour</strong> is 56%
-            behind and the audience can't afford the price band. I can model a budget
-            reallocation toward Aristocrat — but Splendour may need a re-positioning, not
+            <strong>Banerghatta</strong> is 21% behind pace; <strong>Kukatpally</strong> is 56%
+            behind and the audience can&apos;t afford the price band. I can model a budget
+            reallocation toward Banerghatta — but Kukatpally may need a re-positioning, not
             more spend.
           </div>
           <div className="flex flex-wrap gap-1.5 mt-2.5">
             {[
-              "Why is Aristocrat behind pace?",
-              "Should I pause Splendour?",
+              "Why is Banerghatta behind pace?",
+              "Should I pause Kukatpally?",
               "Model a reallocation",
               "Compare all projects on CPVL",
             ].map((q) => (

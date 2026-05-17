@@ -2,18 +2,23 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Search, Folder, Monitor, LayoutGrid } from "lucide-react";
+import { ArrowRight, Search, Folder, Monitor, LayoutGrid, Globe } from "lucide-react";
 import { useSpotStore } from "@/lib/spot/store";
 import { SpotMark } from "./spot-mark";
 import { projectsList } from "@/lib/project-data";
+import { useAccessibleWorkspaces, useCurrentUser, useWorkspaceStore } from "@/lib/workspace-store";
 
 type Item =
   | { id: string; kind: "ask"; text: string; scope?: string; custom?: boolean }
-  | { id: string; kind: "nav"; text: string; target: string; icon: typeof Folder; scope?: string };
+  | { id: string; kind: "nav"; text: string; target: string; icon: typeof Folder; scope?: string }
+  | { id: string; kind: "workspace"; text: string; target: string; icon: typeof Folder; scope?: string };
 
 type Section = { section: string; items: Item[] };
 
-function navSections(): Section[] {
+function buildNavSections(args: {
+  isAdmin: boolean;
+  workspaces: Array<{ id: string; name: string; region: string }>;
+}): Section[] {
   const projItems: Item[] = projectsList.map((p) => ({
     id: `nav-proj-${p.id}`,
     kind: "nav" as const,
@@ -22,7 +27,15 @@ function navSections(): Section[] {
     icon: Folder,
     scope: "Project",
   }));
-  return [
+  const wsItems: Item[] = args.workspaces.map((w) => ({
+    id: `ws-${w.id}`,
+    kind: "workspace" as const,
+    text: w.name,
+    target: w.id,
+    icon: Globe,
+    scope: w.region,
+  }));
+  const sections: Section[] = [
     {
       section: "Ask Spot",
       items: [
@@ -32,16 +45,37 @@ function navSections(): Section[] {
         { id: "ask-4", kind: "ask", text: "Audit personas — who's converting?", scope: "Project" },
       ],
     },
-    {
-      section: "Go to",
-      items: [
-        { id: "nav-dash", kind: "nav", text: "Dashboard", target: "/dashboard", icon: LayoutGrid, scope: "Workspace" },
-        { id: "nav-projects", kind: "nav", text: "Projects", target: "/projects", icon: Folder, scope: "Workspace" },
-        { id: "nav-campaigns", kind: "nav", text: "Campaigns", target: "/campaigns", icon: Monitor, scope: "Workspace" },
-        ...projItems,
-      ],
-    },
   ];
+  if (args.workspaces.length > 1 || args.isAdmin) {
+    sections.push({
+      section: "Switch workspace",
+      items: [
+        ...(args.isAdmin
+          ? [
+              {
+                id: "ws-all",
+                kind: "workspace" as const,
+                text: "All workspaces",
+                target: "all",
+                icon: Globe,
+                scope: "Admin dashboard",
+              },
+            ]
+          : []),
+        ...wsItems,
+      ],
+    });
+  }
+  sections.push({
+    section: "Go to",
+    items: [
+      { id: "nav-dash", kind: "nav", text: "Dashboard", target: "/dashboard", icon: LayoutGrid, scope: "Workspace" },
+      { id: "nav-projects", kind: "nav", text: "Projects", target: "/projects", icon: Folder, scope: "Workspace" },
+      { id: "nav-campaigns", kind: "nav", text: "Campaigns", target: "/campaigns", icon: Monitor, scope: "Workspace" },
+      ...projItems,
+    ],
+  });
+  return sections;
 }
 
 export function SpotCommandPalette() {
@@ -49,6 +83,9 @@ export function SpotCommandPalette() {
   const close = useSpotStore((s) => s.closePalette);
   const askSpot = useSpotStore((s) => s.askSpot);
   const router = useRouter();
+  const user = useCurrentUser();
+  const accessible = useAccessibleWorkspaces();
+  const setScope = useWorkspaceStore((s) => s.setScope);
 
   const [query, setQuery] = useState("");
   const [sel, setSel] = useState(0);
@@ -63,7 +100,10 @@ export function SpotCommandPalette() {
   }, [open]);
 
   const sections = useMemo(() => {
-    const base = navSections();
+    const base = buildNavSections({
+      isAdmin: user.role === "admin",
+      workspaces: accessible.map((w) => ({ id: w.id, name: w.name, region: w.region })),
+    });
     const q = query.trim().toLowerCase();
     const askItem: Section = {
       section: "Ask Spot",
@@ -85,7 +125,8 @@ export function SpotCommandPalette() {
       }))
       .filter((s) => s.items.length > 0);
     return [askItem, ...filtered];
-  }, [query]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query, user.role, accessible.length]);
 
   const flat: Item[] = sections.flatMap((s) => s.items);
 
@@ -94,6 +135,10 @@ export function SpotCommandPalette() {
       askSpot(it.custom ? query || "" : it.text);
     } else if (it.kind === "nav") {
       router.push(it.target);
+    } else if (it.kind === "workspace") {
+      setScope(it.target);
+      if (it.target === "all") router.push("/admin");
+      else router.push("/projects");
     }
     close();
   };

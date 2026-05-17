@@ -187,6 +187,7 @@ export type ProjectImage = {
 };
 
 export type ProjectDetail = ProjectSummary & {
+  workspaceId: string;
   rera: string;
   micromarket: string;
   typology: string;
@@ -246,16 +247,17 @@ function cr(
   };
 }
 
-// ─── Seed: Godrej Aristocrat (flagship, behind goal) ──────────────────
+// ─── Seed: Godrej Banerghatta (flagship, behind goal) ──────────────────
 
 const ARISTOCRAT: ProjectDetail = {
-  id: "godrej-aristocrat",
-  name: "Godrej Aristocrat · Whitefield",
+  id: "godrej-banerghatta",
+  workspaceId: "ws-south",
+  name: "Godrej Banerghatta · Bangalore South",
   category: "Luxury Residential",
   status: "active",
   health: "needs-attention",
   rera: "PRM/KA/RERA/1251/446/PR/180125/002841",
-  micromarket: "Whitefield · Bengaluru East",
+  micromarket: "Banerghatta Road · Bangalore South",
   typology: "3 & 4 BHK Luxury Apartments",
   priceBand: "₹2.4 – 3.8 Cr",
   sizeBand: "1,820 – 2,640 sq.ft",
@@ -281,7 +283,7 @@ const ARISTOCRAT: ProjectDetail = {
       "Discount-led creative — dilutes positioning",
     ],
     attachments: [
-      { name: "Aristocrat — Brand Book.pdf", size: "8.2 MB", kind: "pdf" },
+      { name: "Banerghatta — Brand Book.pdf", size: "8.2 MB", kind: "pdf" },
       { name: "Floor plans — Tower A,B,C,D.pdf", size: "12.4 MB", kind: "pdf" },
       { name: "Site visit reel.mp4", size: "84 MB", kind: "video" },
     ],
@@ -298,7 +300,7 @@ const ARISTOCRAT: ProjectDetail = {
     paceDelta: "−21%",
     forecast: 248,
     spotRead:
-      "On current trajectory you'll land at **248 / 320** by Jun 30. To close the gap, the Whitefield Lookalike audience has to recover OR you take ₹60K/week from Splendour. I can model both.",
+      "On current trajectory you'll land at **248 / 320** by Jun 30. To close the gap, the BLR South Lookalike audience has to recover OR you take ₹60K/week from Kukatpally. I can model both.",
   },
 
   secondary: [
@@ -511,7 +513,7 @@ const ARISTOCRAT: ProjectDetail = {
       {
         id: "m1",
         channel: "Meta",
-        campaign: "Aristocrat · LeadGen · Whitefield Lookalike",
+        campaign: "Banerghatta · LeadGen · BLR South Lookalike",
         personaId: "p1",
         budgetDaily: 26000,
         expLeads: 32,
@@ -522,7 +524,7 @@ const ARISTOCRAT: ProjectDetail = {
         adSets: [
           {
             id: "as-m1-a",
-            name: "Whitefield Lookalike · 1%",
+            name: "BLR South Lookalike · 1%",
             audience: "LAL 1% of approved buyers · BLR East · 32-48",
             optimization: "Lowest cost · Verified leads",
             budgetDaily: 14000,
@@ -538,7 +540,7 @@ const ARISTOCRAT: ProjectDetail = {
           },
           {
             id: "as-m1-b",
-            name: "Whitefield Lookalike · 2%",
+            name: "BLR South Lookalike · 2%",
             audience: "LAL 2% of approved buyers · BLR East · 32-48",
             optimization: "Lowest cost · Verified leads",
             budgetDaily: 12000,
@@ -556,7 +558,7 @@ const ARISTOCRAT: ProjectDetail = {
       {
         id: "m2",
         channel: "Google",
-        campaign: "Aristocrat · Search · 'Whitefield Luxury 3BHK'",
+        campaign: "Banerghatta · Search · 'Whitefield Luxury 3BHK'",
         personaId: "p1",
         budgetDaily: 18000,
         expLeads: 22,
@@ -585,7 +587,7 @@ const ARISTOCRAT: ProjectDetail = {
       {
         id: "m3",
         channel: "Meta",
-        campaign: "Aristocrat · LeadGen · NRI US",
+        campaign: "Banerghatta · LeadGen · NRI US",
         personaId: "p2",
         budgetDaily: 14000,
         expLeads: 8,
@@ -614,7 +616,7 @@ const ARISTOCRAT: ProjectDetail = {
       {
         id: "m4",
         channel: "Meta",
-        campaign: "Aristocrat · Experiment · Founder Persona",
+        campaign: "Banerghatta · Experiment · Founder Persona",
         personaId: "p4",
         budgetDaily: 0,
         expLeads: 0,
@@ -650,8 +652,8 @@ const ARISTOCRAT: ProjectDetail = {
   experiments: [
     {
       id: "x1",
-      name: "Frequency cap on Whitefield Lookalike",
-      hypothesis: "Capping frequency at 2.4 on the Whitefield Lookalike audience will recover CTR without losing reach.",
+      name: "Frequency cap on BLR South Lookalike",
+      hypothesis: "Capping frequency at 2.4 on the BLR South Lookalike audience will recover CTR without losing reach.",
       status: "running",
       startedOn: "May 7, 2026",
       endsOn: "May 21, 2026",
@@ -713,16 +715,17 @@ const ARISTOCRAT: ProjectDetail = {
   ],
 };
 
-// ─── Seed: Godrej Splendour (underperforming — slim) ────────────────────
+// ─── Seed: Godrej Kukatpally (underperforming — slim) ────────────────────
 
 const SPLENDOUR: ProjectDetail = {
-  id: "godrej-splendour",
-  name: "Godrej Splendour · Whitefield",
+  id: "godrej-kukatpally",
+  workspaceId: "ws-south",
+  name: "Godrej Kukatpally · Hyderabad",
   category: "Mid-segment Residential",
   status: "active",
   health: "underperforming",
-  rera: "PRM/KA/RERA/1251/446/PR/210925/004127",
-  micromarket: "Whitefield East · Bengaluru",
+  rera: "PRM/TS/RERA/1251/446/PR/210925/004127",
+  micromarket: "Kukatpally · Hyderabad West",
   typology: "2 & 3 BHK Apartments",
   priceBand: "₹85L – 1.4 Cr",
   sizeBand: "1,120 – 1,640 sq.ft",
@@ -737,13 +740,13 @@ const SPLENDOUR: ProjectDetail = {
     summary:
       "Mid-segment offering targeted at young Whitefield-area tech workers. **Lead volume is fine; qualification rate has been flat at 2% for 21 days.** The audience is reaching us but can't afford the price band.",
     usp: [
-      "Same Whitefield catchment at 60% of Aristocrat's price",
+      "Same Whitefield catchment at 60% of Banerghatta's price",
       "Connectivity to ITPL via dedicated shuttle",
       "Smart-home ready, all units",
     ],
-    avoid: ["Direct comparison with Aristocrat", "Aspirational-luxury framing"],
+    avoid: ["Direct comparison with Banerghatta", "Aspirational-luxury framing"],
     attachments: [
-      { name: "Splendour — Brand Brief.pdf", size: "5.4 MB", kind: "pdf" },
+      { name: "Kukatpally — Brand Brief.pdf", size: "5.4 MB", kind: "pdf" },
     ],
   },
 
@@ -813,7 +816,7 @@ const SPLENDOUR: ProjectDetail = {
       draft: true,
       oneLiner: "BLR-based owner looking for a second property at sub-1.5Cr.",
       want: "An affordable 2nd property in a growing micromarket for rental + appreciation.",
-      painPoint: "Splendour's rental yield isn't visible; positioning leans 'home', not 'investment'.",
+      painPoint: "Kukatpally's rental yield isn't visible; positioning leans 'home', not 'investment'.",
       usp: "ITPL micromarket appreciation + smart-home wiring + Godrej trust.",
       demographics: ["35–45", "HHI ₹40L+", "Owns 1 home", "BLR / Chennai"],
       motivations: ["Rental yield", "Brand-led appreciation"],
@@ -854,7 +857,7 @@ const SPLENDOUR: ProjectDetail = {
       {
         id: "ms1",
         channel: "Meta",
-        campaign: "Splendour · LeadGen · BLR IT Interest",
+        campaign: "Kukatpally · LeadGen · BLR IT Interest",
         personaId: "sp1",
         budgetDaily: 14000,
         expLeads: 80,
@@ -901,11 +904,213 @@ const SPLENDOUR: ProjectDetail = {
   ],
 };
 
+// ─── Thin entries for other workspaces (no rich personas/angles yet) ──
+
+const ARDEN: ProjectDetail = {
+  id: "godrej-arden",
+  workspaceId: "ws-ncr",
+  name: "Godrej Arden · Gurugram",
+  category: "Premium Residential",
+  status: "active",
+  health: "on-track",
+  rera: "PRM/HR/RERA/PMTL/4127/280/PR/220825",
+  micromarket: "Sector 80 · Gurugram",
+  typology: "3 & 4 BHK Premium Apartments",
+  priceBand: "₹1.8 – 2.6 Cr",
+  sizeBand: "1,520 – 2,180 sq.ft",
+  possession: "Sep 2027",
+  inventory: "5 towers · 580 units · 52% sold",
+  builder: "Godrej Properties",
+  launchedOn: "Apr 4, 2025",
+  brandId: "brand-godrej-properties",
+  brief: {
+    updated: "May 02, 2026",
+    summary:
+      "Premium NCR offering for the dual-income tech executive family. Lead with **Cyber-City connectivity** and the school cluster.",
+    usp: [
+      "8 min to Cyber-City via Dwarka Expressway",
+      "Walking-distance to Heritage Xperiential school",
+      "Lowest density tower in Sector 80",
+    ],
+    avoid: ["Investor framing", "Comparison with Whitefield"],
+    attachments: [{ name: "Arden — Brand Book.pdf", size: "7.4 MB", kind: "pdf" }],
+  },
+  goal: {
+    kind: "verified",
+    target: 280,
+    achieved: 184,
+    window: "Apr 4, 2025 → Mar 31, 2026",
+    daysTotal: 362,
+    daysElapsed: 312,
+    pace: "on-pace",
+    paceDelta: "+2%",
+    forecast: 268,
+    spotRead:
+      "**On track** to land at 268 / 280 by Mar 31. Verified leads are flat over 14d; CTR is holding. Hold the plan.",
+  },
+  secondary: [
+    { label: "Total leads", value: 1480, sub: "no target" },
+    { label: "Verified leads", value: 184, sub: "of 280 target", primary: true },
+    { label: "Qualified leads", value: 62, sub: "no target" },
+    { label: "Spend to date", value: "₹26.4L", sub: "of ₹32L budget" },
+  ],
+  personas: [],
+  strategy: {
+    updated: "Mar 18, 2026",
+    tone: { is: ["Confident", "Family-led", "Connectivity-first"], isNot: ["Discount-led", "Investor-jargon"] },
+    visualSystem: { palette: ["#0A0A0A", "#2A2620", "#C9A86A", "#FAFAF8"], principles: ["Real family imagery", "Show school cluster on map"] },
+    proofPoints: ["52% sold in 14 months", "RERA-cleared milestones"],
+  },
+  mediaPlan: {
+    window: "Week of May 12 → May 18",
+    version: "v4 · stable",
+    proposedDelta: "no changes",
+    rows: [],
+    summary: { liveDaily: 22000, proposedDaily: 22000, weeklyExpected: { leads: 580, verified: 92 }, gapToGoal: "+0 verified vs pace" },
+  },
+  experiments: [],
+  images: [
+    { id: "img-a1", kind: "exterior", name: "Tower facade", hue: 25, tags: ["facade"], usedIn: 4 },
+    { id: "img-a2", kind: "location", name: "School cluster map", hue: 145, tags: ["location"], usedIn: 2 },
+  ],
+};
+
+const RESERVE: ProjectDetail = {
+  id: "godrej-reserve",
+  workspaceId: "ws-mmr",
+  name: "Godrej Reserve · Thane",
+  category: "Premium Residential",
+  status: "active",
+  health: "on-track",
+  rera: "PRM/MH/RERA/MUMB/4127/280/PR/210525",
+  micromarket: "Kandivali East · Thane",
+  typology: "2 & 3 BHK Apartments",
+  priceBand: "₹1.4 – 2.1 Cr",
+  sizeBand: "1,180 – 1,720 sq.ft",
+  possession: "Dec 2027",
+  inventory: "6 towers · 720 units · 41% sold",
+  builder: "Godrej Properties",
+  launchedOn: "May 18, 2025",
+  brandId: "brand-godrej-properties",
+  brief: {
+    updated: "Apr 28, 2026",
+    summary:
+      "Premium MMR offering on the Western suburbs. Lead with **forest-edge** and Mumbai-vs-Thane price arbitrage.",
+    usp: ["Backs onto Sanjay Gandhi National Park", "10 min to Borivali station", "Italian-marble interiors as standard"],
+    avoid: ["Direct Mumbai price comparisons", "Investor framing"],
+    attachments: [{ name: "Reserve — Brand Brief.pdf", size: "6.1 MB", kind: "pdf" }],
+  },
+  goal: {
+    kind: "verified",
+    target: 360,
+    achieved: 218,
+    window: "May 18, 2025 → Jun 30, 2026",
+    daysTotal: 408,
+    daysElapsed: 365,
+    pace: "on-pace",
+    paceDelta: "+4%",
+    forecast: 352,
+    spotRead:
+      "Holding pace — projected 352 / 360 by Jun 30. The forest-edge hook is your winner; lookalike audiences are still cheap.",
+  },
+  secondary: [
+    { label: "Total leads", value: 2140, sub: "no target" },
+    { label: "Verified leads", value: 218, sub: "of 360 target", primary: true },
+    { label: "Qualified leads", value: 71, sub: "no target" },
+    { label: "Spend to date", value: "₹38.2L", sub: "of ₹46L budget" },
+  ],
+  personas: [],
+  strategy: {
+    updated: "Mar 22, 2026",
+    tone: { is: ["Calm", "Premium", "Specific"], isNot: ["Hype-led", "Discount-led"] },
+    visualSystem: { palette: ["#0A0A0A", "#15803D", "#C9A86A", "#FAFAF8"], principles: ["Real forest photography", "Avoid CGI skyline composites"] },
+    proofPoints: ["41% sold in 12 months", "Recognized 'Best Premium Launch 2025' — MMR"],
+  },
+  mediaPlan: {
+    window: "Week of May 12 → May 18",
+    version: "v6 · steady",
+    proposedDelta: "no changes",
+    rows: [],
+    summary: { liveDaily: 32000, proposedDaily: 32000, weeklyExpected: { leads: 720, verified: 124 }, gapToGoal: "+2 verified vs pace" },
+  },
+  experiments: [],
+  images: [
+    { id: "img-r1", kind: "exterior", name: "Tower with forest backdrop", hue: 145, tags: ["forest", "facade"], usedIn: 6 },
+  ],
+};
+
+const VARANYA: ProjectDetail = {
+  id: "godrej-varanya",
+  workspaceId: "ws-mmr",
+  name: "Godrej Varanya · Pune",
+  category: "Luxury Residential",
+  status: "active",
+  health: "needs-attention",
+  rera: "PRM/MH/RERA/PUNE/4127/280/PR/090125",
+  micromarket: "Kharadi · Pune East",
+  typology: "3 & 4 BHK Luxury",
+  priceBand: "₹2.2 – 3.4 Cr",
+  sizeBand: "1,840 – 2,520 sq.ft",
+  possession: "Mar 2028",
+  inventory: "4 towers · 384 units · 18% sold",
+  builder: "Godrej Properties",
+  launchedOn: "Jan 9, 2026",
+  brandId: "brand-godrej-properties",
+  brief: {
+    updated: "Apr 10, 2026",
+    summary:
+      "Luxury Pune launch targeting senior tech leads at the Hinjewadi/Kharadi tech corridor. **Brand-led trust** is the wedge.",
+    usp: ["Branded interiors standard", "14 min to Hinjewadi", "Lowest density per tower"],
+    avoid: ["NRI framing (no NRI brief yet)", "Discount-led copy"],
+    attachments: [{ name: "Varanya — Brand Book.pdf", size: "9.1 MB", kind: "pdf" }],
+  },
+  goal: {
+    kind: "verified",
+    target: 240,
+    achieved: 64,
+    window: "Jan 9 → Aug 31, 2026",
+    daysTotal: 235,
+    daysElapsed: 128,
+    pace: "behind",
+    paceDelta: "−18%",
+    forecast: 184,
+    spotRead:
+      "Behind pace · projected 184 / 240. CTR is healthy but verified rate dropped 4pp. **Suggest tightening lookalike audience** OR shifting ₹50K/wk into Search.",
+  },
+  secondary: [
+    { label: "Total leads", value: 412, sub: "no target" },
+    { label: "Verified leads", value: 64, sub: "of 240 target", primary: true },
+    { label: "Qualified leads", value: 18, sub: "no target" },
+    { label: "Spend to date", value: "₹9.4L", sub: "of ₹28L budget" },
+  ],
+  personas: [],
+  strategy: {
+    updated: "Apr 12, 2026",
+    tone: { is: ["Specific", "Confident", "Numbers-led"], isNot: ["Discount-led", "Investor-jargon"] },
+    visualSystem: { palette: ["#0A0A0A", "#2A2620", "#C9A86A", "#FAFAF8"], principles: ["Real photography", "Show tech-park proximity"] },
+    proofPoints: ["18% sold in 4 months"],
+  },
+  mediaPlan: {
+    window: "Week of May 12 → May 18",
+    version: "v3 · attention",
+    proposedDelta: "+₹50K/wk to Search",
+    rows: [],
+    summary: { liveDaily: 18000, proposedDaily: 25000, weeklyExpected: { leads: 84, verified: 14 }, gapToGoal: "−6 verified vs pace · projected 184 / 240" },
+  },
+  experiments: [],
+  images: [
+    { id: "img-v1", kind: "exterior", name: "Tower at golden hour", hue: 35, tags: ["facade"], usedIn: 2 },
+  ],
+};
+
 // ─── Public API ─────────────────────────────────────────────────────────
 
 export const projectDetails: Record<string, ProjectDetail> = {
   [ARISTOCRAT.id]: ARISTOCRAT,
   [SPLENDOUR.id]: SPLENDOUR,
+  [ARDEN.id]: ARDEN,
+  [RESERVE.id]: RESERVE,
+  [VARANYA.id]: VARANYA,
 };
 
 export const projectsList: ProjectSummary[] = Object.values(projectDetails).map(
@@ -914,6 +1119,14 @@ export const projectsList: ProjectSummary[] = Object.values(projectDetails).map(
 
 export function getProject(id: string): ProjectDetail | undefined {
   return projectDetails[id];
+}
+
+/** Projects scoped to a workspace, or all if `workspaceId` is undefined / "all". */
+export function projectsForWorkspace(workspaceId?: string): ProjectDetail[] {
+  if (!workspaceId || workspaceId === "all") {
+    return Object.values(projectDetails);
+  }
+  return Object.values(projectDetails).filter((p) => p.workspaceId === workspaceId);
 }
 
 /** Rollup metrics for the projects-list table. */

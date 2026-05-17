@@ -49,7 +49,7 @@ export function generateReply(query: string, scope: SpotScope): SpotMessage {
       type: "headline",
       verdict: "warn",
       text:
-        "Aristocrat · LeadGen CPL is up **+22% w/w**. Two ad sets are doing most of the damage; the rest of the campaign is stable.",
+        "Banerghatta · LeadGen CPL is up **+22% w/w**. Two ad sets are doing most of the damage; the rest of the campaign is stable.",
     });
     parts.push({
       type: "findings",
@@ -115,30 +115,30 @@ export function generateReply(query: string, scope: SpotScope): SpotMessage {
     return { role: "spot", parts };
   }
 
-  if (/reallo|reallocate|move budget|shift budget|compare aristocrat|woods/.test(q)) {
+  if (/reallo|reallocate|move budget|shift budget|compare (banerghatta|kukatpally|workspaces)/.test(q)) {
     parts.push({
       type: "headline",
       verdict: "info",
       text:
-        "If we model a ₹14K/wk shift from Splendour → Aristocrat (Search + NRI), Aristocrat forecasts land at **280 / 320** by Jun 30 instead of 248.",
+        "If we model a ₹14K/wk shift from Kukatpally → Banerghatta (Search + NRI), Banerghatta forecasts land at **280 / 320** by Jun 30 instead of 248.",
     });
     parts.push({
       type: "kpis",
       items: [
-        { label: "Aristocrat forecast", value: "280", delta: "+32 vs current", good: true },
-        { label: "Splendour forecast", value: "58", delta: "−6 vs current", good: null },
+        { label: "Banerghatta forecast", value: "280", delta: "+32 vs current", good: true },
+        { label: "Kukatpally forecast", value: "58", delta: "−6 vs current", good: null },
         { label: "Net portfolio CPVL", value: "₹5,290", delta: "-3%", good: true },
       ],
     });
     parts.push({
       type: "text",
       text:
-        "Splendour is already 56% behind goal and the audience can't afford the price band — pulling spend from there has a low cost. **A re-positioning experiment** would be better than more budget either way.",
+        "Kukatpally is already 56% behind goal and the audience can't afford the price band — pulling spend from there has a low cost. **A re-positioning experiment** would be better than more budget either way.",
     });
     return { role: "spot", parts };
   }
 
-  if (/pause splendour|should i pause splendour/.test(q)) {
+  if (/pause kukatpally|should i pause kukatpally/.test(q)) {
     parts.push({
       type: "headline",
       verdict: "warn",
@@ -174,8 +174,8 @@ export function generateReply(query: string, scope: SpotScope): SpotMessage {
     parts.push({
       type: "kpis",
       items: [
-        { label: "Aristocrat", value: "127 / 320", delta: "behind 21%", good: false },
-        { label: "Splendour", value: "38 / 200", delta: "behind 56%", good: false },
+        { label: "Banerghatta", value: "127 / 320", delta: "behind 21%", good: false },
+        { label: "Kukatpally", value: "38 / 200", delta: "behind 56%", good: false },
         { label: "Portfolio CPVL", value: "₹5,460", delta: "+8% w/w", good: false },
       ],
     });
@@ -184,12 +184,12 @@ export function generateReply(query: string, scope: SpotScope): SpotMessage {
       items: [
         {
           tone: "concern",
-          title: "Aristocrat — fatigue, not positioning",
+          title: "Banerghatta — fatigue, not positioning",
           body: "Lookalike audiences are saturated. Refresh creatives + reallocate to Search/NRI.",
         },
         {
           tone: "concern",
-          title: "Splendour — positioning, not budget",
+          title: "Kukatpally — positioning, not budget",
           body:
             "Audience can't afford the band. Test 1BHK price-hero before adding spend.",
         },

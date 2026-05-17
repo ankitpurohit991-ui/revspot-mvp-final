@@ -817,7 +817,7 @@ export function CreateProjectFlow({
                   onClick={() => {
                     showToast("Project created — opening media plan");
                     // For MVP, route to a seed project's deploy page.
-                    onComplete("godrej-aristocrat");
+                    onComplete("godrej-banerghatta");
                   }}
                 >
                   <Play size={13} /> Open media plan to deploy

@@ -19,6 +19,8 @@ import {
 import { useDemoMode } from "@/lib/demo-mode";
 import { useSpotStore } from "@/lib/spot/store";
 import { SpotMark } from "@/components/spot/spot-mark";
+import { WorkspaceSwitcher, UserRolePill } from "@/components/layout/workspace-switcher";
+import { useCurrentUser } from "@/lib/workspace-store";
 
 const dashboardItem = { name: "Dashboard", href: "/dashboard", icon: LayoutGrid };
 
@@ -77,6 +79,7 @@ export function Sidebar() {
   const { isEmpty, toggle } = useDemoMode();
   const askSpot = useSpotStore((s) => s.askSpot);
   const spotOpen = useSpotStore((s) => s.open);
+  const user = useCurrentUser();
 
   const isActive = (href: string) => {
     if (href === "/dashboard") return pathname === "/dashboard" || pathname === "/";
@@ -92,10 +95,12 @@ export function Sidebar() {
 
   return (
     <aside className="fixed left-0 top-0 h-screen w-sidebar bg-white border-r border-border flex flex-col z-50">
-      {/* Logo */}
-      <div className="px-4 py-4 flex items-center gap-2.5">
+      {/* Brand + workspace switcher */}
+      <div className="px-2 pt-3 pb-1.5 flex items-center gap-2 border-b border-border-subtle">
         <RevspotLogo />
-        <span className="text-[15px] font-semibold text-text-primary">Revspot</span>
+      </div>
+      <div className="px-2 pt-2 pb-2 border-b border-border-subtle">
+        <WorkspaceSwitcher />
       </div>
 
       {/* Navigation */}
@@ -181,11 +186,16 @@ export function Sidebar() {
       <div className="border-t border-border px-3 py-2">
         <div className="flex items-center gap-2">
           <div className="w-[26px] h-[26px] rounded-full bg-surface-secondary flex items-center justify-center flex-shrink-0">
-            <span className="text-[10px] font-medium text-text-secondary">GP</span>
+            <span className="text-[10px] font-medium text-text-secondary">
+              {user.name.split(" ").map((w) => w[0]).join("").slice(0, 2)}
+            </span>
           </div>
           <div className="flex-1 min-w-0">
-            <div className="text-[12px] font-medium text-text-primary leading-tight">Godrej Properties</div>
-            <div className="text-[10px] text-text-tertiary truncate">demo@godrejproperties.com</div>
+            <div className="text-[12px] font-medium text-text-primary leading-tight flex items-center gap-1.5">
+              <span className="truncate">{user.name}</span>
+              <UserRolePill />
+            </div>
+            <div className="text-[10px] text-text-tertiary truncate">{user.email}</div>
           </div>
           <button className="p-1 text-text-tertiary hover:text-text-secondary transition-colors">
             <Settings size={14} strokeWidth={1.5} />
