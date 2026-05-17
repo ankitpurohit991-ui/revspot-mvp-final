@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowUpRight, ChevronRight, Globe, Users, TrendingUp, TrendingDown } from "lucide-react";
+import { ArrowUpRight, ChevronRight, Globe, Users, TrendingUp, TrendingDown, UserPlus, Clock } from "lucide-react";
 import {
   WORKSPACES,
   type Workspace,
@@ -17,6 +17,8 @@ import { projectsForWorkspace, projectRollup } from "@/lib/project-data";
 import { SpotMark } from "@/components/spot/spot-mark";
 import { useSpotStore } from "@/lib/spot/store";
 import { PacePill } from "@/components/project/shared/pace-pill";
+import { InviteUserModal } from "@/components/invite/invite-user-modal";
+import { useInviteStore } from "@/lib/invite-data";
 
 function lakhFromSpend(label: string) {
   // "₹14.6L" → 14.6
@@ -159,6 +161,8 @@ export default function AdminDashboardPage() {
   const user = useCurrentUser();
   const scope = useCurrentScope();
   const askSpot = useSpotStore((s) => s.askSpot);
+  const invites = useInviteStore((s) => s.invites);
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   // Members shouldn't see this page — redirect to /projects.
   useEffect(() => {
@@ -291,25 +295,80 @@ export default function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Members card */}
-      <div className="card-base p-4 mt-4 flex items-start gap-3">
-        <div className="flex items-center justify-center w-9 h-9 rounded-[7px] bg-surface-secondary flex-shrink-0">
-          <Users size={15} />
-        </div>
-        <div className="flex-1">
-          <div className="text-[13px] font-semibold mb-0.5">Team access</div>
-          <div className="text-[11.5px] text-text-secondary leading-[1.5]">
-            22 team members across 3 workspaces. You and 2 other admins have access to every
-            workspace; regional leads are scoped to their own. Manage in workspace settings.
+      {/* Team access card */}
+      <div className="card-base mt-4 overflow-hidden">
+        <div className="flex items-start gap-3 px-4 py-3.5 border-b border-border-subtle">
+          <div className="flex items-center justify-center w-9 h-9 rounded-[7px] bg-surface-secondary flex-shrink-0">
+            <Users size={15} />
           </div>
+          <div className="flex-1">
+            <div className="text-[13px] font-semibold mb-0.5">Team access</div>
+            <div className="text-[11.5px] text-text-secondary leading-[1.5]">
+              22 active members across 3 workspaces. You and 2 other admins have cross-workspace
+              access; regional leads are scoped to their own.
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setInviteOpen(true)}
+            className="apply-btn flex-shrink-0"
+          >
+            <UserPlus size={11} /> Invite teammates
+          </button>
         </div>
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-button border border-border bg-white hover:border-border-hover text-[11.5px]"
-        >
-          Manage members
-        </button>
+
+        {invites.length > 0 && (
+          <div className="px-4 py-3 bg-surface-page">
+            <div className="uplabel mb-2" style={{ fontSize: 10 }}>
+              Pending invitations · {invites.length}
+            </div>
+            <div className="space-y-1.5">
+              {invites.slice(0, 5).map((inv) => {
+                const inviteWsLabels = inv.workspaceIds
+                  .map((id) => WORKSPACES.find((w) => w.id === id)?.name)
+                  .filter(Boolean)
+                  .join(" · ");
+                const minutesAgo = Math.max(1, Math.round((Date.now() - inv.invitedAt) / 60000));
+                return (
+                  <div
+                    key={inv.id}
+                    className="flex items-center gap-3 px-3 py-2 rounded-[6px] bg-white border border-border-subtle"
+                  >
+                    <div className="flex items-center justify-center w-7 h-7 rounded-full bg-surface-secondary flex-shrink-0 text-[10px] font-medium text-text-secondary">
+                      {inv.email[0]?.toUpperCase() || "?"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-[12.5px] font-medium truncate">{inv.email}</span>
+                        <span
+                          className={`pill ${inv.role === "admin" ? "pill-dark" : ""}`}
+                          style={{ fontSize: 9.5, padding: "0 6px" }}
+                        >
+                          {inv.role}
+                        </span>
+                      </div>
+                      <div className="text-[10.5px] text-text-tertiary truncate">
+                        {inv.role === "admin" ? "All workspaces" : inviteWsLabels} · invited{" "}
+                        {minutesAgo < 60 ? `${minutesAgo}m ago` : `${Math.round(minutesAgo / 60)}h ago`}
+                      </div>
+                    </div>
+                    <span className="pill pill-warn flex-shrink-0" style={{ fontSize: 10 }}>
+                      <Clock size={9} /> Pending
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+            {invites.length > 5 && (
+              <div className="text-[11px] text-text-tertiary text-center mt-2">
+                + {invites.length - 5} more
+              </div>
+            )}
+          </div>
+        )}
       </div>
+
+      <InviteUserModal open={inviteOpen} onClose={() => setInviteOpen(false)} />
     </motion.div>
   );
 }

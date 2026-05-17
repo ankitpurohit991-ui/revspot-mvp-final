@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, ChevronsUpDown, Globe, Settings as SettingsIcon } from "lucide-react";
+import { Check, ChevronsUpDown, Globe, Settings as SettingsIcon, UserPlus } from "lucide-react";
+import { InviteUserModal } from "@/components/invite/invite-user-modal";
 import {
   useAccessibleWorkspaces,
   useCurrentScope,
@@ -64,6 +65,7 @@ export function WorkspaceSwitcher() {
   const setScope = useWorkspaceStore((s) => s.setScope);
 
   const [open, setOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const popRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -183,6 +185,17 @@ export function WorkspaceSwitcher() {
           <div className="my-1 h-px bg-border-subtle" />
           <button
             type="button"
+            onClick={() => {
+              setOpen(false);
+              setInviteOpen(true);
+            }}
+            className="w-full flex items-center gap-2 px-2 py-1.5 rounded-[6px] hover:bg-surface-page text-[11.5px] text-text-secondary"
+          >
+            <UserPlus size={12} />
+            Invite teammates
+          </button>
+          <button
+            type="button"
             className="w-full flex items-center gap-2 px-2 py-1.5 rounded-[6px] hover:bg-surface-page text-[11.5px] text-text-secondary"
           >
             <SettingsIcon size={12} />
@@ -190,6 +203,12 @@ export function WorkspaceSwitcher() {
           </button>
         </div>
       )}
+
+      <InviteUserModal
+        open={inviteOpen}
+        onClose={() => setInviteOpen(false)}
+        defaultWorkspaceId={scope.kind === "workspace" ? scope.id : undefined}
+      />
     </div>
   );
 }

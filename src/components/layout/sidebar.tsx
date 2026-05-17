@@ -50,7 +50,7 @@ const navSections = [
   {
     label: "Workspace",
     items: [
-      { name: "Brand", href: "/brand", icon: Sparkles, comingSoon: true },
+      { name: "Brand", href: "/brand", icon: Sparkles },
     ],
   },
 ];
