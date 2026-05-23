@@ -32,8 +32,19 @@ export type ProjectDraftInput = {
     geo: string;
     share: number;
   }>;
-  /** Uploaded project images from the Images stage. */
-  images?: Array<{ id: string; url: string; name: string; kind: "image" | "video" }>;
+  /**
+   * Items from Spot's visual-memory knowledge base — both web-extracted
+   * placeholders (no URL) and laptop uploads (blob URL).
+   */
+  images?: Array<{
+    id: string;
+    source: "extracted" | "uploaded";
+    url?: string;
+    name: string;
+    kind: "exterior" | "interior" | "amenity" | "floorplan" | "location";
+    hue?: number;
+    mediaKind?: "image" | "video";
+  }>;
   /** Workspace this project belongs to. */
   workspaceId: string;
 };
@@ -79,10 +90,13 @@ export function buildProjectFromDraft(input: ProjectDraftInput): ProjectDetail {
 
   const projectImages: ProjectImage[] = (input.images || []).map((img, i) => ({
     id: img.id,
-    kind: i % 2 === 0 ? "exterior" : "interior",
+    // Respect the kind the user (or extractor) tagged. Falls back to a
+    // sensible alternation only if somehow absent.
+    kind: img.kind ?? (i % 2 === 0 ? "exterior" : "interior"),
     name: img.name,
-    hue: (i * 47) % 360,
-    tags: [],
+    // Prefer the stored hue for extracted images; otherwise hash-spread.
+    hue: img.hue ?? (i * 47) % 360,
+    tags: [img.source === "extracted" ? "from web" : "from upload"],
     usedIn: 0,
   }));
 
