@@ -6,16 +6,15 @@ import {
   X,
   Check,
   Sparkles,
-  FileText,
   Upload,
   ArrowRight,
-  Trash2,
   Plus,
-  Globe,
-  Image as ImageIcon,
+  Trash2,
   BookOpen,
   Users,
   Target,
+  Info,
+  Images,
 } from "lucide-react";
 import { SpotMark } from "@/components/spot/spot-mark";
 import { useSpotStore } from "@/lib/spot/store";
@@ -24,16 +23,59 @@ import { addRuntimeProject } from "@/lib/project-data";
 import { buildProjectFromDraft } from "@/lib/build-project";
 import { PersonaAvatar } from "@/components/project/deploy-steps";
 
-type Stage = "intent" | "brief" | "personas" | "images" | "ready";
+type Stage = "intent" | "brief" | "personas" | "ready";
 
-type ProjectImage = { id: string; url: string; name: string; kind: "image" | "video" };
+/**
+ * Items living in Spot's visual-memory knowledge base. Two flavours:
+ *
+ * - `source: "extracted"` — surfaced by deep research. No real URL; we
+ *   render a hue-tinted gradient placeholder.
+ * - `source: "uploaded"` — the user dropped from their laptop. A blob
+ *   URL is set and we render the real preview.
+ */
+type ProjectImage = {
+  id: string;
+  source: "extracted" | "uploaded";
+  /** Blob URL for uploaded media. Undefined for extracted. */
+  url?: string;
+  name: string;
+  kind: "exterior" | "interior" | "amenity" | "floorplan" | "location";
+  /** Display tint for extracted placeholders + the builder's hash fallback. */
+  hue?: number;
+  /** "image" | "video" for uploaded items. Extracted items are all images. */
+  mediaKind?: "image" | "video";
+};
+
+type UploadedFile = {
+  id: string;
+  name: string;
+  size: string;
+  kind: "pdf" | "image" | "video" | "doc" | "other";
+};
 
 const STAGES: { key: Stage; label: string }[] = [
   { key: "intent", label: "Intent" },
   { key: "brief", label: "Brief" },
   { key: "personas", label: "Personas" },
-  { key: "images", label: "Images" },
   { key: "ready", label: "Ready" },
+];
+
+const IMAGE_KINDS: ProjectImage["kind"][] = [
+  "exterior",
+  "interior",
+  "amenity",
+  "floorplan",
+  "location",
+];
+
+/** Seed shape for the 6 mock images Spot "extracts" after Continue. */
+const EXTRACTED_IMAGE_SEEDS: Array<{ name: string; kind: ProjectImage["kind"]; hue: number }> = [
+  { name: "Tower exterior · golden hour", kind: "exterior", hue: 35 },
+  { name: "Living room mockup · 3 BHK", kind: "interior", hue: 200 },
+  { name: "Lobby render · ground floor", kind: "interior", hue: 280 },
+  { name: "Amenity deck · pool view", kind: "amenity", hue: 160 },
+  { name: "Site plan · master layout", kind: "floorplan", hue: 60 },
+  { name: "Kharadi locality map", kind: "location", hue: 320 },
 ];
 
 type PersonaDraft = {
@@ -50,8 +92,10 @@ type PersonaDraft = {
 };
 
 type Draft = {
-  source: "pdf" | "url" | "deep-research";
-  sourceLabel: string;
+  /** Files the user dropped in Step 1. Spot pretends to "read" these. */
+  uploadedFiles: UploadedFile[];
+  /** Optional listing URL the user pasted in Step 1. */
+  sourceUrl: string;
   name: string;
   rera: string;
   micromarket: string;
@@ -118,8 +162,8 @@ const SEED_PERSONAS: PersonaDraft[] = [
 ];
 
 const SEED: Draft = {
-  source: "pdf",
-  sourceLabel: "Sky Gardens — Brand Book v2.pdf",
+  uploadedFiles: [],
+  sourceUrl: "",
   name: "Godrej Sky Gardens · Pune",
   rera: "PRM/MH/RERA/...",
   micromarket: "Kharadi · Pune East",
@@ -154,7 +198,174 @@ const SEED: Draft = {
 
 // ─── Atoms ────────────────────────────────────────────────────────────
 
-function ImageUploadPanel({
+// ─── Step 1: File drop area ────────────────────────────────────────────
+
+function inferFileKind(filename: string, mime: string): UploadedFile["kind"] {
+  const lower = filename.toLowerCase();
+  if (mime === "application/pdf" || lower.endsWith(".pdf")) return "pdf";
+  if (mime.startsWith("image/")) return "image";
+  if (mime.startsWith("video/")) return "video";
+  if (/\.(docx?|key|pptx?|pages)$/.test(lower)) return "doc";
+  return "other";
+}
+
+function formatSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function FileDropArea({
+  files,
+  onChange,
+  disabled,
+}: {
+  files: UploadedFile[];
+  onChange: (next: UploadedFile[]) => void;
+  disabled?: boolean;
+}) {
+  const fileRef = useRef<HTMLInputElement | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+
+  const ingest = (list: FileList | null) => {
+    if (!list || disabled) return;
+    const additions: UploadedFile[] = Array.from(list).map((f) => ({
+      id: `file-${Date.now()}-${f.name}`,
+      name: f.name,
+      size: formatSize(f.size),
+      kind: inferFileKind(f.name, f.type),
+    }));
+    onChange([...files, ...additions]);
+  };
+
+  return (
+    <div>
+      <div
+        className="uplabel mb-1.5"
+        style={{ fontSize: 9.5, color: "#9C6D00", letterSpacing: "0.4px" }}
+      >
+        Attach anything <span className="text-text-tertiary normal-case">(optional)</span>
+      </div>
+      <div
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (!disabled) setDragOver(true);
+        }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          ingest(e.dataTransfer.files);
+        }}
+        className="rounded-[8px] p-2.5 flex flex-col gap-1.5"
+        style={{
+          border: `1px ${dragOver ? "solid" : "dashed"} ${dragOver ? "#7C3AED" : "#E0CC95"}`,
+          background: dragOver ? "#FAF5FF" : "#FFF",
+          minHeight: 76,
+          transition: "border-color 120ms, background 120ms",
+          opacity: disabled ? 0.6 : 1,
+        }}
+      >
+        {files.length > 0 && (
+          <div className="space-y-1.5">
+            {files.map((f) => (
+              <div
+                key={f.id}
+                className="flex items-center gap-2 px-2 py-1.5 rounded-[6px] group"
+                style={{ background: "#FFFDF6", border: "1px solid #EFE3C2" }}
+              >
+                <FileKindIcon kind={f.kind} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] font-medium truncate">{f.name}</div>
+                  <div className="text-[10px] text-text-tertiary">
+                    <span className="uppercase">{f.kind}</span> · {f.size}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => onChange(files.filter((x) => x.id !== f.id))}
+                  className="inline-flex items-center justify-center h-5 w-5 rounded-button text-text-tertiary opacity-0 group-hover:opacity-100 hover:text-text-secondary"
+                  title="Remove"
+                >
+                  <X size={11} />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => fileRef.current?.click()}
+          className="inline-flex items-center gap-1.5 self-start text-[11.5px] text-text-secondary hover:text-text-primary px-2 py-1 rounded-button"
+        >
+          <Plus size={12} /> {files.length === 0 ? "Add a file" : "Add another"}
+          {files.length === 0 && (
+            <span className="text-text-tertiary">— or drop one here</span>
+          )}
+        </button>
+        <input
+          ref={fileRef}
+          type="file"
+          multiple
+          onChange={(e) => {
+            ingest(e.target.files);
+            e.target.value = "";
+          }}
+          style={{ display: "none" }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function FileKindIcon({ kind }: { kind: UploadedFile["kind"] }) {
+  const cfg = {
+    pdf: { label: "PDF", bg: "#FEE2E2", fg: "#B91C1C" },
+    image: { label: "IMG", bg: "#DBEAFE", fg: "#1D4ED8" },
+    video: { label: "MOV", bg: "#FCE7F3", fg: "#9D174D" },
+    doc: { label: "DOC", bg: "#DCFCE7", fg: "#15803D" },
+    other: { label: "FILE", bg: "var(--bg-secondary)", fg: "var(--text-2)" },
+  }[kind];
+  return (
+    <span
+      className="inline-flex items-center justify-center flex-shrink-0"
+      style={{
+        width: 30,
+        height: 30,
+        borderRadius: 5,
+        background: cfg.bg,
+        color: cfg.fg,
+        fontSize: 9,
+        fontWeight: 700,
+        letterSpacing: "0.3px",
+      }}
+    >
+      {cfg.label}
+    </span>
+  );
+}
+
+// ─── Step 2: Knowledge base grid ───────────────────────────────────────
+
+const IMAGE_KIND_LABELS: Record<ProjectImage["kind"], string> = {
+  exterior: "exterior",
+  interior: "interior",
+  amenity: "amenity",
+  floorplan: "floorplan",
+  location: "location",
+};
+
+const IMAGE_KIND_COLORS: Record<ProjectImage["kind"], { bg: string; fg: string }> = {
+  exterior: { bg: "#FEF3C7", fg: "#92400E" },
+  interior: { bg: "#DBEAFE", fg: "#1E40AF" },
+  amenity: { bg: "#DCFCE7", fg: "#15803D" },
+  floorplan: { bg: "#FCE7F3", fg: "#9D174D" },
+  location: { bg: "#E0E7FF", fg: "#3730A3" },
+};
+
+function KnowledgeBaseGrid({
   images,
   onChange,
 }: {
@@ -168,73 +379,119 @@ function ImageUploadPanel({
     const additions: ProjectImage[] = [];
     Array.from(files).forEach((f) => {
       const url = URL.createObjectURL(f);
-      const kind: "image" | "video" = f.type.startsWith("video") ? "video" : "image";
-      additions.push({ id: `img-${Date.now()}-${f.name}`, url, name: f.name, kind });
+      const mediaKind: "image" | "video" = f.type.startsWith("video") ? "video" : "image";
+      additions.push({
+        id: `uploaded-${Date.now()}-${f.name}`,
+        source: "uploaded",
+        url,
+        name: f.name,
+        kind: "exterior", // default kind; user can re-tag
+        mediaKind,
+      });
     });
     onChange([...images, ...additions]);
   };
 
+  const cycleKind = (img: ProjectImage) => {
+    const idx = IMAGE_KINDS.indexOf(img.kind);
+    const nextKind = IMAGE_KINDS[(idx + 1) % IMAGE_KINDS.length];
+    onChange(images.map((x) => (x.id === img.id ? { ...x, kind: nextKind } : x)));
+  };
+
   return (
     <div>
+      <div className="text-[11.5px] text-text-tertiary leading-[1.5] mb-3">
+        Spot uses these as creative source material. Click a type badge to re-tag, or remove
+        anything off-brand. Upload your own to bias generation.
+      </div>
       <div
-        className="grid gap-3 mb-3"
+        className="grid gap-2.5"
         style={{ gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))" }}
       >
         {images.map((img) => (
           <div
             key={img.id}
-            className="card-base p-2 flex flex-col gap-2"
+            className="card-base overflow-hidden flex flex-col group relative"
             style={{ borderColor: "var(--border-subtle)" }}
           >
             <div
               style={{
                 width: "100%",
                 aspectRatio: "1 / 1",
-                borderRadius: 6,
-                overflow: "hidden",
-                background: "#000",
+                position: "relative",
+                background:
+                  img.source === "uploaded" && img.url
+                    ? "#000"
+                    : `repeating-linear-gradient(135deg, oklch(0.9 0.05 ${img.hue ?? 0}) 0 8px, oklch(0.82 0.06 ${(img.hue ?? 0) + 30}) 8px 16px)`,
               }}
             >
-              {img.kind === "image" ? (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
-                  src={img.url}
-                  alt={img.name}
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              ) : (
-                <video
-                  src={img.url}
-                  muted
-                  loop
-                  autoPlay
-                  playsInline
-                  style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                />
-              )}
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="text-[11px] truncate flex-1">{img.name}</span>
+              {img.source === "uploaded" && img.url ? (
+                img.mediaKind === "video" ? (
+                  <video
+                    src={img.url}
+                    muted
+                    loop
+                    autoPlay
+                    playsInline
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                ) : (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={img.url}
+                    alt={img.name}
+                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                  />
+                )
+              ) : null}
+
+              {/* Type badge — click to cycle */}
+              <button
+                type="button"
+                onClick={() => cycleKind(img)}
+                className="absolute top-1.5 left-1.5 inline-flex items-center h-5 px-1.5 rounded-[4px] text-[9.5px] font-semibold uppercase tracking-wide"
+                style={{
+                  background: IMAGE_KIND_COLORS[img.kind].bg,
+                  color: IMAGE_KIND_COLORS[img.kind].fg,
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
+                }}
+                title="Click to re-tag"
+              >
+                {IMAGE_KIND_LABELS[img.kind]}
+              </button>
+
+              {/* Remove */}
               <button
                 type="button"
                 onClick={() => onChange(images.filter((x) => x.id !== img.id))}
-                className="inline-flex items-center justify-center h-6 w-6 rounded-button text-text-tertiary hover:bg-surface-page"
+                className="absolute top-1.5 right-1.5 inline-flex items-center justify-center h-5 w-5 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                style={{ background: "rgba(0,0,0,0.55)" }}
                 title="Remove"
               >
-                <Trash2 size={11} />
+                <X size={11} />
               </button>
+            </div>
+            <div className="px-2 py-1.5">
+              <div className="text-[10.5px] font-medium truncate" title={img.name}>
+                {img.name}
+              </div>
+              <div className="text-[9.5px] text-text-tertiary">
+                {img.source === "extracted" ? "from web" : "uploaded"}
+              </div>
             </div>
           </div>
         ))}
+
+        {/* Upload tile */}
         <button
           type="button"
           onClick={() => fileRef.current?.click()}
-          className="inline-flex flex-col items-center justify-center gap-1.5 rounded-[8px] border-2 border-dashed border-border bg-white text-text-secondary hover:border-border-hover hover:bg-surface-page"
-          style={{ aspectRatio: "1 / 1.15", minHeight: 140 }}
+          className="inline-flex flex-col items-center justify-center gap-1 rounded-[8px] border-2 border-dashed border-border bg-white text-text-secondary hover:border-border-hover hover:bg-surface-page"
+          style={{ aspectRatio: "1 / 1.18", minHeight: 140 }}
         >
-          <Upload size={18} />
-          <span className="text-[11.5px] font-medium">Add image / video</span>
-          <span className="text-[10px] text-text-tertiary">drag or click</span>
+          <Upload size={16} />
+          <span className="text-[11px] font-medium">Upload</span>
+          <span className="text-[9.5px] text-text-tertiary">from laptop</span>
         </button>
         <input
           ref={fileRef}
@@ -247,11 +504,6 @@ function ImageUploadPanel({
           }}
           style={{ display: "none" }}
         />
-      </div>
-      <div className="text-[11px] text-text-tertiary leading-[1.5]">
-        <ImageIcon size={11} style={{ display: "inline", marginRight: 4, verticalAlign: -1 }} />
-        Exteriors, interiors, amenities, site-visit clips — anything I can use in creatives. You
-        can always add more later from the project page.
       </div>
     </div>
   );
@@ -316,11 +568,14 @@ function CompactField({
   value,
   onChange,
   span = 1,
+  provenance,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   span?: number;
+  /** Small chip below the field showing where Spot pulled this value from. */
+  provenance?: string;
 }) {
   return (
     <div style={{ gridColumn: `span ${span} / span ${span}`, minWidth: 0 }}>
@@ -347,6 +602,15 @@ function CompactField({
           e.currentTarget.style.boxShadow = "inset 0 0 0 1px #EFE3C2";
         }}
       />
+      {provenance && (
+        <div
+          className="inline-flex items-center gap-1 mt-1 text-[9.5px] text-text-tertiary leading-tight"
+          title={`Source: ${provenance}`}
+        >
+          <Info size={9} style={{ flexShrink: 0 }} />
+          <span className="truncate">{provenance}</span>
+        </div>
+      )}
     </div>
   );
 }
@@ -1020,7 +1284,9 @@ export function CreateProjectFlow({
     };
 
     // Personas needs longer because seeded reveal takes 600 + 1100ms × N
-    const delay = stage === "personas" ? 4500 : stage === "images" ? 1500 : 2200;
+    // Personas needs longer because reveal is staggered. Brief gets a bit
+    // more breathing room than other stages since there's more to verify.
+    const delay = stage === "personas" ? 4500 : stage === "brief" ? 2500 : 2200;
     autoTimerRef.current = setTimeout(advance, delay);
 
     return () => {
@@ -1032,27 +1298,65 @@ export function CreateProjectFlow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoMode, stage, researching, personaCount]);
 
-  const startDeepResearch = () => {
-    setDraft({ ...draft, source: "deep-research", sourceLabel: "Deep research · web + RERA + builder pages" });
+  /**
+   * Unified entry point from Step 1. Builds a streaming finding list that
+   * adapts to whatever the user provided (files, URL, or nothing), then
+   * seeds Spot's visual-memory `projectImages` with mocked extractions
+   * and transitions to the brief stage.
+   */
+  const startResearch = () => {
     setResearching(true);
     setResearchFindings([]);
-    const findings = [
-      "Reading the project listing page and brand microsite…",
+
+    const findings: string[] = [];
+    if (draft.uploadedFiles.length > 0) {
+      const first = draft.uploadedFiles[0];
+      const more =
+        draft.uploadedFiles.length > 1
+          ? ` and ${draft.uploadedFiles.length - 1} more file${
+              draft.uploadedFiles.length === 2 ? "" : "s"
+            }`
+          : "";
+      findings.push(`Reading ${first.name}${more}…`);
+    }
+    if (draft.sourceUrl) {
+      try {
+        const host = new URL(
+          draft.sourceUrl.startsWith("http") ? draft.sourceUrl : "https://" + draft.sourceUrl,
+        ).hostname;
+        findings.push(`Following ${host}…`);
+      } catch {
+        findings.push("Following the listing URL you pasted…");
+      }
+    }
+    findings.push(
       "Cross-referencing the RERA registry for registered milestones…",
       "Pulling comparable per-sqft pricing from 4 nearby launches…",
       "Scanning locality reports for proximity and infrastructure signals…",
-      "Drafting USPs and key benefits from builder + locality data…",
-    ];
+      "Pulling project images from the builder microsite + comparable launches…",
+      "Drafting USPs and key benefits…",
+    );
+
     findings.forEach((f, i) => {
       setTimeout(() => {
         setResearchFindings((prev) => [...prev, f]);
         if (i === findings.length - 1) {
           setTimeout(() => {
+            // Seed Spot's visual memory with mock extracted images
+            setProjectImages(
+              EXTRACTED_IMAGE_SEEDS.map((seed, idx) => ({
+                id: `extracted-${idx}`,
+                source: "extracted" as const,
+                name: seed.name,
+                kind: seed.kind,
+                hue: seed.hue,
+              })),
+            );
             setResearching(false);
             setStage("brief");
           }, 600);
         }
-      }, 700 * (i + 1));
+      }, 600 * (i + 1));
     });
   };
 
@@ -1118,11 +1422,11 @@ export function CreateProjectFlow({
           {stage === "intent" && (
             <>
               <SpotBubble>
-                Let&apos;s set up your new project. Name it, then pick how I should pull together
-                the brief — Deep research, a PDF, or a listing URL.
+                Let&apos;s set up your project. Name it, drop anything you have — a brand book,
+                listing link, anything — and I&apos;ll scan the web for the rest.
               </SpotBubble>
               <DraftCard hideLabel>
-                {/* Project name — always asked, lives above the source picker */}
+                {/* Project name */}
                 <div className="mb-4">
                   <div
                     className="uplabel mb-1.5"
@@ -1135,100 +1439,57 @@ export function CreateProjectFlow({
                     value={draft.name}
                     onChange={(e) => setDraft({ ...draft, name: e.target.value })}
                     placeholder="e.g. Godrej Sky Gardens · Pune"
+                    disabled={researching}
                     className="w-full outline-none rounded-[8px] px-3 py-2.5"
                     style={{
                       border: "1px solid #E0CC95",
                       background: "#FFF",
                       fontSize: 15,
                       fontWeight: 500,
+                      opacity: researching ? 0.6 : 1,
                     }}
                   />
                 </div>
 
-                {/* Source picker */}
-                <div
-                  className="uplabel mb-2"
-                  style={{ fontSize: 9.5, color: "#9C6D00", letterSpacing: "0.4px" }}
-                >
-                  How should I gather the brief?
-                </div>
-                <div className="grid gap-2" style={{ gridTemplateColumns: "repeat(3, 1fr)" }}>
-                  {[
-                    { k: "deep-research", label: "Deep research", sub: "Spot scans the web", Icon: Globe },
-                    { k: "pdf", label: "Upload PDF", sub: "Brand book or deck", Icon: Upload },
-                    { k: "url", label: "Paste URL", sub: "Project listing", Icon: FileText },
-                  ].map(({ k, label, sub, Icon }) => (
-                    <button
-                      key={k}
-                      type="button"
-                      onClick={() => {
-                        const nextSource = k as Draft["source"];
-                        const defaultLabel =
-                          nextSource === "pdf"
-                            ? "Sky Gardens — Brand Book v2.pdf"
-                            : nextSource === "url"
-                            ? ""
-                            : draft.sourceLabel;
-                        setDraft({
-                          ...draft,
-                          source: nextSource,
-                          sourceLabel:
-                            draft.source !== nextSource ? defaultLabel : draft.sourceLabel,
-                        });
-                      }}
-                      disabled={researching}
-                      className="text-left p-2.5 rounded-[8px] flex flex-col items-start gap-0.5 transition-colors"
-                      style={{
-                        background: draft.source === k ? "#1A1A1A" : "#FFF",
-                        color: draft.source === k ? "#FFF" : "var(--text-1)",
-                        border: `1px solid ${draft.source === k ? "#1A1A1A" : "#E0CC95"}`,
-                        opacity: researching ? 0.6 : 1,
-                      }}
-                    >
-                      <Icon size={14} />
-                      <span className="text-[12px] font-semibold mt-0.5">{label}</span>
-                      <span
-                        className="text-[10px]"
-                        style={{
-                          color:
-                            draft.source === k ? "rgba(255,255,255,0.7)" : "var(--text-tertiary)",
-                        }}
-                      >
-                        {sub}
-                      </span>
-                    </button>
-                  ))}
+                {/* File drop area */}
+                <FileDropArea
+                  files={draft.uploadedFiles}
+                  onChange={(next) => setDraft({ ...draft, uploadedFiles: next })}
+                  disabled={researching}
+                />
+
+                {/* URL input */}
+                <div className="mt-4">
+                  <div
+                    className="uplabel mb-1.5"
+                    style={{ fontSize: 9.5, color: "#9C6D00", letterSpacing: "0.4px" }}
+                  >
+                    Project listing URL <span className="text-text-tertiary normal-case">(optional)</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={draft.sourceUrl}
+                    onChange={(e) => setDraft({ ...draft, sourceUrl: e.target.value })}
+                    placeholder="https://godrejproperties.com/projects/sky-gardens"
+                    disabled={researching}
+                    className="w-full outline-none rounded-[8px] px-3 py-2"
+                    style={{
+                      border: "1px solid #E0CC95",
+                      background: "#FFF",
+                      fontSize: 13,
+                      opacity: researching ? 0.6 : 1,
+                    }}
+                  />
                 </div>
 
-                {/* Conditional secondary input — only when the source needs more info.
-                    Deep research takes the project name alone; PDF asks for filename;
-                    URL asks for the listing URL. */}
-                {(draft.source === "pdf" || draft.source === "url") && (
-                  <div className="mt-3">
-                    <div
-                      className="uplabel mb-1.5"
-                      style={{ fontSize: 9.5, color: "#9C6D00", letterSpacing: "0.4px" }}
-                    >
-                      {draft.source === "pdf" ? "PDF filename" : "Project listing URL"}
-                    </div>
-                    <input
-                      type="text"
-                      value={draft.sourceLabel}
-                      onChange={(e) => setDraft({ ...draft, sourceLabel: e.target.value })}
-                      placeholder={
-                        draft.source === "pdf"
-                          ? "brand-book.pdf"
-                          : "https://godrejproperties.com/projects/sky-gardens"
-                      }
-                      className="w-full outline-none rounded-[8px] px-3 py-2"
-                      style={{
-                        border: "1px solid #E0CC95",
-                        background: "#FFF",
-                        fontSize: 13,
-                      }}
-                    />
-                  </div>
-                )}
+                {/* Reassurance about web research */}
+                <div className="flex items-start gap-1.5 mt-3 text-[11px] text-text-tertiary leading-[1.5]">
+                  <Sparkles size={11} style={{ color: "#B98A14", flexShrink: 0, marginTop: 2 }} />
+                  <span>
+                    Spot will research the web too — RERA registry, builder pages, comparable
+                    launches in the same micromarket.
+                  </span>
+                </div>
               </DraftCard>
 
               {researching && (
@@ -1267,125 +1528,197 @@ export function CreateProjectFlow({
               )}
 
               <div className="flex justify-end">
-                {draft.source === "deep-research" ? (
-                  <button
-                    type="button"
-                    className="apply-btn"
-                    onClick={startDeepResearch}
-                    disabled={researching}
-                  >
-                    <Sparkles size={11} /> {researching ? "Researching…" : "Run deep research →"}
-                  </button>
-                ) : (
-                  <button type="button" className="apply-btn" onClick={next}>
-                    Got it — extract the basics →
-                  </button>
-                )}
+                <button
+                  type="button"
+                  className="apply-btn"
+                  onClick={startResearch}
+                  disabled={researching || !draft.name.trim()}
+                  style={{
+                    opacity: researching || !draft.name.trim() ? 0.5 : 1,
+                    cursor: researching || !draft.name.trim() ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <Sparkles size={11} />{" "}
+                  {researching ? "Researching…" : "Continue — research project →"}
+                </button>
               </div>
             </>
           )}
 
-          {stage === "brief" && (
-            <>
-              <SpotBubble>
-                {draft.source === "deep-research" ? (
-                  <>
-                    Synthesized from the web — builder microsite, RERA registry, locality reports,
-                    and comparable launches in <strong>{draft.micromarket}</strong>. Tap any value to
-                    edit.
-                  </>
-                ) : (
-                  <>
-                    Pulled from <strong>{draft.sourceLabel || draft.name}</strong>. Tap any value to
-                    edit.
-                  </>
-                )}
-              </SpotBubble>
-              <DraftCard label="Project facts">
-                <div
-                  className="grid gap-x-3 gap-y-2.5"
-                  style={{ gridTemplateColumns: "repeat(6, minmax(0,1fr))" }}
-                >
-                  <CompactField
-                    span={4}
-                    label="Project name"
-                    value={draft.name}
-                    onChange={(v) => setDraft({ ...draft, name: v })}
+          {stage === "brief" && (() => {
+            // Build provenance strings keyed on what the user actually provided.
+            // The first uploaded file (if any) gets credit for most identity/pricing
+            // facts; everything else falls back to "web research".
+            const firstFile = draft.uploadedFiles[0];
+            const fromFile = firstFile ? `from ${firstFile.name}` : null;
+            const fromWeb = "from web research";
+            const fromRera = "from RERA registry";
+            const fromLocality = "from locality reports";
+            const fromComps = "from comparable launches";
+            const synthesisLine =
+              draft.uploadedFiles.length > 0 && draft.sourceUrl
+                ? `Synthesized from your ${draft.uploadedFiles.length} file${draft.uploadedFiles.length === 1 ? "" : "s"}, the link you pasted, and web research.`
+                : draft.uploadedFiles.length > 0
+                ? `Synthesized from your ${draft.uploadedFiles.length} file${draft.uploadedFiles.length === 1 ? "" : "s"} and web research.`
+                : draft.sourceUrl
+                ? "Synthesized from the link you pasted and web research."
+                : "Synthesized from web research.";
+
+            return (
+              <>
+                <SpotBubble>
+                  Here&apos;s what I pulled together. Verify each section — these go into my
+                  memory and shape every persona and creative from now on.
+                </SpotBubble>
+
+                <DraftCard label="Spot's project memory">
+                  <div className="text-[11px] text-text-tertiary leading-[1.5] mb-4">
+                    {synthesisLine} Tap any value to edit.
+                  </div>
+
+                  {/* Identity */}
+                  <div className="mb-4">
+                    <div
+                      className="text-[10.5px] uppercase tracking-[0.5px] font-semibold mb-2"
+                      style={{ color: "#9C6D00" }}
+                    >
+                      Identity
+                    </div>
+                    <div
+                      className="grid gap-x-3 gap-y-3"
+                      style={{ gridTemplateColumns: "1fr 1fr" }}
+                    >
+                      <CompactField
+                        label="Project name"
+                        value={draft.name}
+                        onChange={(v) => setDraft({ ...draft, name: v })}
+                        provenance={fromFile || fromWeb}
+                      />
+                      <CompactField
+                        label="RERA"
+                        value={draft.rera}
+                        onChange={(v) => setDraft({ ...draft, rera: v })}
+                        provenance={fromRera}
+                      />
+                      <CompactField
+                        label="Builder"
+                        value="Godrej Properties"
+                        onChange={() => {}}
+                        provenance={fromFile || fromWeb}
+                      />
+                      <CompactField
+                        label="Micromarket"
+                        value={draft.micromarket}
+                        onChange={(v) => setDraft({ ...draft, micromarket: v })}
+                        provenance={fromLocality}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Pricing & timeline */}
+                  <div
+                    className="pt-4 mb-4"
+                    style={{ borderTop: "1px solid #EFE3C2" }}
+                  >
+                    <div
+                      className="text-[10.5px] uppercase tracking-[0.5px] font-semibold mb-2"
+                      style={{ color: "#9C6D00" }}
+                    >
+                      Pricing & timeline
+                    </div>
+                    <div
+                      className="grid gap-x-3 gap-y-3"
+                      style={{ gridTemplateColumns: "repeat(4, minmax(0,1fr))" }}
+                    >
+                      <CompactField
+                        label="Typology"
+                        value={draft.typology}
+                        onChange={(v) => setDraft({ ...draft, typology: v })}
+                        provenance={fromFile || fromWeb}
+                      />
+                      <CompactField
+                        label="Price band"
+                        value={draft.priceBand}
+                        onChange={(v) => setDraft({ ...draft, priceBand: v })}
+                        provenance={fromFile || fromComps}
+                      />
+                      <CompactField
+                        label="Price / sqft"
+                        value={draft.pricePerSqft}
+                        onChange={(v) => setDraft({ ...draft, pricePerSqft: v })}
+                        provenance={fromComps}
+                      />
+                      <CompactField
+                        label="Possession"
+                        value={draft.possession}
+                        onChange={(v) => setDraft({ ...draft, possession: v })}
+                        provenance={fromRera}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Positioning */}
+                  <div className="pt-4" style={{ borderTop: "1px solid #EFE3C2" }}>
+                    <div
+                      className="text-[10.5px] uppercase tracking-[0.5px] font-semibold mb-2"
+                      style={{ color: "#9C6D00" }}
+                    >
+                      Positioning
+                    </div>
+                    <div
+                      className="grid gap-3"
+                      style={{ gridTemplateColumns: "1fr 1fr 1fr" }}
+                    >
+                      <ChipList
+                        label="Key USPs"
+                        values={draft.keyUSPs}
+                        onChange={(next) => setDraft({ ...draft, keyUSPs: next })}
+                        placeholder="Add a USP…"
+                      />
+                      <ChipList
+                        label="Location proximity"
+                        values={draft.locationProximity}
+                        onChange={(next) => setDraft({ ...draft, locationProximity: next })}
+                        placeholder="Add a landmark…"
+                      />
+                      <ChipList
+                        label="Key benefits"
+                        values={draft.keyBenefits}
+                        onChange={(next) => setDraft({ ...draft, keyBenefits: next })}
+                        placeholder="Add a benefit…"
+                      />
+                    </div>
+                  </div>
+                </DraftCard>
+
+                <DraftCard label="Spot's visual memory">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Images size={14} style={{ color: "#B98A14" }} />
+                    <span className="text-[12.5px] font-semibold">
+                      Images Spot found · {projectImages.length}
+                    </span>
+                  </div>
+                  <KnowledgeBaseGrid
+                    images={projectImages}
+                    onChange={setProjectImages}
                   />
-                  <CompactField
-                    span={2}
-                    label="RERA"
-                    value={draft.rera}
-                    onChange={(v) => setDraft({ ...draft, rera: v })}
-                  />
-                  <CompactField
-                    span={3}
-                    label="Micromarket"
-                    value={draft.micromarket}
-                    onChange={(v) => setDraft({ ...draft, micromarket: v })}
-                  />
-                  <CompactField
-                    span={3}
-                    label="Typology"
-                    value={draft.typology}
-                    onChange={(v) => setDraft({ ...draft, typology: v })}
-                  />
-                  <CompactField
-                    span={2}
-                    label="Price band"
-                    value={draft.priceBand}
-                    onChange={(v) => setDraft({ ...draft, priceBand: v })}
-                  />
-                  <CompactField
-                    span={2}
-                    label="Price / sqft"
-                    value={draft.pricePerSqft}
-                    onChange={(v) => setDraft({ ...draft, pricePerSqft: v })}
-                  />
-                  <CompactField
-                    span={2}
-                    label="Possession"
-                    value={draft.possession}
-                    onChange={(v) => setDraft({ ...draft, possession: v })}
-                  />
+                </DraftCard>
+
+                <div className="flex justify-between">
+                  <button
+                    type="button"
+                    className="inline-flex items-center h-8 px-3 rounded-button border border-border bg-white text-[12.5px]"
+                    onClick={prev}
+                  >
+                    Back
+                  </button>
+                  <button type="button" className="apply-btn" onClick={next}>
+                    Looks right — draft personas →
+                  </button>
                 </div>
-              </DraftCard>
-              <DraftCard label="Positioning">
-                <div className="grid gap-3" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
-                  <ChipList
-                    label="Key USPs"
-                    values={draft.keyUSPs}
-                    onChange={(next) => setDraft({ ...draft, keyUSPs: next })}
-                    placeholder="Add a USP…"
-                  />
-                  <ChipList
-                    label="Location proximity"
-                    values={draft.locationProximity}
-                    onChange={(next) => setDraft({ ...draft, locationProximity: next })}
-                    placeholder="Add a landmark…"
-                  />
-                  <ChipList
-                    label="Key benefits"
-                    values={draft.keyBenefits}
-                    onChange={(next) => setDraft({ ...draft, keyBenefits: next })}
-                    placeholder="Add a benefit…"
-                  />
-                </div>
-              </DraftCard>
-              <div className="flex justify-between">
-                <button
-                  type="button"
-                  className="inline-flex items-center h-8 px-3 rounded-button border border-border bg-white text-[12.5px]"
-                  onClick={prev}
-                >
-                  Back
-                </button>
-                <button type="button" className="apply-btn" onClick={next}>
-                  Looks right — draft personas →
-                </button>
-              </div>
-            </>
-          )}
+              </>
+            );
+          })()}
 
           {stage === "personas" && (
             <>
@@ -1414,33 +1747,6 @@ export function CreateProjectFlow({
                   disabled={personaCount === 0}
                 >
                   Looks good — what about images? →
-                </button>
-              </div>
-            </>
-          )}
-
-          {stage === "images" && (
-            <>
-              <SpotBubble>
-                Got any project images I should pull from? Exteriors, interiors, amenities, a site
-                visit reel — anything I can use in your creatives later. Drop them here, or skip if
-                we&apos;ll grab them from the brand book.
-              </SpotBubble>
-              <DraftCard label="Project images">
-                <ImageUploadPanel images={projectImages} onChange={setProjectImages} />
-              </DraftCard>
-              <div className="flex justify-between mt-4">
-                <button
-                  type="button"
-                  className="inline-flex items-center h-8 px-3 rounded-button border border-border bg-white text-[12.5px]"
-                  onClick={prev}
-                >
-                  Back
-                </button>
-                <button type="button" className="apply-btn" onClick={next}>
-                  {projectImages.length > 0
-                    ? `Continue with ${projectImages.length} image${projectImages.length === 1 ? "" : "s"} →`
-                    : "Skip — almost done →"}
                 </button>
               </div>
             </>
