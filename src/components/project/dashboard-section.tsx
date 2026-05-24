@@ -7,6 +7,9 @@ import {
   Target,
   ArrowUpRight,
   X,
+  Star,
+  Video as VideoIcon,
+  Image as ImageIcon,
 } from "lucide-react";
 import type { ProjectDetail, Persona } from "@/lib/project-data";
 import { SectionHeader } from "./shared/section-header";
@@ -18,17 +21,22 @@ import {
   type MetricSnapshot,
 } from "./dashboard-metrics";
 import { Sparkline, LargeChart } from "./metric-charts";
+import { getWinningConcept, type WinningConcept } from "./persona-hierarchy";
+import { PlacementsAnalysis } from "./placements-analysis";
 
 /**
- * Dashboard tab — project pulse with real charts and click-to-visualize.
+ * Dashboard tab — project pulse, organized around business outcomes.
  *
- * Layout:
- *   1. Pacing strip — goal-anchored numbers (verified vs target, day x/y,
- *      forecast, gap).
- *   2. Metric grid — every dashboard metric as a tile with a sparkline +
- *      delta. Click any tile to expand a large chart inline below the grid.
- *   3. Persona ranking table.
- *   4. Spot's read — derived insights.
+ * Three metric groups (no operational TOFU at the project level):
+ *   · Outcomes — Verified, Qualified, CPVL, CPQL
+ *   · Pipeline — Total leads, CPL, Verification %, Qualification %
+ *   · Spend & pacing — Spend, Daily burn, Days to goal
+ *
+ * Plus:
+ *   · Pacing strip (goal-anchored)
+ *   · Persona performance — winning concept + TOFU signal per persona
+ *   · Placements analysis — Meta surface-by-surface breakdown
+ *   · Spot's read — derived insights
  */
 export function DashboardSection({
   project,
@@ -48,7 +56,7 @@ export function DashboardSection({
       <SectionHeader
         icon={BarChart3}
         title="Dashboard"
-        subtitle="project pulse — top of funnel down to verified leads · click any tile for a full chart"
+        subtitle="project pulse · click any tile for the 14-day chart"
         onAsk={() =>
           onAsk("Summarize how this project is performing this week against goal")
         }
@@ -66,24 +74,24 @@ export function DashboardSection({
 
       <MetricGroup
         title="Outcomes"
-        sub="against goal"
+        sub="goal-relevant numbers"
         metrics={metrics.filter((m) => m.def.category === "outcome")}
         focusedKey={focusedKey}
         onSelect={(key) => setFocusedKey((cur) => (cur === key ? null : key))}
       />
 
       <MetricGroup
-        title="Funnel"
-        sub="top to mid"
-        metrics={metrics.filter((m) => m.def.category === "funnel")}
+        title="Pipeline"
+        sub="lead flow + conversion"
+        metrics={metrics.filter((m) => m.def.category === "pipeline")}
         focusedKey={focusedKey}
         onSelect={(key) => setFocusedKey((cur) => (cur === key ? null : key))}
       />
 
       <MetricGroup
-        title="Efficiency"
-        sub="spend and rates"
-        metrics={metrics.filter((m) => m.def.category === "efficiency")}
+        title="Spend & pacing"
+        sub="burn rate · runway"
+        metrics={metrics.filter((m) => m.def.category === "spend")}
         focusedKey={focusedKey}
         onSelect={(key) => setFocusedKey((cur) => (cur === key ? null : key))}
       />
@@ -96,7 +104,8 @@ export function DashboardSection({
         />
       )}
 
-      <PersonaRanking project={project} />
+      <PersonaPerformance project={project} />
+      <PlacementsAnalysis project={project} />
       <SpotInsightsCard project={project} onAsk={onAsk} />
     </div>
   );
@@ -143,9 +152,7 @@ function PacingStrip({ project }: { project: ProjectDetail }) {
           </div>
         </div>
 
-        <div
-          style={{ width: 1, height: 32, background: "var(--border-subtle)" }}
-        />
+        <div style={{ width: 1, height: 32, background: "var(--border-subtle)" }} />
 
         <PacingStat
           label="Day"
@@ -235,7 +242,7 @@ function MetricGroup({
       <div
         className="grid gap-3"
         style={{
-          gridTemplateColumns: `repeat(${Math.min(metrics.length, 5)}, minmax(0,1fr))`,
+          gridTemplateColumns: `repeat(${Math.min(metrics.length, 4)}, minmax(0,1fr))`,
         }}
       >
         {metrics.map((m) => (
@@ -382,7 +389,6 @@ function ExpandedChart({
 
       <LargeChart snapshot={snapshot} />
 
-      {/* Per-persona breakdown (best-effort) */}
       <PersonaBreakdown project={project} metricKey={snapshot.def.key} />
     </div>
   );
@@ -395,10 +401,7 @@ function PersonaBreakdown({
   project: ProjectDetail;
   metricKey: string;
 }) {
-  // Only show a breakdown for outcome-level metrics that have a clean
-  // per-persona projection. For others, skip the section.
   if (!["verified", "cpvl", "leads"].includes(metricKey)) return null;
-
   const cells = project.personas.map((p) => {
     let display: string = "—";
     if (metricKey === "verified") display = String(p.verifiedLeads);
@@ -406,9 +409,7 @@ function PersonaBreakdown({
     if (metricKey === "leads") display = String(p.verifiedLeads * 2);
     return { id: p.id, name: p.name, share: p.share, display };
   });
-
   if (cells.length === 0) return null;
-
   return (
     <div className="mt-4 pt-3" style={{ borderTop: "1px solid var(--border-subtle)" }}>
       <div className="uplabel mb-2" style={{ fontSize: 9.5 }}>
@@ -416,10 +417,7 @@ function PersonaBreakdown({
       </div>
       <div className="space-y-1.5">
         {cells.map((c) => (
-          <div
-            key={c.id}
-            className="flex items-center gap-3 text-[11.5px]"
-          >
+          <div key={c.id} className="flex items-center gap-3 text-[11.5px]">
             <span className="flex-1 min-w-0 truncate font-medium">{c.name}</span>
             <span
               className="tabular-nums text-text-tertiary"
@@ -437,9 +435,9 @@ function PersonaBreakdown({
   );
 }
 
-// ─── Persona ranking + insights ─────────────────────────────────────────
+// ─── Persona performance (with TOFU-based winning concept) ──────────────
 
-function PersonaRanking({ project }: { project: ProjectDetail }) {
+function PersonaPerformance({ project }: { project: ProjectDetail }) {
   const ranked = [...project.personas].sort((a, b) => {
     if (b.verifiedLeads !== a.verifiedLeads)
       return b.verifiedLeads - a.verifiedLeads;
@@ -447,27 +445,37 @@ function PersonaRanking({ project }: { project: ProjectDetail }) {
   });
   return (
     <div>
-      <div className="uplabel mb-2" style={{ fontSize: 9.5 }}>
-        Persona performance
+      <div className="flex items-baseline justify-between mb-2">
+        <div className="flex items-baseline gap-2">
+          <span className="uplabel" style={{ fontSize: 9.5 }}>
+            Persona performance
+          </span>
+          <span className="text-[10.5px] text-text-tertiary">
+            winning concept picked on TOFU signal only · CTR for static · Hook Rate for video
+          </span>
+        </div>
       </div>
       <div className="card-base overflow-hidden">
         <div
           className="grid px-3.5 py-2 text-[10.5px] uppercase tracking-[0.4px] text-text-tertiary font-semibold"
           style={{
-            gridTemplateColumns: "32px 1.5fr 0.7fr 0.7fr 0.7fr 1.5fr",
+            gridTemplateColumns:
+              "32px 1.6fr 1.8fr 0.7fr 0.7fr 0.7fr 0.7fr 0.6fr",
             background: "var(--bg-page)",
             borderBottom: "1px solid var(--border-subtle)",
           }}
         >
           <span>#</span>
           <span>Persona</span>
+          <span>Winning concept</span>
+          <span className="text-right">TOFU</span>
+          <span className="text-right">CVR</span>
           <span className="text-right">Verified</span>
           <span className="text-right">CPVL</span>
           <span className="text-right">Share</span>
-          <span>Winning angle</span>
         </div>
         {ranked.map((p, i) => (
-          <PersonaRankRow key={p.id} rank={i + 1} persona={p} />
+          <PersonaPerformanceRow key={p.id} rank={i + 1} persona={p} />
         ))}
         {project.personas.length === 0 && (
           <div className="px-3.5 py-6 text-center text-[12px] text-text-tertiary">
@@ -479,39 +487,85 @@ function PersonaRanking({ project }: { project: ProjectDetail }) {
   );
 }
 
-function PersonaRankRow({
+function PersonaPerformanceRow({
   rank,
   persona,
 }: {
   rank: number;
   persona: Persona;
 }) {
-  const winningAngle =
-    persona.angles.find((a) =>
-      a.concept.creatives.some((c) => c.tag === "winner"),
-    ) ||
-    persona.angles.find((a) => a.status === "live") ||
-    persona.angles[0];
-
+  const winner = getWinningConcept(persona);
   return (
     <div
       className="grid items-center px-3.5 py-2.5 text-[12px]"
       style={{
-        gridTemplateColumns: "32px 1.5fr 0.7fr 0.7fr 0.7fr 1.5fr",
+        gridTemplateColumns:
+          "32px 1.6fr 1.8fr 0.7fr 0.7fr 0.7fr 0.7fr 0.6fr",
         borderBottom: "1px solid var(--border-subtle)",
       }}
     >
       <span className="tabular-nums text-text-tertiary">#{rank}</span>
-      <span className="font-medium truncate">{persona.name}</span>
+      <span className="font-medium truncate" title={persona.role}>
+        {persona.name}
+      </span>
+      <WinningConceptCell winner={winner} />
+      <span className="text-right tabular-nums">
+        {winner ? `${winner.tofu.value.toFixed(2)}%` : "—"}
+      </span>
+      <span className="text-right tabular-nums">
+        {winner?.cvr != null ? `${winner.cvr.toFixed(1)}%` : "—"}
+      </span>
       <span className="text-right tabular-nums">{persona.verifiedLeads}</span>
       <span className="text-right tabular-nums">{persona.cpvl}</span>
       <span className="text-right tabular-nums">{persona.share}%</span>
-      <span className="text-text-secondary truncate">
-        {winningAngle?.name ?? "—"}
-      </span>
     </div>
   );
 }
+
+function WinningConceptCell({
+  winner,
+}: {
+  winner: WinningConcept | null;
+}) {
+  if (!winner) {
+    return (
+      <span className="text-text-tertiary italic text-[11.5px]">
+        No TOFU data yet
+      </span>
+    );
+  }
+  const isVideo = winner.concept.kind === "video";
+  const Icon = isVideo ? VideoIcon : ImageIcon;
+  return (
+    <div className="flex items-center gap-2 min-w-0">
+      <span
+        className="inline-flex items-center gap-1 flex-shrink-0 uppercase"
+        style={{
+          background: isVideo ? "#F4ECFF" : "var(--bg-secondary)",
+          color: isVideo ? "#7C3AED" : "var(--text-2)",
+          fontSize: 9.5,
+          fontWeight: 600,
+          padding: "2px 6px",
+          borderRadius: 4,
+          letterSpacing: 0.3,
+        }}
+      >
+        <Icon size={9} /> {isVideo ? "Video" : "Static"}
+      </span>
+      <span className="truncate font-medium" title={winner.angle.name}>
+        {winner.angle.name}
+      </span>
+      <Star
+        size={10}
+        strokeWidth={2.5}
+        className="flex-shrink-0"
+        style={{ color: "#15803D" }}
+      />
+    </div>
+  );
+}
+
+// ─── Spot insights ──────────────────────────────────────────────────────
 
 function SpotInsightsCard({
   project,
@@ -610,4 +664,3 @@ function SpotInsightsCard({
     </div>
   );
 }
-

@@ -1,39 +1,39 @@
 import type { ProjectDetail } from "@/lib/project-data";
 
 /**
- * Dashboard metric & time-series synthesis. The product has no real
- * time-series store yet, so we derive plausible 14-day curves from the
- * current project state (totals on creatives, ads, goal). Numbers stay
- * deterministic per (projectId, metricKey, day) so refresh doesn't
- * churn the chart.
+ * Dashboard metric & time-series synthesis at the **project level**.
  *
- * Returned units:
- *   · "currency" — formatted as ₹k / ₹k.kK
- *   · "pct"      — 2dp percent, e.g. 1.45%
- *   · "raw"      — tabular integer
+ * Operational/TOFU metrics like CPM, CPC, CTR — which only make sense at
+ * the ad / ad-set / creative level — live in the Campaigns tab and the
+ * persona winning-concept row. The Dashboard sticks to business outcomes:
+ *
+ *   · Outcomes — what the goal is measured against
+ *   · Pipeline — funnel conversion + cost-per-outcome
+ *   · Spend & pacing — burn, runway, days to goal
+ *
+ * Time-series is synthesized deterministically per (projectId, metricKey)
+ * so refresh doesn't churn the chart.
  */
 
 export type MetricKey =
   | "verified"
-  | "leads"
   | "qualified"
-  | "impressions"
-  | "spend"
-  | "ctr"
-  | "cpc"
-  | "cpm"
-  | "cpl"
   | "cpvl"
   | "cpql"
+  | "leads"
+  | "cpl"
   | "verifRate"
-  | "qualRate";
+  | "qualRate"
+  | "spend"
+  | "dailyBurn"
+  | "daysToGoal";
 
-export type MetricCategory = "funnel" | "efficiency" | "outcome";
+export type MetricCategory = "outcome" | "pipeline" | "spend";
 
 export type MetricDef = {
   key: MetricKey;
   label: string;
-  unit: "currency" | "pct" | "raw";
+  unit: "currency" | "pct" | "raw" | "days";
   category: MetricCategory;
   /** Higher = better. CPL/CPVL/etc. flip to false. */
   higherIsBetter: boolean;
@@ -42,24 +42,99 @@ export type MetricDef = {
 };
 
 export const METRIC_DEFS: MetricDef[] = [
-  // Outcomes (what the goal is measured against)
-  { key: "verified", label: "Verified leads", unit: "raw", category: "outcome", higherIsBetter: true, hint: "Leads that passed verification — your goal metric." },
-  { key: "qualified", label: "Qualified leads", unit: "raw", category: "outcome", higherIsBetter: true, hint: "Verified leads who also passed sales qualification." },
-  { key: "cpvl", label: "Cost per verified lead", unit: "currency", category: "outcome", higherIsBetter: false, hint: "Spend ÷ Verified leads. Your true efficiency number." },
-  { key: "cpql", label: "Cost per qualified lead", unit: "currency", category: "outcome", higherIsBetter: false, hint: "Spend ÷ Qualified leads." },
+  // Outcomes — the goal-level numbers
+  {
+    key: "verified",
+    label: "Verified leads",
+    unit: "raw",
+    category: "outcome",
+    higherIsBetter: true,
+    hint: "Leads that passed verification — your goal metric for most projects.",
+  },
+  {
+    key: "qualified",
+    label: "Qualified leads",
+    unit: "raw",
+    category: "outcome",
+    higherIsBetter: true,
+    hint: "Verified leads who also passed sales qualification.",
+  },
+  {
+    key: "cpvl",
+    label: "Cost per verified",
+    unit: "currency",
+    category: "outcome",
+    higherIsBetter: false,
+    hint: "Spend ÷ verified leads. Your true efficiency number.",
+  },
+  {
+    key: "cpql",
+    label: "Cost per qualified",
+    unit: "currency",
+    category: "outcome",
+    higherIsBetter: false,
+    hint: "Spend ÷ qualified leads. Sales-readiness efficiency.",
+  },
 
-  // Funnel (top → middle)
-  { key: "impressions", label: "Impressions", unit: "raw", category: "funnel", higherIsBetter: true, hint: "Total ad impressions served across all live campaigns." },
-  { key: "ctr", label: "CTR", unit: "pct", category: "funnel", higherIsBetter: true, hint: "Click-through rate — % of impressions that clicked." },
-  { key: "cpc", label: "CPC", unit: "currency", category: "funnel", higherIsBetter: false, hint: "Average cost per click." },
-  { key: "leads", label: "Total leads", unit: "raw", category: "funnel", higherIsBetter: true, hint: "All leads captured — before verification." },
-  { key: "cpl", label: "CPL", unit: "currency", category: "funnel", higherIsBetter: false, hint: "Spend ÷ total leads." },
+  // Pipeline — business-level funnel (no impressions/CTR/CPM)
+  {
+    key: "leads",
+    label: "Total leads",
+    unit: "raw",
+    category: "pipeline",
+    higherIsBetter: true,
+    hint: "All leads captured — before verification or qualification.",
+  },
+  {
+    key: "cpl",
+    label: "Cost per lead",
+    unit: "currency",
+    category: "pipeline",
+    higherIsBetter: false,
+    hint: "Spend ÷ total leads. Top-of-pipeline efficiency.",
+  },
+  {
+    key: "verifRate",
+    label: "Verification rate",
+    unit: "pct",
+    category: "pipeline",
+    higherIsBetter: true,
+    hint: "% of total leads that passed verification.",
+  },
+  {
+    key: "qualRate",
+    label: "Qualification rate",
+    unit: "pct",
+    category: "pipeline",
+    higherIsBetter: true,
+    hint: "% of verified leads that passed sales qualification.",
+  },
 
-  // Efficiency
-  { key: "spend", label: "Spend", unit: "currency", category: "efficiency", higherIsBetter: true, hint: "Total media spend across live campaigns." },
-  { key: "cpm", label: "CPM", unit: "currency", category: "efficiency", higherIsBetter: false, hint: "Cost per thousand impressions." },
-  { key: "verifRate", label: "Verification rate", unit: "pct", category: "efficiency", higherIsBetter: true, hint: "% of total leads that passed verification." },
-  { key: "qualRate", label: "Qualification rate", unit: "pct", category: "efficiency", higherIsBetter: true, hint: "% of verified leads that passed sales qualification." },
+  // Spend & pacing — financial discipline + goal forecast
+  {
+    key: "spend",
+    label: "Spend to date",
+    unit: "currency",
+    category: "spend",
+    higherIsBetter: true,
+    hint: "Total media spend across all live campaigns this project.",
+  },
+  {
+    key: "dailyBurn",
+    label: "Daily burn",
+    unit: "currency",
+    category: "spend",
+    higherIsBetter: true,
+    hint: "Average daily media spend over the project window so far.",
+  },
+  {
+    key: "daysToGoal",
+    label: "Days to goal",
+    unit: "days",
+    category: "spend",
+    higherIsBetter: false,
+    hint: "Days remaining to hit goal at current verified-lead velocity. Lower is better — but only when below the window's days remaining.",
+  },
 ];
 
 export const METRICS_BY_KEY = new Map(METRIC_DEFS.map((m) => [m.key, m]));
@@ -74,44 +149,37 @@ export type MetricSnapshot = {
 };
 
 /**
- * Compute the dashboard's metric snapshots from a project's current state.
- * The current values are derived from MediaPlan rows / ad sets / ads and
- * persona-level aggregates; the time-series is synthesized.
+ * Compute every dashboard metric from a project's current state.
  */
 export function computeMetrics(project: ProjectDetail): MetricSnapshot[] {
-  // Aggregate current values
-  const rows = project.mediaPlan.rows;
-  const totalImpressions = sumAdField(project, "impressions") + sumRowField(rows, "impressions") + estimateImpressions(project);
-  const totalSpend = sumAdField(project, "spend") || estimateSpend(project);
+  const totalSpend = estimateSpend(project);
   const totalLeads =
     sumAdField(project, "leads") ||
-    project.personas.reduce((s, p) => s + (p.verifiedLeads * 2), 0); // rough 2x verified
+    project.personas.reduce((s, p) => s + p.verifiedLeads * 2, 0);
   const totalVerified = project.goal.achieved;
   const totalQualified = Math.max(0, Math.round(totalVerified * 0.42));
 
-  const ctr = totalImpressions > 0 ? (totalLeads / totalImpressions) * 100 : null;
-  const cpc = totalLeads > 0 ? totalSpend / (totalLeads * 4) : null; // ~4 clicks per lead
-  const cpm = totalImpressions > 0 ? (totalSpend / totalImpressions) * 1000 : null;
   const cpl = totalLeads > 0 ? Math.round(totalSpend / totalLeads) : null;
   const cpvl = totalVerified > 0 ? Math.round(totalSpend / totalVerified) : null;
   const cpql = totalQualified > 0 ? Math.round(totalSpend / totalQualified) : null;
   const verifRate = totalLeads > 0 ? (totalVerified / totalLeads) * 100 : null;
   const qualRate = totalVerified > 0 ? (totalQualified / totalVerified) * 100 : null;
+  const daysElapsed = Math.max(1, project.goal.daysElapsed || 1);
+  const dailyBurn = totalSpend > 0 ? Math.round(totalSpend / daysElapsed) : null;
+  const daysToGoal = computeDaysToGoal(project);
 
   const currents: Record<MetricKey, number | null> = {
     verified: totalVerified,
     qualified: totalQualified,
-    impressions: totalImpressions || null,
-    spend: totalSpend || null,
     leads: totalLeads || null,
-    ctr,
-    cpc,
-    cpm,
     cpl,
     cpvl,
     cpql,
     verifRate,
     qualRate,
+    spend: totalSpend || null,
+    dailyBurn,
+    daysToGoal,
   };
 
   return METRIC_DEFS.map((def) => {
@@ -122,9 +190,21 @@ export function computeMetrics(project: ProjectDetail): MetricSnapshot[] {
   });
 }
 
+function computeDaysToGoal(project: ProjectDetail): number | null {
+  const goal = project.goal;
+  if (goal.target === 0) return null;
+  if (goal.achieved >= goal.target) return 0;
+  if (goal.daysElapsed === 0) return goal.daysTotal;
+  // Verified leads per day so far → linear projection to goal.
+  const rate = goal.achieved / goal.daysElapsed;
+  if (rate <= 0) return null;
+  const remaining = goal.target - goal.achieved;
+  return Math.ceil(remaining / rate);
+}
+
 function sumAdField(
   project: ProjectDetail,
-  field: "spend" | "leads" | "impressions",
+  field: "spend" | "leads",
 ): number {
   let total = 0;
   for (const r of project.mediaPlan.rows) {
@@ -138,27 +218,10 @@ function sumAdField(
   return total;
 }
 
-function sumRowField(
-  rows: ProjectDetail["mediaPlan"]["rows"],
-  field: "impressions",
-): number {
-  let total = 0;
-  for (const r of rows) {
-    const v = r[field];
-    if (typeof v === "number") total += v;
-  }
-  return total;
-}
-
-function estimateImpressions(project: ProjectDetail): number {
-  // ~18 impressions per ₹ of spend is a reasonable rough rate for
-  // Indian real-estate lead ads at the time of writing.
-  const spend = estimateSpend(project);
-  return Math.round(spend * 18);
-}
-
 function estimateSpend(project: ProjectDetail): number {
-  // Sum daily budgets × days elapsed, plus per-ad spend already captured.
+  const fromAds = sumAdField(project, "spend");
+  if (fromAds > 0) return fromAds;
+  // Sum daily budgets × days elapsed for live campaigns.
   const dailyTotal = project.mediaPlan.rows
     .filter((r) => r.status === "live")
     .reduce((s, r) => s + r.budgetDaily, 0);
@@ -169,7 +232,8 @@ function estimateSpend(project: ProjectDetail): number {
 /**
  * Deterministic 14-day series synthesis. Anchored so the *last* point
  * lands at the current value; earlier points trend slightly down to
- * give a credible up-and-to-the-right curve.
+ * give a credible up-and-to-the-right curve (or inverted for "lower
+ * is better" metrics).
  */
 function synthesizeSeries(
   projectId: string,
@@ -180,9 +244,6 @@ function synthesizeSeries(
   const seed = hashString(`${projectId}:${def.key}`);
   const rng = mulberry32(seed);
   const points: number[] = [];
-  // Trend factor — currents start at ~70% of `current` (for outcomes) and
-  // climb to 100% by day 14, with daily jitter. For "lower is better"
-  // metrics (CPL etc.) we start higher and trend downward.
   const startFactor = def.higherIsBetter ? 0.65 : 1.35;
   for (let i = 0; i < 14; i++) {
     const t = i / 13;
@@ -240,6 +301,11 @@ export function formatMetric(value: number | null, unit: MetricDef["unit"]): str
   }
   if (unit === "pct") {
     return `${value.toFixed(value < 10 ? 2 : 1)}%`;
+  }
+  if (unit === "days") {
+    if (value === 0) return "Met";
+    if (value >= 999) return "—";
+    return `${Math.round(value)} d`;
   }
   // raw
   if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`;

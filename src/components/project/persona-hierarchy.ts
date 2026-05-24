@@ -114,3 +114,81 @@ export function conceptAggregateCpvl(concept: DerivedConcept): number | null {
   const verified = conceptTotalVerified(concept);
   return verified > 0 ? Math.round(spend / verified) : null;
 }
+
+// ─── TOFU-based winner picker ──────────────────────────────────────────
+
+import type { Persona } from "@/lib/project-data";
+
+/**
+ * The "winning concept" for a persona, picked **purely on TOFU signal**:
+ *   · Static concepts are scored on CTR (avg across sizes)
+ *   · Video concepts are scored on Hook Rate (avg across sizes)
+ * Ties are broken by CVR. Returns `null` when no concept has any TOFU
+ * data yet.
+ *
+ * Per the product brief, winners are TOFU-defined — downstream metrics
+ * (CPVL, CPQL) are *outcomes*, not the cause; the audience-attention
+ * signal at the top of the funnel is what we let identify a winner.
+ */
+export type WinningConcept = {
+  angle: Angle;
+  concept: DerivedConcept;
+  /** Primary TOFU metric used to pick the winner. */
+  tofu: {
+    label: "CTR" | "Hook Rate";
+    /** Percent value, e.g. 1.45 for 1.45%. */
+    value: number;
+  };
+  /** Conversion rate — secondary signal, surfaced alongside the TOFU number. */
+  cvr: number | null;
+};
+
+export function getWinningConcept(persona: Persona): WinningConcept | null {
+  let best: WinningConcept | null = null;
+  for (const angle of persona.angles) {
+    for (const concept of getConcepts(angle)) {
+      const tofu = computeTofuScore(concept);
+      if (tofu == null) continue;
+      const cvr = avgMetric(concept, "cvr");
+      const candidate: WinningConcept = { angle, concept, tofu, cvr };
+      if (!best) {
+        best = candidate;
+        continue;
+      }
+      if (candidate.tofu.value > best.tofu.value) {
+        best = candidate;
+      } else if (
+        Math.abs(candidate.tofu.value - best.tofu.value) < 0.01 &&
+        (cvr ?? 0) > (best.cvr ?? 0)
+      ) {
+        // Tie-break by CVR when TOFU is within rounding distance.
+        best = candidate;
+      }
+    }
+  }
+  return best;
+}
+
+function computeTofuScore(
+  concept: DerivedConcept,
+): WinningConcept["tofu"] | null {
+  if (concept.kind === "video") {
+    const hook = avgMetric(concept, "hookRate");
+    if (hook == null) return null;
+    return { label: "Hook Rate", value: hook };
+  }
+  const ctr = avgMetric(concept, "ctr");
+  if (ctr == null) return null;
+  return { label: "CTR", value: ctr };
+}
+
+function avgMetric(
+  concept: DerivedConcept,
+  field: "ctr" | "cvr" | "hookRate",
+): number | null {
+  const values = concept.sizes
+    .map((s) => s[field])
+    .filter((v): v is number => typeof v === "number");
+  if (values.length === 0) return null;
+  return values.reduce((s, v) => s + v, 0) / values.length;
+}
