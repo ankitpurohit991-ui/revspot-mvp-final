@@ -13,6 +13,7 @@ import type { Persona, ProjectDetail, Creative } from "@/lib/project-data";
 import { mutateRuntimeProject } from "@/lib/project-data";
 import { SpotMark } from "@/components/spot/spot-mark";
 import { RichText } from "@/components/spot/rich-text";
+import { useSpotStore } from "@/lib/spot/store";
 import { AngleRow } from "./angle-row";
 import { InlineSpotComposer, type StreamItem } from "./inline-spot-composer";
 
@@ -84,6 +85,7 @@ export function PersonaWorkspace({
     setEditingPersona(false);
   };
 
+  const showToast = useSpotStore((s) => s.showToast);
   const approve = () => {
     mutateRuntimeProject(project.id, (p) => {
       const target = p.personas.find((x) => x.id === persona.id);
@@ -91,6 +93,9 @@ export function PersonaWorkspace({
       target.approved = true;
       target.draft = false;
     });
+    showToast(
+      `${persona.name} approved — Spot will start allocating budget to this persona on next deploy`,
+    );
   };
 
   const startAngleDraft = (userPrompt: string) => {
@@ -361,30 +366,11 @@ export function PersonaWorkspace({
         </div>
       )}
 
-      {/* Approval CTA if persona is a draft */}
+      {/* Approval card — only shown while the persona is a draft. Gives the
+          user a concrete checklist of what Spot has prepared so they can
+          approve with confidence rather than approving an empty shell. */}
       {persona.draft && (
-        <div
-          className="rounded-[10px] p-3 flex items-center justify-between"
-          style={{ background: "#FFFCEB", border: "1px solid #E0CC95" }}
-        >
-          <div className="text-[12px] text-text-secondary">
-            This persona is still a draft — Spot won&apos;t use it in campaign
-            allocation until you approve.
-          </div>
-          <button
-            type="button"
-            onClick={approve}
-            className="apply-btn"
-            style={{
-              background: "linear-gradient(135deg, #7C3AED 0%, #C026D3 100%)",
-              height: 28,
-              fontSize: 11.5,
-              padding: "0 12px",
-            }}
-          >
-            <Check size={11} /> Approve & pilot
-          </button>
-        </div>
+        <ApprovalCard persona={persona} onApprove={approve} />
       )}
 
       {/* Angles */}
@@ -551,6 +537,178 @@ export function PersonaAvatar({ id, size = 38 }: { id: string; size?: number }) 
 }
 
 // ─── Seed helpers (used to seed new angles / new concepts) ──────────────
+
+// ─── Approval card ─────────────────────────────────────────────────────
+
+/**
+ * Persona approval flow.
+ *
+ * A draft persona shouldn't auto-influence campaign budget allocation —
+ * we want the user to confirm Spot's draft before it starts shaping
+ * spend. This card surfaces what's been prepared (WPS triple, angles,
+ * concepts) as a checklist so the user knows exactly what they're
+ * approving, and the primary CTA commits the approval. The bullet on
+ * what Spot will do *after* approval ("start allocating budget to this
+ * persona on next deploy") sets clear expectations.
+ */
+function ApprovalCard({
+  persona,
+  onApprove,
+}: {
+  persona: Persona;
+  onApprove: () => void;
+}) {
+  const hasWps =
+    persona.want.length > 0 &&
+    persona.painPoint.length > 0 &&
+    persona.usp.length > 0;
+  const angleCount = persona.angles.length;
+  const conceptCount = persona.angles.reduce((n, a) => {
+    const hasStatic = a.concept.creatives.some((c) => c.kind !== "video");
+    const hasVideo = a.concept.creatives.some((c) => c.kind === "video");
+    return n + (hasStatic ? 1 : 0) + (hasVideo ? 1 : 0);
+  }, 0);
+  const sizeCount = persona.angles.reduce(
+    (n, a) => n + a.concept.creatives.length,
+    0,
+  );
+
+  return (
+    <div
+      className="rounded-[12px] p-4"
+      style={{
+        background:
+          "linear-gradient(135deg, #FFFCEB 0%, #FFF7D6 100%)",
+        border: "1px solid #E0CC95",
+      }}
+    >
+      <div className="flex items-start gap-3">
+        <span
+          className="inline-flex items-center justify-center flex-shrink-0"
+          style={{
+            width: 30,
+            height: 30,
+            borderRadius: 8,
+            background: "linear-gradient(135deg, #C9A86A 0%, #8A6300 100%)",
+            color: "#FFF",
+          }}
+        >
+          <SpotMark size={14} />
+        </span>
+        <div className="flex-1 min-w-0">
+          <div className="text-[13px] font-semibold leading-tight mb-0.5">
+            Spot has drafted this persona — your approval needed
+          </div>
+          <div className="text-[11.5px] text-text-secondary leading-[1.5]">
+            Approval unlocks budget allocation. Until then, this persona
+            won&apos;t consume spend or appear in pacing.
+          </div>
+
+          <ul className="mt-3 space-y-1">
+            <ApprovalCheckRow
+              done={hasWps}
+              label="Want / Pain / USP"
+              value={hasWps ? "Drafted" : "Missing — edit above to fill in"}
+            />
+            <ApprovalCheckRow
+              done={angleCount > 0}
+              label="Angles"
+              value={
+                angleCount > 0
+                  ? `${angleCount} angle${angleCount === 1 ? "" : "s"}`
+                  : "None yet — add an angle with Spot"
+              }
+            />
+            <ApprovalCheckRow
+              done={conceptCount > 0}
+              label="Concepts"
+              value={
+                conceptCount > 0
+                  ? `${conceptCount} concept${conceptCount === 1 ? "" : "s"} · ${sizeCount} sized creative${sizeCount === 1 ? "" : "s"}`
+                  : "None yet — drafts can be added after approval too"
+              }
+              optional
+            />
+          </ul>
+
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onApprove}
+              disabled={!hasWps}
+              className="apply-btn"
+              style={{
+                background: hasWps
+                  ? "linear-gradient(135deg, #7C3AED 0%, #C026D3 100%)"
+                  : "var(--bg-secondary)",
+                color: hasWps ? "#FFF" : "var(--text-tertiary)",
+                height: 30,
+                fontSize: 12,
+                padding: "0 14px",
+                opacity: hasWps ? 1 : 0.6,
+                cursor: hasWps ? "pointer" : "not-allowed",
+              }}
+            >
+              <Check size={12} /> Approve persona
+            </button>
+            <span className="text-[10.5px] text-text-tertiary">
+              {hasWps
+                ? "Spot starts allocating budget on next deploy"
+                : "Fill in Want / Pain / USP before approving"}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ApprovalCheckRow({
+  done,
+  label,
+  value,
+  optional,
+}: {
+  done: boolean;
+  label: string;
+  value: string;
+  optional?: boolean;
+}) {
+  return (
+    <li className="flex items-center gap-2 text-[11.5px]">
+      <span
+        className="inline-flex items-center justify-center flex-shrink-0"
+        style={{
+          width: 14,
+          height: 14,
+          borderRadius: "50%",
+          background: done ? "var(--ok-fg, #15803D)" : "var(--bg-secondary)",
+          color: done ? "#FFF" : "var(--text-tertiary)",
+        }}
+      >
+        {done ? (
+          <Check size={9} strokeWidth={3.5} />
+        ) : (
+          <span
+            style={{
+              width: 4,
+              height: 4,
+              borderRadius: "50%",
+              background: "currentColor",
+            }}
+          />
+        )}
+      </span>
+      <span className="font-medium" style={{ minWidth: 140 }}>
+        {label}
+        {optional && (
+          <span className="text-text-tertiary font-normal"> · optional</span>
+        )}
+      </span>
+      <span className="text-text-secondary flex-1 truncate">{value}</span>
+    </li>
+  );
+}
 
 function staticSeed(angleId: string): Creative[] {
   return [

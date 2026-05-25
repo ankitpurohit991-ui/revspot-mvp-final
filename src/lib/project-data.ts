@@ -185,6 +185,9 @@ export type MediaAd = {
   leads: number | null;
   cpl: number | null;
   tag?: "winner" | "loser" | null;
+  /** Specific creative (size) attached to this ad. Used to surface
+   * "this concept is in N campaigns" in the persona workspace. */
+  creativeId?: string;
 } & MediaMetrics;
 
 export type MediaAdSet = {

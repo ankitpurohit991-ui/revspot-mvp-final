@@ -3,15 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronRight,
-  RefreshCw,
-  Play,
   Pencil,
   Star,
+  Play,
   Video as VideoIcon,
   Image as ImageIcon,
   Check,
   X,
-  Loader2,
   Plus,
   Upload as UploadIcon,
 } from "lucide-react";
@@ -22,6 +20,8 @@ import {
   pickHeadlineSize,
   conceptHasWinner,
   conceptAggregateCpvl,
+  conceptCampaignAttachments,
+  conceptShortLabel,
   type DerivedConcept,
 } from "./persona-hierarchy";
 import { MetaPreview } from "./meta-preview";
@@ -111,12 +111,6 @@ export function AngleRow({
         </span>
         <span className="text-[11px] text-text-tertiary truncate flex-1 min-w-0">
           {concepts.length} concept{concepts.length === 1 ? "" : "s"}
-          {concepts.length > 0 && (
-            <>
-              {" "}
-              · {angle.concept.creatives.length} size{angle.concept.creatives.length === 1 ? "" : "s"}
-            </>
-          )}
         </span>
         {angle.status === "live" && totalVerified > 0 && (
           <span className="text-[11px] tabular-nums text-text-secondary flex-shrink-0">
@@ -177,34 +171,25 @@ export function AngleRow({
             />
           )}
 
-          {/* Bottom action bar */}
-          <div className="flex items-center justify-between gap-2 flex-wrap">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <button
-                type="button"
-                onClick={() => onDraftConcept?.(angle.id)}
-                title="Spot drafts a static concept (image). Video uploads still go through Upload."
-                className="inline-flex items-center gap-1 h-7 px-2.5 rounded-button text-[11.5px] text-text-secondary hover:text-text-primary"
-                style={{
-                  border: "1px dashed var(--border)",
-                  background: "transparent",
-                }}
-              >
-                <Plus size={11} /> Draft static with Spot
-              </button>
-              <UploadConceptButton
-                projectId={projectId}
-                personaId={persona.id}
-                angle={angle}
-              />
-            </div>
+          {/* Bottom action bar — add new concept(s) for this angle */}
+          <div className="flex items-center gap-1.5 flex-wrap">
             <button
               type="button"
-              onClick={() => setEditing(true)}
-              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-button border border-border bg-white text-[11.5px] hover:border-border-hover"
+              onClick={() => onDraftConcept?.(angle.id)}
+              title="Spot drafts a static concept (image). For video, use Upload concept."
+              className="inline-flex items-center gap-1 h-7 px-2.5 rounded-button text-[11.5px] text-text-secondary hover:text-text-primary"
+              style={{
+                border: "1px dashed var(--border)",
+                background: "transparent",
+              }}
             >
-              <Pencil size={11} /> Edit hook & CTA
+              <Plus size={11} /> Draft static with Spot
             </button>
+            <UploadConceptButton
+              projectId={projectId}
+              personaId={persona.id}
+              angle={angle}
+            />
           </div>
         </div>
       )}
@@ -363,21 +348,35 @@ function HookCtaBlock({
   if (!editing) {
     return (
       <div
-        className="rounded-[8px] p-2.5 grid gap-x-3 gap-y-1"
-        style={{
-          background: "var(--bg-page)",
-          gridTemplateColumns: "auto 1fr",
-          alignItems: "baseline",
-        }}
+        className="rounded-[8px] p-2.5 relative"
+        style={{ background: "var(--bg-page)" }}
       >
-        <span className="uplabel" style={{ fontSize: 9.5 }}>
-          Hook
-        </span>
-        <span className="text-[12px]">{angle.hook}</span>
-        <span className="uplabel" style={{ fontSize: 9.5 }}>
-          CTA
-        </span>
-        <span className="text-[12px]">{angle.cta}</span>
+        <button
+          type="button"
+          onClick={() => setEditing(true)}
+          title="Edit hook & CTA"
+          className="absolute inline-flex items-center justify-center h-6 w-6 rounded-button text-text-tertiary hover:text-text-secondary hover:bg-white"
+          style={{ top: 4, right: 4 }}
+        >
+          <Pencil size={11} />
+        </button>
+        <div
+          className="grid gap-x-3 gap-y-1"
+          style={{
+            gridTemplateColumns: "auto 1fr",
+            alignItems: "baseline",
+            paddingRight: 24,
+          }}
+        >
+          <span className="uplabel" style={{ fontSize: 9.5 }}>
+            Hook
+          </span>
+          <span className="text-[12px]">{angle.hook}</span>
+          <span className="uplabel" style={{ fontSize: 9.5 }}>
+            CTA
+          </span>
+          <span className="text-[12px]">{angle.cta}</span>
+        </div>
       </div>
     );
   }
@@ -483,59 +482,16 @@ function ConceptRow({
   onToggleSizes: () => void;
   onLaunch: () => void;
 }) {
-  const [regenStage, setRegenStage] = useState<
-    | { phase: "idle" }
-    | { phase: "regenerating"; lines: string[]; lineIdx: number }
-  >({ phase: "idle" });
-
   const winner = conceptHasWinner(concept);
   const headline = pickHeadlineSize(concept);
   const cpvl = conceptAggregateCpvl(concept);
   const isVideo = concept.kind === "video";
-
-  // Regen streaming — replaces the size list with a 3-line agent log while
-  // running. When it ticks done, swap in new sized creatives and bounce
-  // back to "idle".
-  useEffect(() => {
-    if (regenStage.phase !== "regenerating") return;
-    const { lineIdx, lines } = regenStage;
-    if (lineIdx >= lines.length) {
-      // Done — replace sizes with fresh placeholders.
-      mutateRuntimeProject(projectId, (p) => {
-        const persona2 = p.personas.find((pp) => pp.id === persona.id);
-        const a = persona2?.angles.find((aa) => aa.id === angle.id);
-        if (!a) return;
-        // Remove old sizes for this concept kind.
-        a.concept.creatives = a.concept.creatives.filter((c) => {
-          if (concept.kind === "video") return c.kind !== "video";
-          return c.kind === "video"; // keep videos when regenning static
-        });
-        // Push new sizes (same shape pattern as the original).
-        const fresh = freshSizes(concept.kind, `${angle.id}-${Date.now().toString(36)}`);
-        a.concept.creatives.push(...fresh);
-      });
-      setRegenStage({ phase: "idle" });
-      return;
-    }
-    const t = setTimeout(() => {
-      setRegenStage({ phase: "regenerating", lines, lineIdx: lineIdx + 1 });
-    }, 700);
-    return () => clearTimeout(t);
-  }, [regenStage, projectId, persona.id, angle.id, concept.kind]);
-
-  const startRegen = () => {
-    setRegenStage({
-      phase: "regenerating",
-      lines: [
-        `Reading "${angle.name}" hook & CTA`,
-        isVideo
-          ? "Reshuffling video frames (asset stays — Spot can't generate video)"
-          : "Drafting three static sizes (1:1, 4:5, 9:16)",
-        "Saving to your library",
-      ],
-      lineIdx: 0,
-    });
-  };
+  // Look up campaign attachment so the user can see at a glance whether
+  // this concept is actually running anywhere.
+  const project = getPersistedProject(projectId);
+  const attachments = conceptCampaignAttachments(concept, project);
+  const shortLabel = conceptShortLabel(concept);
+  const inAnyCampaign = attachments.count > 0;
 
   return (
     <div
@@ -551,9 +507,10 @@ function ConceptRow({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-0.5">
             <span className="text-[12px] font-semibold leading-tight truncate">
-              {isVideo ? "Video" : "Static"}
+              Concept {shortLabel}
             </span>
             <ConceptKindBadge kind={concept.kind} />
+            <AttachmentChip attachments={attachments} />
             {winner && (
               <span
                 className="inline-flex items-center gap-0.5 text-white uppercase"
@@ -597,80 +554,31 @@ function ConceptRow({
             type="button"
             onClick={onToggleSizes}
             className="inline-flex items-center gap-1 h-6 px-2 rounded-button border border-border bg-white text-[10.5px]"
-            disabled={regenStage.phase !== "idle"}
           >
             {sizesOpen ? "Hide" : "View"} size{concept.sizes.length === 1 ? "" : "s"}
           </button>
           <button
             type="button"
-            onClick={startRegen}
-            disabled={regenStage.phase !== "idle"}
-            className="inline-flex items-center gap-1 h-6 px-2 rounded-button border border-border bg-white text-[10.5px]"
-            title="Regenerate this concept"
-          >
-            <RefreshCw size={10} /> Regen
-          </button>
-          <button
-            type="button"
             onClick={onLaunch}
-            disabled={regenStage.phase !== "idle"}
-            className="inline-flex items-center gap-1 h-6 px-2 rounded-button text-white text-[10.5px]"
+            className="inline-flex items-center gap-1 h-6 px-2.5 rounded-button text-white text-[10.5px]"
             style={{
-              background: "linear-gradient(135deg, #7C3AED 0%, #C026D3 100%)",
+              background: inAnyCampaign
+                ? "linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)"
+                : "linear-gradient(135deg, #7C3AED 0%, #C026D3 100%)",
             }}
+            title={
+              inAnyCampaign
+                ? `Already in ${attachments.count} campaign${attachments.count === 1 ? "" : "s"} — add to another?`
+                : "Attach this concept to a campaign so it can run"
+            }
           >
-            <Play size={10} /> Launch
+            <Plus size={10} /> {inAnyCampaign ? "Add to another" : "Add to campaign"}
           </button>
         </div>
       </div>
 
-      {/* Regen streaming log */}
-      {regenStage.phase === "regenerating" && (
-        <div
-          className="px-3 pb-3 space-y-1.5"
-          style={{ borderTop: "1px solid var(--border-subtle)" }}
-        >
-          <div className="text-[10.5px] font-semibold pt-2.5 text-text-secondary">
-            Spot is regenerating…
-          </div>
-          {regenStage.lines.map((line, i) => {
-            const state =
-              i < regenStage.lineIdx
-                ? "done"
-                : i === regenStage.lineIdx
-                  ? "active"
-                  : "queued";
-            return (
-              <div key={i} className="flex items-start gap-2 text-[11.5px] leading-[1.5]">
-                <span className="flex-shrink-0 mt-0.5" style={{ width: 12, height: 12 }}>
-                  {state === "done" && <Check size={11} style={{ color: "var(--ok-fg)" }} />}
-                  {state === "active" && (
-                    <Loader2 size={11} className="animate-spin" style={{ color: "#7C3AED" }} />
-                  )}
-                  {state === "queued" && (
-                    <span
-                      style={{
-                        display: "inline-block",
-                        width: 6,
-                        height: 6,
-                        borderRadius: "50%",
-                        background: "var(--border)",
-                        margin: 2,
-                      }}
-                    />
-                  )}
-                </span>
-                <span className={state === "queued" ? "text-text-tertiary" : ""}>
-                  {line}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
       {/* Sizes drawer */}
-      {sizesOpen && regenStage.phase === "idle" && concept.sizes.length > 0 && (
+      {sizesOpen && concept.sizes.length > 0 && (
         <SizesDrawer
           projectId={projectId}
           persona={persona}
@@ -679,6 +587,55 @@ function ConceptRow({
         />
       )}
     </div>
+  );
+}
+
+/**
+ * Small pill that tells the user whether the concept is attached to any
+ * campaign. Amber = not in a campaign (action needed); green = in N
+ * campaigns. Compact enough to sit alongside the concept label.
+ */
+function AttachmentChip({
+  attachments,
+}: {
+  attachments: { count: number; campaignNames: string[] };
+}) {
+  const inAny = attachments.count > 0;
+  const title = inAny
+    ? `In: ${attachments.campaignNames.join(", ")}`
+    : "Not attached to any campaign yet — click Add to campaign to launch";
+  return (
+    <span
+      title={title}
+      className="inline-flex items-center gap-1 uppercase"
+      style={{
+        background: inAny ? "var(--ok-bg, #ECFDF5)" : "#FFFCEB",
+        color: inAny ? "var(--ok-fg, #15803D)" : "#8A6300",
+        border: `1px solid ${inAny ? "#BBF7D0" : "#E0CC95"}`,
+        fontSize: 9,
+        fontWeight: 700,
+        padding: "2px 6px",
+        borderRadius: 4,
+        letterSpacing: 0.3,
+      }}
+    >
+      {inAny ? (
+        <>
+          <span
+            style={{
+              display: "inline-block",
+              width: 6,
+              height: 6,
+              borderRadius: "50%",
+              background: "currentColor",
+            }}
+          />
+          In {attachments.count} campaign{attachments.count === 1 ? "" : "s"}
+        </>
+      ) : (
+        <>Not in a campaign</>
+      )}
+    </span>
   );
 }
 
@@ -1172,47 +1129,6 @@ function ConceptKindBadge({ kind }: { kind: "static" | "video" }) {
       <I size={9} /> {cfg.label}
     </span>
   );
-}
-
-// ─── Fresh sizes helper (used by regen) ─────────────────────────────────
-
-function freshSizes(kind: "static" | "video", baseId: string): Creative[] {
-  if (kind === "video") {
-    return [
-      makeSize(`${baseId}-v916`, "9:16", "Meta Reels", "video"),
-      makeSize(`${baseId}-v11`, "1:1", "Meta Feed", "video"),
-    ];
-  }
-  return [
-    makeSize(`${baseId}-s11`, "1:1", "Meta Feed", "image"),
-    makeSize(`${baseId}-s45`, "4:5", "Meta Feed", "image"),
-    makeSize(`${baseId}-s916`, "9:16", "Meta Stories", "image"),
-  ];
-}
-
-function makeSize(
-  id: string,
-  format: Creative["format"],
-  surface: string,
-  kind: Creative["kind"],
-): Creative {
-  return {
-    id,
-    format,
-    surface,
-    platform: "Meta",
-    kind,
-    spend: null,
-    impressions: null,
-    leads: null,
-    verified: null,
-    qualified: null,
-    ctr: null,
-    cvr: null,
-    cpl: null,
-    cpvl: null,
-    cpql: null,
-  };
 }
 
 // ─── Tiny adapter so LaunchCreativeFlow gets a fresh project snapshot ──
