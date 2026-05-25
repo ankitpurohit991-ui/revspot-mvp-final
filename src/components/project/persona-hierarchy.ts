@@ -115,9 +115,45 @@ export function conceptAggregateCpvl(concept: DerivedConcept): number | null {
   return verified > 0 ? Math.round(spend / verified) : null;
 }
 
-// ─── TOFU-based winner picker ──────────────────────────────────────────
+// ─── Campaign attachment lookup ────────────────────────────────────────
 
-import type { Persona } from "@/lib/project-data";
+import type { Persona, ProjectDetail } from "@/lib/project-data";
+
+/**
+ * How many distinct campaigns reference any of this concept's sizes
+ * (via MediaAd.creativeId). Returns 0 when the concept isn't in any
+ * campaign yet — used to surface the "Not in a campaign" badge.
+ */
+export function conceptCampaignAttachments(
+  concept: DerivedConcept,
+  project: ProjectDetail,
+): { count: number; campaignNames: string[] } {
+  const ids = new Set(concept.sizes.map((s) => s.id));
+  const names = new Set<string>();
+  for (const row of project.mediaPlan.rows) {
+    let attached = false;
+    for (const adSet of row.adSets) {
+      for (const ad of adSet.ads) {
+        if (ad.creativeId && ids.has(ad.creativeId)) {
+          attached = true;
+          break;
+        }
+      }
+      if (attached) break;
+    }
+    if (attached) names.add(row.campaign);
+  }
+  return { count: names.size, campaignNames: Array.from(names) };
+}
+
+/**
+ * Produces a short stable label for a concept within its angle. Static
+ * concepts get "A", videos get "B" (alphabetic by kind, since each
+ * angle has at most one of each in the current model).
+ */
+export function conceptShortLabel(concept: DerivedConcept): string {
+  return concept.kind === "static" ? "A" : "B";
+}
 
 /**
  * The "winning concept" for a persona, picked **purely on TOFU signal**:

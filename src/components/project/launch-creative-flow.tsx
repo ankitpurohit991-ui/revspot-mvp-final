@@ -77,6 +77,11 @@ export function LaunchCreativeFlow({
         const adSet = c?.adSets.find((a) => a.id === adSetId);
         if (!adSet) return;
         const adId = `ad-${Date.now().toString(36)}`;
+        // Pick the first size in the concept as the canonical creative
+        // for this ad. The "Add to campaign" flow can later evolve to let
+        // the user pick a specific size; for now any size suffices for
+        // the attachment check.
+        const headlineSize = concept.sizes[0];
         adSet.ads.push({
           id: adId,
           name: `${persona.name} · ${angle.name} · ${concept.kind === "video" ? "Video" : "Static"}`,
@@ -86,12 +91,13 @@ export function LaunchCreativeFlow({
           spend: 0,
           leads: 0,
           cpl: null,
+          creativeId: headlineSize?.id,
         });
       });
       setLaunching(false);
       setDone(true);
       showToast(
-        `Launched · ${persona.name} · ${angle.name} (${concept?.kind === "video" ? "video" : "static"})`,
+        `Added to ${campaign.campaign} · ${persona.name} · ${angle.name}`,
       );
       setTimeout(onClose, 900);
     }, 1300);
@@ -120,7 +126,7 @@ export function LaunchCreativeFlow({
             <Check size={14} strokeWidth={3} />
           </span>
           <div className="flex-1">
-            <div className="text-[12.5px] font-semibold leading-tight">Launched</div>
+            <div className="text-[12.5px] font-semibold leading-tight">Added to campaign</div>
             <div className="text-[11px] text-text-secondary">
               {persona.name} · {angle.name} · {concept?.kind === "video" ? "Video" : "Static"}
             </div>
@@ -153,7 +159,7 @@ export function LaunchCreativeFlow({
           <Sparkles size={11} />
         </span>
         <div className="text-[12px] font-semibold flex-1">
-          Launch new creative
+          Add this concept to a campaign
         </div>
         <button
           type="button"
@@ -234,7 +240,7 @@ export function LaunchCreativeFlow({
               cursor: ready && !launching ? "pointer" : "not-allowed",
             }}
           >
-            {launching ? "Launching…" : "Launch"} <ArrowRight size={11} />
+            {launching ? "Adding…" : "Add"} <ArrowRight size={11} />
           </button>
         </div>
       </div>
