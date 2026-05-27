@@ -1,7 +1,7 @@
 "use client";
 
 // Three KPI tiles for the top half:
-//   Enriched · Success rate (with delta vs previous period) · Failed
+//   Total leads · Enriched leads · Enrichment % (with delta vs prev period)
 
 import type { LeadProfile } from "@/lib/dashboard/types";
 
@@ -23,13 +23,13 @@ export function ReliabilityKpis({ profiles, prevProfiles }: Props) {
 
   return (
     <div className="grid grid-cols-3 gap-3 mb-3">
-      <Kpi label="Enriched" value={stats.enriched.toLocaleString("en-IN")} />
+      <Kpi label="Total leads" value={stats.attempted.toLocaleString("en-IN")} />
+      <Kpi label="Enriched leads" value={stats.enriched.toLocaleString("en-IN")} />
       <Kpi
-        label="Success rate"
+        label="Enrichment %"
         value={`${round1(stats.successRate)}%`}
         delta={delta}
       />
-      <Kpi label="Failed" value={stats.failed.toLocaleString("en-IN")} />
     </div>
   );
 }
