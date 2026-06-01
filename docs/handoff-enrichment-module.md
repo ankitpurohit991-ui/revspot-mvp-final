@@ -14419,3 +14419,11 @@ No enrichment payload exists for a not-enriched lead, and the raw object still
 carried stale verification fields. `lead-profile-card.tsx`: when `enrichment_status
 === "Zero Enrichment"`, the Raw JSON tab is hidden and the view is forced to
 Profile (input data only).
+
+### Bulk history Type column overflow fix
+The "Bulk upload history" table's TYPE column was a fixed `120px` track, too narrow
+for two full-name chips (Professional + Financial), so they overflowed into the
+STATUS column. `enrichment-crm/history-table.tsx`: changed the bulk `gridClass`
+Type column to `minmax(200px,1.3fr)` (and rebalanced Run to `minmax(220px,1.8fr)`,
+Enriched to `minmax(140px,1fr)`). Header + Row share the one `gridClass` string, so
+both fixed together. Verified on local: chips clear of Status.
