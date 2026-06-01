@@ -45,7 +45,7 @@ export function HistoryTable({ onView, forceSource, title, summaryOnly = false, 
   const single = forceSource === "single";
   const gridClass = single
     ? "grid grid-cols-[minmax(220px,1.6fr)_minmax(200px,1fr)_minmax(110px,0.8fr)_minmax(110px,0.8fr)_48px] gap-4"
-    : "grid grid-cols-[minmax(240px,2fr)_120px_minmax(150px,1.1fr)_minmax(150px,1fr)_minmax(170px,1.1fr)_110px_56px] gap-6";
+    : "grid grid-cols-[minmax(220px,1.8fr)_minmax(200px,1.3fr)_minmax(150px,1.1fr)_minmax(140px,1fr)_minmax(170px,1.1fr)_110px_56px] gap-6";
 
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
