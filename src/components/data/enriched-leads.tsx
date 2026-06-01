@@ -507,6 +507,12 @@ function flattenRunsToLeads(runs: RunRecord[]): LeadRow[] {
       // Per-lead profile. Prefer the seeded sample on the run (real shape),
       // else synthesize a minimal one so the lead drawer always has data
       // to render for any successful row.
+      // Partial = professional layer returned but financial didn't. Only
+      // possible when the run requested both. ~1 in 4 enriched-both leads.
+      // Still counts/renders as enriched; financial just shows Not Available.
+      const bothTypes = r.types.includes("professional") && r.types.includes("financial");
+      const partial = status === "enriched" && bothTypes && (seed + i) % 4 === 0;
+
       const seeded = r.leads?.[i];
       const profile: EnrichedProfile | undefined =
         seeded ??
@@ -517,6 +523,7 @@ function flattenRunsToLeads(runs: RunRecord[]): LeadRow[] {
               person,
               types: r.types,
               status,
+              partial,
             }));
 
       out.push({
@@ -547,16 +554,37 @@ function synthBulkLeadProfile(args: {
   person: { name: string; email: string; phone: string; company: string; title: string };
   types: EnrichmentType[];
   status: LeadStatus;
+  partial?: boolean;
 }): EnrichedProfile {
-  const { leadId, person, types, status } = args;
+  const { leadId, person, types, status, partial = false } = args;
   const wantsPro = types.includes("professional");
   const wantsFin = types.includes("financial");
-  const isPartial = status === "not_enriched";
+
+  // Not enriched: the API WAS called but returned nothing. Only the uploaded
+  // identity survives — no professional, no financial layer.
+  if (status === "not_enriched") {
+    return {
+      lead_id: leadId,
+      enrichment_status: "Zero Enrichment",
+      finance_data: "Not Available",
+      valid_indian_name: true,
+      // Only the input identity from the CSV — no enriched layers, no fabricated
+      // phone, no verification (nothing came back from the API).
+      contact: { name: person.name, email: person.email },
+      professional: undefined,
+      financial: undefined,
+    };
+  }
+
+  // Enriched: some or all requested layers came back. "partial" = professional
+  // found but financial missing. We bill for what returned and still count it
+  // as enriched (financial just shows "Not Available").
+  const giveFin = wantsFin && !partial;
 
   return {
     lead_id: leadId,
-    enrichment_status: isPartial ? "Partial Enrichment" : "Fully Enriched",
-    finance_data: wantsFin && !isPartial ? "Available" : "Not Available",
+    enrichment_status: partial ? "Partial Enrichment" : "Fully Enriched",
+    finance_data: giveFin ? "Available" : "Not Available",
     email_verification_status: "Valid",
     phone_verification_status: "Valid",
     valid_indian_name: true,
@@ -565,7 +593,7 @@ function synthBulkLeadProfile(args: {
       email: person.email,
       phone: person.phone,
     },
-    professional: wantsPro && !isPartial
+    professional: wantsPro
       ? {
           ...sampleProfile.professional,
           name: person.name,
@@ -573,7 +601,7 @@ function synthBulkLeadProfile(args: {
           company_name: person.company,
         }
       : undefined,
-    financial: wantsFin && !isPartial ? sampleProfile.financial : undefined,
+    financial: giveFin ? sampleProfile.financial : undefined,
   };
 }
 
@@ -911,7 +939,7 @@ function LeadProfileDrawer({ lead, onClose }: { lead: LeadRow | null; onClose: (
               <div className="text-[13px] font-medium text-text-primary mb-1">No enriched data</div>
               <div className="text-[12px] text-text-secondary">
                 {lead.status === "failed"
-                  ? "This lead failed enrichment."
+                  ? "We couldn't enrich this lead. No credits were charged."
                   : lead.status === "running"
                   ? "Enrichment still in progress."
                   : "Nothing to show for this lead yet."}

@@ -40,6 +40,13 @@ export function HistoryTable({ onView, forceSource, title, summaryOnly = false, 
   const runs = useEnrichmentCrmStore((s) => s.runs);
   const router = useRouter();
 
+  // Single-lookup view only ever shows successful results, so Status and the
+  // "n of n" Enriched column are dropped — both are always trivially 100%.
+  const single = forceSource === "single";
+  const gridClass = single
+    ? "grid grid-cols-[minmax(220px,1.6fr)_minmax(200px,1fr)_minmax(110px,0.8fr)_minmax(110px,0.8fr)_48px] gap-4"
+    : "grid grid-cols-[minmax(240px,2fr)_120px_minmax(150px,1.1fr)_minmax(150px,1fr)_minmax(170px,1.1fr)_110px_56px] gap-6";
+
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState<TypeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -52,6 +59,9 @@ export function HistoryTable({ onView, forceSource, title, summaryOnly = false, 
 
     // Hard lock when caller forces a source.
     if (forceSource) out = out.filter((r) => r.source === forceSource);
+
+    // Single-lookup table surfaces successful enrichments only.
+    if (single) out = out.filter((r) => r.status === "done");
 
     if (typeFilter !== "all") {
       out = out.filter((r) => {
@@ -107,17 +117,17 @@ export function HistoryTable({ onView, forceSource, title, summaryOnly = false, 
             />
           </div>
 
-          <FilterChip
-            label="Status"
-            value={statusFilter}
-            onChange={(v) => setStatusFilter(v as StatusFilter)}
-            options={[
-              { v: "all", label: "Any status" },
-              { v: "done", label: "Done" },
-              { v: "in_progress", label: "Running" },
-              { v: "failed", label: "Failed" },
-            ]}
-          />
+          {!single && (
+            <FilterChip
+              label="Status"
+              value={statusFilter}
+              onChange={(v) => setStatusFilter(v as StatusFilter)}
+              options={[
+                { v: "all", label: "Any status" },
+                { v: "in_progress", label: "Running" },
+              ]}
+            />
+          )}
           <FilterChip
             label="Type"
             value={typeFilter}
@@ -156,11 +166,11 @@ export function HistoryTable({ onView, forceSource, title, summaryOnly = false, 
 
       {/* Table */}
       <div className="bg-white border border-border rounded-card overflow-hidden">
-        <div className="grid grid-cols-[minmax(240px,2fr)_120px_minmax(150px,1.1fr)_minmax(150px,1fr)_minmax(170px,1.1fr)_110px_56px] gap-6 px-6 py-3.5 bg-surface-page border-b border-border text-[11px] uppercase tracking-[0.4px] text-text-tertiary font-medium">
+        <div className={`${gridClass} px-6 py-3.5 bg-surface-page border-b border-border text-[11px] uppercase tracking-[0.4px] text-text-tertiary font-medium`}>
           <div>Run</div>
           <div>Type</div>
-          <div>Status</div>
-          <div>Enriched</div>
+          {!single && <div>Status</div>}
+          {!single && <div>Enriched</div>}
           <div>Credits</div>
           <div>Started</div>
           <div></div>
@@ -201,6 +211,8 @@ export function HistoryTable({ onView, forceSource, title, summaryOnly = false, 
                 onBuildAudience={() => onBuildAudience(run)}
                 summaryOnly={summaryOnly || expired}
                 expired={expired}
+                single={single}
+                gridClass={gridClass}
               />
             );
           })
@@ -212,7 +224,7 @@ export function HistoryTable({ onView, forceSource, title, summaryOnly = false, 
 
 // ── Row ─────────────────────────────────────────────────────────────
 
-function Row({ run, onView, onBuildAudience, summaryOnly = false, expired = false }: { run: RunRecord; onView: () => void; onBuildAudience: () => void; summaryOnly?: boolean; expired?: boolean }) {
+function Row({ run, onView, onBuildAudience, summaryOnly = false, expired = false, single = false, gridClass }: { run: RunRecord; onView: () => void; onBuildAudience: () => void; summaryOnly?: boolean; expired?: boolean; single?: boolean; gridClass: string }) {
   const isInProgress = run.status === "in_progress";
   const enrichedNow = isInProgress
     ? Math.round((run.progressPct || 0) * run.leadsTotal / 100)
@@ -221,7 +233,7 @@ function Row({ run, onView, onBuildAudience, summaryOnly = false, expired = fals
   return (
     <div
       onClick={onView}
-      className="grid grid-cols-[minmax(240px,2fr)_120px_minmax(150px,1.1fr)_minmax(150px,1fr)_minmax(170px,1.1fr)_110px_56px] gap-6 px-6 py-5 items-center border-b border-border-subtle last:border-b-0 hover:bg-surface-page transition-colors cursor-pointer"
+      className={`${gridClass} px-6 py-5 items-center border-b border-border-subtle last:border-b-0 hover:bg-surface-page transition-colors cursor-pointer`}
     >
       {/* Run identity */}
       <div className="min-w-0">
@@ -241,15 +253,19 @@ function Row({ run, onView, onBuildAudience, summaryOnly = false, expired = fals
       </div>
 
       {/* Status */}
-      <div>
-        <StatusCell run={run} />
-      </div>
+      {!single && (
+        <div>
+          <StatusCell run={run} />
+        </div>
+      )}
 
       {/* Enriched */}
-      <div className="text-[13px] text-text-primary tabular-nums">
-        <span className="font-medium">{enrichedNow.toLocaleString("en-IN")}</span>
-        <span className="text-text-secondary"> of {run.leadsTotal.toLocaleString("en-IN")}</span>
-      </div>
+      {!single && (
+        <div className="text-[13px] text-text-primary tabular-nums">
+          <span className="font-medium">{enrichedNow.toLocaleString("en-IN")}</span>
+          <span className="text-text-secondary"> of {run.leadsTotal.toLocaleString("en-IN")}</span>
+        </div>
+      )}
 
       {/* Credits */}
       <div className="text-[13px] tabular-nums leading-snug">
@@ -281,7 +297,7 @@ function Row({ run, onView, onBuildAudience, summaryOnly = false, expired = fals
 function TypePill({ types }: { types: EnrichmentType[] }) {
   // One tag per type, full name, color-coded.
   return (
-    <div className="flex flex-wrap items-center gap-1">
+    <div className="flex items-center gap-1.5">
       {types.map((t) => (
         <span key={t} className={`inline-flex items-center text-[12px] font-medium px-2 py-0.5 rounded-badge whitespace-nowrap ${typeColor(t)}`}>
           {typeLabel(t)}

@@ -1,21 +1,8 @@
-"use client";
+import { redirect } from "next/navigation";
 
-// /contact-extraction, base/Dashboard tab for the Contact extraction module.
-// Demo placeholder for the second data product.
-
-import { DataPageShell } from "@/components/data/data-page-shell";
-import { ContactExtractionDashboard } from "@/components/data/contact-extraction-dashboard";
-
-export default function ContactExtractionDashboardPage() {
-  return (
-    <DataPageShell
-      variant="connected"
-      title="Contact extraction"
-      rootLabel="Contact extraction"
-      rootHref="/contact-extraction"
-      description="Pull verified contacts from websites, directories, and uploaded lists. Pushes clean rows back to the same CRM you use for enrichment."
-    >
-      {() => <ContactExtractionDashboard />}
-    </DataPageShell>
-  );
+// The Contact-extraction module has no standalone landing page. Clicking the
+// parent nav item opens Extract (the primary action) by default, mirroring how
+// Enrichment lands on its main tab.
+export default function ContactExtractionPage() {
+  redirect("/contact-extraction/operations");
 }

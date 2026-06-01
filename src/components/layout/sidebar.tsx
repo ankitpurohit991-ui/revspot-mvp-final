@@ -79,8 +79,8 @@ const navSections = [
         href: "/contact-extraction",
         icon: ContactRound,
         children: [
-          { name: "Extract",            href: "/contact-extraction/operations", icon: ScanLine },
-          { name: "Extracted contacts", href: "/contact-extraction/database",   icon: ListChecks },
+          { name: "New extraction", href: "/contact-extraction/operations", icon: ScanLine },
+          { name: "All contacts",   href: "/contact-extraction/database",   icon: ListChecks },
         ],
       },
       { name: "Creatives", href: "/creatives", icon: ImageIcon },

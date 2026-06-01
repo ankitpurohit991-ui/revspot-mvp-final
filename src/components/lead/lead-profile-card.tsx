@@ -44,6 +44,11 @@ export function LeadProfileCard({ profile, variant = "inline", onExpand }: LeadP
   const [tab, setTab] = useState<Tab>("profile");
   const [copied, setCopied] = useState(false);
 
+  // Not enriched = API returned nothing. There's no enrichment payload to show,
+  // so hide the Raw JSON tab entirely (Profile shows the input data only).
+  const notEnriched = profile.enrichment_status === "Zero Enrichment";
+  const activeTab: Tab = notEnriched ? "profile" : tab;
+
   const onCopy = async () => {
     try {
       await navigator.clipboard.writeText(JSON.stringify(profile, null, 2));
@@ -69,15 +74,17 @@ export function LeadProfileCard({ profile, variant = "inline", onExpand }: LeadP
       {/* Tab strip */}
       <div className="flex items-center justify-between px-4 pt-3 border-b border-border-subtle">
         <div className="flex items-center gap-1">
-          <TabButton active={tab === "profile"} onClick={() => setTab("profile")}>
+          <TabButton active={activeTab === "profile"} onClick={() => setTab("profile")}>
             Profile
           </TabButton>
-          <TabButton active={tab === "json"} onClick={() => setTab("json")}>
-            Raw JSON
-          </TabButton>
+          {!notEnriched && (
+            <TabButton active={activeTab === "json"} onClick={() => setTab("json")}>
+              Raw JSON
+            </TabButton>
+          )}
         </div>
         <div className="flex items-center gap-1.5 pb-2">
-          {tab === "json" && (
+          {activeTab === "json" && (
             <>
               <IconButton onClick={onCopy} label={copied ? "Copied" : "Copy"}>
                 <Copy size={13} strokeWidth={1.5} />
@@ -101,7 +108,7 @@ export function LeadProfileCard({ profile, variant = "inline", onExpand }: LeadP
       </div>
 
       {/* Tab content */}
-      {tab === "profile" ? (
+      {activeTab === "profile" ? (
         <ProfileTab profile={profile} />
       ) : (
         <JsonTab profile={profile} />
@@ -142,6 +149,7 @@ function ProfileTab({ profile }: { profile: EnrichedProfile }) {
   const pro = profile.professional;
   const fin = profile.financial;
   const contact = profile.contact;
+  const notEnriched = profile.enrichment_status === "Zero Enrichment";
 
   // Header source of truth: pro block if present, otherwise typed input.
   const headerName = pro?.name || contact?.name || contact?.email || contact?.phone || "Unknown";
@@ -209,25 +217,19 @@ function ProfileTab({ profile }: { profile: EnrichedProfile }) {
               </div>
             )}
 
-            {pro?.languages && pro.languages.length > 0 && (
-              <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-                {pro.languages.map((lang) => (
-                  <span key={lang} className="text-[11px] px-1.5 py-0.5 rounded-badge bg-surface-secondary text-text-secondary">
-                    {lang}
-                  </span>
-                ))}
-              </div>
-            )}
           </div>
         </div>
       )}
 
-      {/* Contact bar, email + phone with copy. LinkedIn lives in header above. */}
+      {/* Contact bar, email + phone with copy. LinkedIn lives in header above.
+          For not-enriched leads (Zero Enrichment) nothing came back from the
+          API, so we only show the data that was input — no verification badges. */}
       <ContactBar
         email={contact?.email}
         phone={contact?.phone}
-        emailVerified={profile.email_verification_status}
-        phoneVerified={profile.phone_verification_status}
+        emailVerified={notEnriched ? undefined : profile.email_verification_status}
+        phoneVerified={notEnriched ? undefined : profile.phone_verification_status}
+        label={notEnriched ? "Input data" : undefined}
       />
 
       {/* Professional sub-card */}
@@ -299,6 +301,20 @@ function ProfileTab({ profile }: { profile: EnrichedProfile }) {
         </DataCard>
       )}
 
+      {/* Partial enrichment: professional came back, financial didn't. Still
+          counted as enriched — financial layer just shows as not available. */}
+      {pro && !fin && profile.enrichment_status === "Partial Enrichment" && (
+        <DataCard
+          accent="fin"
+          icon={<TrendingUp size={13} strokeWidth={1.75} />}
+          title="Financial"
+        >
+          <div className="text-[12px] text-text-tertiary leading-relaxed">
+            No financial data returned for this lead. No financial credits were charged.
+          </div>
+        </DataCard>
+      )}
+
     </div>
   );
 }
@@ -310,16 +326,23 @@ function ContactBar({
   phone,
   emailVerified,
   phoneVerified,
+  label,
 }: {
   email?: string;
   phone?: string;
   emailVerified?: string;
   phoneVerified?: string;
+  label?: string;
 }) {
   if (!email && !phone) return null;
 
   return (
     <section className="border border-border-subtle rounded-card bg-surface-page/60 p-3 space-y-2">
+      {label && (
+        <div className="text-[10.5px] font-medium uppercase tracking-[0.4px] text-text-tertiary pb-0.5">
+          {label}
+        </div>
+      )}
       {email && (
         <ContactRow
           icon={<Mail size={14} strokeWidth={1.5} />}
@@ -343,14 +366,18 @@ function ContactBar({
 }
 
 function EnrichmentStatusBadge({ status }: { status: string }) {
-  const map: Record<string, string> = {
-    "Fully Enriched": "bg-[#F0FDF4] text-[#15803D]",
-    "Partial Enrichment": "bg-[#FFFBEB] text-[#B45309]",
-    "Zero Enrichment": "bg-[#FEF2F2] text-[#DC2626]",
+  // Partial counts as enriched: professional layer found, financial missing.
+  // We bill for what returned and still call it enriched. Only Zero Enrichment
+  // (API called, nothing back) reads as "Not enriched".
+  const map: Record<string, { cls: string; label: string }> = {
+    "Fully Enriched": { cls: "bg-[#F0FDF4] text-[#15803D]", label: "Enriched" },
+    "Partial Enrichment": { cls: "bg-[#F0FDF4] text-[#15803D]", label: "Enriched" },
+    "Zero Enrichment": { cls: "bg-[#FEF2F2] text-[#DC2626]", label: "Not enriched" },
   };
+  const m = map[status] || { cls: "bg-surface-secondary text-text-secondary", label: status };
   return (
-    <span className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-badge ${map[status] || "bg-surface-secondary text-text-secondary"}`}>
-      {status}
+    <span className={`inline-flex items-center text-[10px] font-medium px-1.5 py-0.5 rounded-badge ${m.cls}`}>
+      {m.label}
     </span>
   );
 }

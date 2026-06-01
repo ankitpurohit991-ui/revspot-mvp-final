@@ -1,27 +1,19 @@
 "use client";
 
-// /contact-extraction/operations, where extraction actually happens (demo).
-
-import { useRouter } from "next/navigation";
+// /contact-extraction/operations, where extraction runs are started.
+// Bulk (CSV of LinkedIn URLs) first, then Single (one URL).
 
 import { DataPageShell } from "@/components/data/data-page-shell";
-import { ContactExtraction } from "@/components/data/contact-extraction";
+import { ContactExtractionOperations } from "@/components/data/contact-extraction/operations";
 
 export default function ContactExtractionOperationsPage() {
-  const router = useRouter();
   return (
     <DataPageShell
       variant="connected"
-      title="Extract"
-      rootLabel="Contact extraction"
-      rootHref="/contact-extraction"
-      breadcrumbTrail={[
-        { label: "Contact extraction", href: "/contact-extraction" },
-        { label: "Extract" },
-      ]}
-      description="Point us at a website or upload a list. We crawl, dedupe, and verify."
+      title="New extraction"
+      description="Upload a list of LinkedIn URLs or paste a single one. Pick which contact types to pull and whether to verify."
     >
-      {() => <ContactExtraction onBack={() => router.push("/contact-extraction")} />}
+      {() => <ContactExtractionOperations />}
     </DataPageShell>
   );
 }

@@ -1,31 +1,25 @@
 "use client";
 
-// /contact-extraction/database, extracted contacts DB (demo placeholder).
+// /contact-extraction/database, every extracted contact with a per-field
+// verification status. Wrapped in Suspense because the table reads ?run= via
+// useSearchParams.
 
-import { ContactRound } from "lucide-react";
+import { Suspense } from "react";
 
 import { DataPageShell } from "@/components/data/data-page-shell";
-import { EmptyState } from "@/components/layout/empty-state";
+import { ContactExtractionDatabase } from "@/components/data/contact-extraction/database";
 
 export default function ContactExtractionDatabasePage() {
   return (
     <DataPageShell
       variant="connected"
-      title="Extracted contacts"
-      rootLabel="Contact extraction"
-      rootHref="/contact-extraction"
-      breadcrumbTrail={[
-        { label: "Contact extraction", href: "/contact-extraction" },
-        { label: "Extracted contacts" },
-      ]}
-      description="Every contact extracted so far. Filter, search, and push rows to your CRM."
+      title="All contacts"
+      description="Every contact extracted so far, with phone, personal email, and work email plus their verification status."
     >
       {() => (
-        <EmptyState
-          illustration={<ContactRound size={36} strokeWidth={1.25} className="text-text-tertiary" />}
-          title="Contacts database, coming soon"
-          description="Once the real crawler ships, every verified contact will land here ready to push to your CRM."
-        />
+        <Suspense fallback={null}>
+          <ContactExtractionDatabase />
+        </Suspense>
       )}
     </DataPageShell>
   );
