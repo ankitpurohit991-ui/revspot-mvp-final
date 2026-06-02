@@ -269,7 +269,9 @@ function Row({ run, onView, onBuildAudience, summaryOnly = false, expired = fals
         ) : (
           <div>
             <div className="text-text-primary font-medium">{run.creditsCharged.toLocaleString("en-IN")} used</div>
-            {run.creditsRefunded > 0 && (
+            {/* Single lookups only charge on a successful enrich, so there's
+                never a refund to surface — hide the refunded line for single. */}
+            {!single && run.creditsRefunded > 0 && (
               <div className="text-text-secondary text-[12px] mt-0.5">+{run.creditsRefunded.toLocaleString("en-IN")} refunded</div>
             )}
           </div>
